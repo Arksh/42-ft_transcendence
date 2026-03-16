@@ -9,14 +9,26 @@ export default function GameBoard() {
 	
 	const tm = useRef(new TurnManager(players));
 	const canvasRef = useRef(null);
+	const pickingCanvasRef = useRef(null);
 	
 	const [currentPlayer, setCurrentPlayer] = useState(tm.current.getCurrentPlayer());
 	const [phase, setPhase] = useState(tm.current.phase);
 	
 	useEffect(() => {
 		const canvas = canvasRef.current;
+		const pickingCanvas = pickingCanvasRef.current;
 		const ctx = canvas.getContext("2d");
+		const pCtx = pickingCanvas.getContext("2d");
 		
+		// Dibuja los territorios en el canvas de picking
+		Object.entries(TERRITORIES).forEach(([id, territory]) => {
+			pCtx.beginPath();
+			pCtx.arc(territory.cx, territory.cy, 15, 0, Math.PI * 2);
+			pCtx.fillStyle = territory.colorKey;
+			pCtx.fill();
+		});
+
+		// Dibuja las conexiones entre territorios
 		Object.entries(TERRITORIES).forEach(([id, territory]) => {
 		territory.neighbors.forEach(neighborId => {
 			const neighbor = TERRITORIES[neighborId];
@@ -31,6 +43,7 @@ export default function GameBoard() {
 			});
 		});
 
+		// Dibuja los territorios en el canvas principal
 		Object.entries(TERRITORIES).forEach(([id, territory]) => {
 			ctx.beginPath();
 			ctx.arc(territory.cx, territory.cy, 10, 0, Math.PI * 2);
@@ -51,12 +64,37 @@ export default function GameBoard() {
 		setPhase(tm.current.phase);
 	}
 
+	function handleCanvasClick(e)
+	{
+		const canvas = canvasRef.current;
+		const rect = canvas.getBoundingClientRect();
+		const x = e.clientX - rect.left;
+		const y = e.clientY - rect.top;
+
+		const pickingCanvas = pickingCanvasRef.current;
+		const pCtx = pickingCanvas.getContext("2d");
+		const pixel = pCtx.getImageData(x, y, 1, 1).data;
+		const colorKey = "#" + [pixel[0], pixel[1], pixel[2]]
+			.map(c => c.toString(16).padStart(2, "0"))
+			.join("");
+
+		// Busca el territorio correspondiente al colorKey
+		const territory = Object.values(TERRITORIES).find(t => t.colorKey === colorKey);
+		if (territory) {
+			console.log("Territorio seleccionado:", territory.name);
+		} else {
+			console.log("No se seleccionó ningún territorio");
+		}
+	}
+
+
 	return (
 		<div>
 			<h1>Great Risk</h1>
 			<h2>Turno de: {currentPlayer.name}</h2>
 			<p>Fase: {phase}</p>
-			<canvas ref={canvasRef} width={750} height={500} style={{ border: "1px solid black" }}/>
+			<canvas ref={canvasRef} width={800} height={600} style={{ border: "1px solid black" }} onClick={handleCanvasClick}/>
+			<canvas ref={pickingCanvasRef} width={800} height={600} style={{ display: "none" }}/>
 			<br></br>
 			<button onClick={handleNextTurn}>Siguiente turno</button>
 		</div>
