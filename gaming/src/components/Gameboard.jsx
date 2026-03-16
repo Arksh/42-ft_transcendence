@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import Player, { createMockPlayers }  from "../game/Player.js";
 import TurnManager from "../game/TurnManager.js";
 import { TERRITORIES } from "../game/Territories.js";
+import { FACTIONS, NEUTRAL_TERRITORIES } from "../game/Factions.js";
 import mapPicking from "../assets/map_picking.png";
 
 export default function GameBoard() {
@@ -15,6 +16,24 @@ export default function GameBoard() {
 	const [currentPlayer, setCurrentPlayer] = useState(tm.current.getCurrentPlayer());
 	const [phase, setPhase] = useState(tm.current.phase);
 	const [selectedTerritory, setSelectedTerritory] = useState(null);
+
+	const [territoryOwners, setTerritoryOwners] = useState(() => {
+		const owners = {};
+
+		// Asigna territorios a facciones
+		Object.entries(FACTIONS).forEach(([factionId, faction]) => {
+			faction.territories.forEach(territoryId => {
+				owners[territoryId] = factionId;
+			});
+		});
+
+		// Asigna territorios neutrales
+		NEUTRAL_TERRITORIES.forEach(territoryId => {
+			owners[territoryId] = null; // null indica neutral
+		});
+		
+		return owners;
+	});
 	
 	useEffect(() => {
 		const canvas = canvasRef.current;
@@ -28,7 +47,7 @@ export default function GameBoard() {
 		pCtx.drawImage(img, 0, 0, 800, 600);
 		};
 		
-
+		
 		// Dibuja los territorios en el canvas de picking
 		Object.entries(TERRITORIES).forEach(([id, territory]) => {
 			pCtx.beginPath();
@@ -63,9 +82,11 @@ export default function GameBoard() {
 
 		// Dibuja los territorios en el canvas principal
 		Object.entries(TERRITORIES).forEach(([id, territory]) => {
+			const factionId = territoryOwners[id];
+			const factionColor = factionId === "neutral" ? "#888888" : FACTIONS[factionId]?.color ?? "#888888";
+			ctx.fillStyle = factionColor;
 			ctx.beginPath();
 			ctx.arc(territory.cx, territory.cy, 10, 0, Math.PI * 2);
-			ctx.fillStyle = "gray";
 			ctx.fill();
 			ctx.strokeStyle = "white";
 			ctx.stroke();
