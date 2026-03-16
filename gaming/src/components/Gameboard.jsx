@@ -13,6 +13,7 @@ export default function GameBoard() {
 	
 	const [currentPlayer, setCurrentPlayer] = useState(tm.current.getCurrentPlayer());
 	const [phase, setPhase] = useState(tm.current.phase);
+	const [selectedTerritory, setSelectedTerritory] = useState(null);
 	
 	useEffect(() => {
 		const canvas = canvasRef.current;
@@ -20,6 +21,7 @@ export default function GameBoard() {
 		const ctx = canvas.getContext("2d");
 		const pCtx = pickingCanvas.getContext("2d");
 		
+
 		// Dibuja los territorios en el canvas de picking
 		Object.entries(TERRITORIES).forEach(([id, territory]) => {
 			pCtx.beginPath();
@@ -78,10 +80,13 @@ export default function GameBoard() {
 			.map(c => c.toString(16).padStart(2, "0"))
 			.join("");
 
+		console.log("Color leído:", colorKey);
+		console.log("Colores disponibles:", Object.values(TERRITORIES).map(t => t.colorKey));
 		// Busca el territorio correspondiente al colorKey
 		const territory = Object.values(TERRITORIES).find(t => t.colorKey === colorKey);
 		if (territory) {
 			console.log("Territorio seleccionado:", territory.name);
+			setSelectedTerritory({id: territory.id, ...territory});
 		} else {
 			console.log("No se seleccionó ningún territorio");
 		}
@@ -93,6 +98,9 @@ export default function GameBoard() {
 			<h1>Great Risk</h1>
 			<h2>Turno de: {currentPlayer.name}</h2>
 			<p>Fase: {phase}</p>
+			{selectedTerritory && (
+  			  <p>Seleccionado: {selectedTerritory.name} — Capital: {selectedTerritory.capital}</p>
+			  )}
 			<canvas ref={canvasRef} width={800} height={600} style={{ border: "1px solid black" }} onClick={handleCanvasClick}/>
 			<canvas ref={pickingCanvasRef} width={800} height={600} style={{ display: "none" }}/>
 			<br></br>
