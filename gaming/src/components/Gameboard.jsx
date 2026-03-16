@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import Player, { createMockPlayers }  from "../game/Player.js";
 import TurnManager from "../game/TurnManager.js";
 import { TERRITORIES } from "../game/Territories.js";
+import mapPicking from "../assets/map_picking.png";
 
 export default function GameBoard() {
 	const playerRecords = createMockPlayers(3);
@@ -10,16 +11,22 @@ export default function GameBoard() {
 	const tm = useRef(new TurnManager(players));
 	const canvasRef = useRef(null);
 	const pickingCanvasRef = useRef(null);
-	
+
 	const [currentPlayer, setCurrentPlayer] = useState(tm.current.getCurrentPlayer());
 	const [phase, setPhase] = useState(tm.current.phase);
 	const [selectedTerritory, setSelectedTerritory] = useState(null);
 	
 	useEffect(() => {
 		const canvas = canvasRef.current;
-		const pickingCanvas = pickingCanvasRef.current;
 		const ctx = canvas.getContext("2d");
+		
+		const pickingCanvas = pickingCanvasRef.current;
 		const pCtx = pickingCanvas.getContext("2d");
+		const img = new Image();
+		img.src = mapPicking;
+		img.onload = () => {
+		pCtx.drawImage(img, 0, 0, 800, 600);
+		};
 		
 
 		// Dibuja los territorios en el canvas de picking
@@ -29,6 +36,15 @@ export default function GameBoard() {
 			pCtx.fillStyle = territory.colorKey;
 			pCtx.fill();
 		});
+
+		// img.onload = () => {
+		// pCtx.drawImage(img, 0, 0, 800, 600);
+		
+		// // DEBUG: dibuja la imagen de picking semitransparente encima del canvas visible
+		// ctx.globalAlpha = 0.4;
+		// ctx.drawImage(img, 0, 0, 800, 600);
+		// ctx.globalAlpha = 1.0;
+		// };	
 
 		// Dibuja las conexiones entre territorios
 		Object.entries(TERRITORIES).forEach(([id, territory]) => {
