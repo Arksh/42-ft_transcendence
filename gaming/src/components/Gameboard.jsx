@@ -4,6 +4,7 @@ import TurnManager from '../game/TurnManager.js';
 import { TERRITORIES } from '../game/Territories.js';
 import { FACTIONS, NEUTRAL_TERRITORIES } from '../game/Factions.js';
 import mapPicking from '../assets/map_picking.png';
+import { calculateScore, checkCapitalVictory, getScoreWinner } from '../game/Victory.js';
 
 export default function GameBoard() {
   const playerRecords = createMockPlayers(3);
@@ -16,8 +17,12 @@ export default function GameBoard() {
   const [currentPlayer, setCurrentPlayer] = useState(tm.current.getCurrentPlayer());
   const [phase, setPhase] = useState(tm.current.phase);
 
-  const [selectedTerritory, setSelectedTerritory] = useState(null);
+  const MAX_TURNS = 100;
+  const [turn, setTurn] = useState(1);
+  const [winner, setWinner] = useState(null);
+  const [activeFactions] = useState(players.map((p) => p.faction));
 
+  const [selectedTerritory, setSelectedTerritory] = useState(null);
   const [reinforcementsLeft, setReinforcementsLeft] = useState(0);
 
   const [attackFrom, setAttackFrom] = useState(null);
@@ -50,7 +55,13 @@ export default function GameBoard() {
   const [troopCount, setTroopCount] = useState(() => {
     const counts = {};
     Object.keys(TERRITORIES).forEach((territoryId) => {
-      counts[territoryId] = 3; // Inicialmente con 3 tropas
+      if (NEUTRAL_TERRITORIES.includes(territoryId) && !TERRITORIES[territoryId].isRegCapital) {
+        counts[territoryId] = 2; // Inicialmente con 2 tropas
+      } else if (TERRITORIES[territoryId].isRegCapital) {
+        counts[territoryId] = 3; // Capitales regionales empiezan con 3 tropas
+      } else {
+        counts[territoryId] = 2; // Otros territorios empiezan con 2 tropas
+      }
     });
     return counts;
   });
@@ -116,13 +127,32 @@ export default function GameBoard() {
   }, [territoryOwners]);
 
   async function handleNextTurn() {
+    if (winner) return;
+
     const nextPlayer = await tm.current.nextTurn();
     setCurrentPlayer(nextPlayer);
     setPhase(tm.current.phase);
 
     if (tm.current.phase === TurnManager.PHASES.REINFORCE) {
-      const reinforcements = calculateReinforcements(nextPlayer.faction);
-      setReinforcementsLeft(reinforcements);
+      const newTurn = turn + 1;
+      setTurn(newTurn);
+      setReinforcementsLeft(calculateReinforcements(nextPlayer.faction));
+
+      // Comprueba victoria por capitales
+      const capitalWinner = activeFactions.find((fId) =>
+        checkCapitalVictory(fId, territoryOwners, activeFactions)
+      );
+      if (capitalWinner) {
+        setWinner({ factionId: capitalWinner, reason: 'capitals' });
+        return;
+      }
+
+      // Comprueba victoria por turnos
+      if (newTurn > MAX_TURNS) {
+        const scoreWinner = getScoreWinner(territoryOwners, activeFactions);
+        setWinner({ factionId: scoreWinner, reason: 'score' });
+        return;
+      }
       console.log(`Jugador ${nextPlayer.name} recibe ${reinforcements} tropas para reforzar.`);
     }
 
@@ -469,6 +499,32 @@ export default function GameBoard() {
           </div>
         )}
       </div>
+
+      {winner && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            backgroundColor: 'rgba(0,0,0,0.9)',
+            color: 'white',
+            padding: '30px',
+            borderRadius: '10px',
+            textAlign: 'center',
+            zIndex: 20,
+            fontFamily: 'monospace',
+          }}
+        >
+          <h2>¡{FACTIONS[winner.factionId].name} gana!</h2>
+          <p>
+            {winner.reason === 'capitals'
+              ? 'Ha conquistado todas las capitales enemigas'
+              : `Victoria por puntos — ${calculateScore(winner.factionId, territoryOwners)} pts`}
+          </p>
+          <button onClick={() => window.location.reload()}>Nueva partida</button>
+        </div>
+      )}
 
       <div style={{ marginTop: '12px' }}>
         <button

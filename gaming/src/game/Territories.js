@@ -3,6 +3,7 @@ export const TERRITORIES = {
   scotland: {
     name: 'Scotland',
     capital: 'Glasgow',
+    isRegCapital: false,
     colorKey: '#cccc33',
     cx: 230,
     cy: 50,
@@ -11,6 +12,7 @@ export const TERRITORIES = {
   ireland: {
     name: 'Ireland',
     capital: 'Dublin',
+    isRegCapital: false,
     colorKey: '#05ff23',
     cx: 160,
     cy: 100,
@@ -19,6 +21,7 @@ export const TERRITORIES = {
   england: {
     name: 'England',
     capital: 'London',
+    isRegCapital: true,
     colorKey: '#ff4005',
     cx: 240,
     cy: 160,
@@ -27,6 +30,7 @@ export const TERRITORIES = {
   norway: {
     name: 'Norway',
     capital: 'Oslo',
+    isRegCapital: false,
     colorKey: '#ff9905',
     cx: 380,
     cy: 20,
@@ -35,6 +39,7 @@ export const TERRITORIES = {
   sweden: {
     name: 'Sweden',
     capital: 'Stockholm',
+    isRegCapital: true,
     colorKey: '#4a66f7',
     cx: 470,
     cy: 30,
@@ -43,6 +48,7 @@ export const TERRITORIES = {
   denmark: {
     name: 'Denmark',
     capital: 'Copenhagen',
+    isRegCapital: false,
     colorKey: '#ff5d05',
     cx: 390,
     cy: 110,
@@ -53,6 +59,7 @@ export const TERRITORIES = {
   france: {
     name: 'France',
     capital: 'Paris',
+    isRegCapital: true,
     colorKey: '#010ce1',
     cx: 250,
     cy: 220,
@@ -61,6 +68,7 @@ export const TERRITORIES = {
   catalonia: {
     name: 'Catalonia',
     capital: 'Barcelona',
+    isRegCapital: false,
     colorKey: '#f4a398',
     cx: 230,
     cy: 355,
@@ -69,6 +77,7 @@ export const TERRITORIES = {
   spain: {
     name: 'Spain',
     capital: 'Madrid',
+    isRegCapital: true,
     colorKey: '#2841fe',
     cx: 130,
     cy: 365,
@@ -77,6 +86,7 @@ export const TERRITORIES = {
   portugal: {
     name: 'Portugal',
     capital: 'Lisbon',
+    isRegCapital: false,
     colorKey: '#64fa00',
     cx: 40,
     cy: 365,
@@ -87,6 +97,7 @@ export const TERRITORIES = {
   batavia: {
     name: 'Low Countries',
     capital: 'Amsterdam',
+    isRegCapital: true,
     colorKey: '#5bf9a5',
     cx: 310,
     cy: 150,
@@ -95,6 +106,7 @@ export const TERRITORIES = {
   belgium: {
     name: 'Belgium',
     capital: 'Waterloo',
+    isRegCapital: false,
     colorKey: '#ef6394',
     cx: 305,
     cy: 185,
@@ -103,6 +115,7 @@ export const TERRITORIES = {
   hanover: {
     name: 'Hanover',
     capital: 'Hanover',
+    isRegCapital: false,
     colorKey: '#eec400',
     cx: 370,
     cy: 160,
@@ -111,6 +124,7 @@ export const TERRITORIES = {
   rhine_west: {
     name: 'Rhineland',
     capital: 'Cologne',
+    isRegCapital: false,
     colorKey: '#9f4dfb',
     cx: 345,
     cy: 190,
@@ -119,6 +133,7 @@ export const TERRITORIES = {
   saxony: {
     name: 'Saxony',
     capital: 'Dresden',
+    isRegCapital: false,
     colorKey: '#f5e2d1',
     cx: 400,
     cy: 180,
@@ -127,6 +142,7 @@ export const TERRITORIES = {
   bavaria: {
     name: 'Bavaria',
     capital: 'Munich',
+    isRegCapital: false,
     colorKey: '#98e8f4',
     cx: 380,
     cy: 230,
@@ -135,6 +151,7 @@ export const TERRITORIES = {
   helvetia: {
     name: 'Switzerland',
     capital: 'Geneva',
+    isRegCapital: false,
     colorKey: '#01e1d4',
     cx: 330,
     cy: 265,
@@ -145,6 +162,7 @@ export const TERRITORIES = {
   brandenburg: {
     name: 'Prussia',
     capital: 'Berlin',
+    isRegCapital: true,
     colorKey: '#c6f4c6',
     cx: 420,
     cy: 150,
@@ -153,6 +171,7 @@ export const TERRITORIES = {
   east_prussia: {
     name: 'East Prussia',
     capital: 'Königsberg',
+    isRegCapital: true,
     colorKey: '#b23904',
     cx: 490,
     cy: 120,
@@ -161,6 +180,7 @@ export const TERRITORIES = {
   bohemia: {
     name: 'Bohemia',
     capital: 'Prague',
+    isRegCapital: false,
     colorKey: '#dcfb4d',
     cx: 440,
     cy: 200,
@@ -169,6 +189,7 @@ export const TERRITORIES = {
   austria: {
     name: 'Austria',
     capital: 'Vienna',
+    isRegCapital: true,
     colorKey: '#e000fa',
     cx: 435,
     cy: 245,
@@ -177,6 +198,7 @@ export const TERRITORIES = {
   poland: {
     name: 'Poland',
     capital: 'Warsaw',
+    isRegCapital: false,
     colorKey: '#05a599',
     cx: 495,
     cy: 195,
@@ -185,6 +207,7 @@ export const TERRITORIES = {
   galicia: {
     name: 'Galicia',
     capital: 'Lviv',
+    isRegCapital: false,
     colorKey: '#994133',
     cx: 550,
     cy: 210,
@@ -193,6 +216,7 @@ export const TERRITORIES = {
   hungary: {
     name: 'Hungary',
     capital: 'Budapest',
+    isRegCapital: false,
     colorKey: '#949439',
     cx: 500,
     cy: 250,
@@ -201,6 +225,7 @@ export const TERRITORIES = {
   dalmatia: {
     name: 'Illyrian Province',
     capital: 'Ljubljana',
+    isRegCapital: false,
     colorKey: '#35fd43',
     cx: 430,
     cy: 300,
@@ -211,6 +236,7 @@ export const TERRITORIES = {
   baltic_states: {
     name: 'Baltic States',
     capital: 'Riga',
+    isRegCapital: false,
     colorKey: '#339910',
     cx: 540,
     cy: 70,
@@ -219,6 +245,7 @@ export const TERRITORIES = {
   belarus: {
     name: 'Belarus',
     capital: 'Smolensk',
+    isRegCapital: false,
     colorKey: '#336610',
     cx: 580,
     cy: 150,
@@ -227,6 +254,7 @@ export const TERRITORIES = {
   moscow: {
     name: 'Moscow',
     capital: 'Moscow',
+    isRegCapital: true,
     colorKey: '#6bce10',
     cx: 720,
     cy: 100,
@@ -235,6 +263,7 @@ export const TERRITORIES = {
   ukraine: {
     name: 'Ukraine',
     capital: 'Kiev',
+    isRegCapital: false,
     colorKey: '#cee763',
     cx: 690,
     cy: 200,
@@ -245,6 +274,7 @@ export const TERRITORIES = {
   piemonte: {
     name: 'Piedmont',
     capital: 'Turin',
+    isRegCapital: false,
     colorKey: '#068598',
     cx: 320,
     cy: 300,
@@ -253,6 +283,7 @@ export const TERRITORIES = {
   lombardia: {
     name: 'Lombardy',
     capital: 'Milan',
+    isRegCapital: true,
     colorKey: '#cefa00',
     cx: 360,
     cy: 300,
@@ -261,6 +292,7 @@ export const TERRITORIES = {
   venetia: {
     name: 'Venetia',
     capital: 'Venice',
+    isRegCapital: false,
     colorKey: '#b24104',
     cx: 390,
     cy: 290,
@@ -269,6 +301,7 @@ export const TERRITORIES = {
   papal_states: {
     name: 'Papal States',
     capital: 'Rome',
+    isRegCapital: true,
     colorKey: '#fece28',
     cx: 385,
     cy: 365,
@@ -277,6 +310,7 @@ export const TERRITORIES = {
   naples: {
     name: 'Naples',
     capital: 'Naples',
+    isRegCapital: true,
     colorKey: '#1ad701',
     cx: 415,
     cy: 385,
@@ -287,6 +321,7 @@ export const TERRITORIES = {
   serbia: {
     name: 'Serbia',
     capital: 'Belgrade',
+    isRegCapital: true,
     colorKey: '#ff9400',
     cx: 520,
     cy: 320,
@@ -295,6 +330,7 @@ export const TERRITORIES = {
   wallachia: {
     name: 'Wallachia',
     capital: 'Bucharest',
+    isRegCapital: false,
     colorKey: '#7be7e7',
     cx: 570,
     cy: 280,
@@ -303,6 +339,7 @@ export const TERRITORIES = {
   bulgaria: {
     name: 'Bulgaria',
     capital: 'Sofia',
+    isRegCapital: false,
     colorKey: '#ceade7',
     cx: 570,
     cy: 350,
@@ -311,6 +348,7 @@ export const TERRITORIES = {
   greece: {
     name: 'Greece',
     capital: 'Athens',
+    isRegCapital: false,
     colorKey: '#33e7e7',
     cx: 570,
     cy: 435,
@@ -321,6 +359,7 @@ export const TERRITORIES = {
   constantinople: {
     name: 'Constantinople',
     capital: 'Konstantiniyye',
+    isRegCapital: true,
     colorKey: '#fd35c2',
     cx: 630,
     cy: 375,
@@ -329,6 +368,7 @@ export const TERRITORIES = {
   levant: {
     name: 'Levant',
     capital: 'Jerusalem',
+    isRegCapital: false,
     colorKey: '#7e03bd',
     cx: 750,
     cy: 520,
@@ -337,6 +377,7 @@ export const TERRITORIES = {
   egypt: {
     name: 'Egypt',
     capital: 'Cairo',
+    isRegCapital: true,
     colorKey: '#d79801',
     cx: 650,
     cy: 570,
@@ -345,6 +386,7 @@ export const TERRITORIES = {
   cyrenaica: {
     name: 'Cyrenaica',
     capital: 'Benghazi',
+    isRegCapital: false,
     colorKey: '#9bf868',
     cx: 495,
     cy: 510,
@@ -353,6 +395,7 @@ export const TERRITORIES = {
   tunisia: {
     name: 'Tunisia',
     capital: 'Tunis',
+    isRegCapital: false,
     colorKey: '#b98df5',
     cx: 340,
     cy: 460,
@@ -361,6 +404,7 @@ export const TERRITORIES = {
   barbary: {
     name: 'Barbary',
     capital: 'Algiers',
+    isRegCapital: false,
     colorKey: '#11ffb9',
     cx: 190,
     cy: 460,
