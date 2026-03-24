@@ -10,7 +10,7 @@ export default class TurnManager {
   constructor(players = []) {
     this.players = players;
     this.currentPlayer = 0;
-    this.phase = TurnManager.PHASES.REINFORCE;
+    this.phase = null;
   }
   /**
    * Enum for game phases.
@@ -92,7 +92,7 @@ export default class TurnManager {
     if (phase === TurnManager.PHASES.REINFORCE) return TurnManager.PHASES.ATTACK;
     if (phase === TurnManager.PHASES.ATTACK) return TurnManager.PHASES.FORTIFY;
     if (phase === TurnManager.PHASES.FORTIFY) return TurnManager.PHASES.REINFORCE;
-    return phase;
+    return TurnManager.PHASES.REINFORCE;
   }
 
   /**
@@ -111,6 +111,30 @@ export default class TurnManager {
     this.phase = TurnManager.nextPhase(this.phase);
 
     return this.getCurrentPlayer();
+  }
+
+  /**
+   * Resolves combat between attacker and defender troops.
+   * @param {number} attackerTroops - The number of troops attacking.
+   * @param {number} defenderTroops - The number of troops defending.
+   * @returns {Object} The result of the combat resolution.
+   */
+  static resolveCombat(attackerTroops, defenderTroops) {
+    const diceCount = Math.min(attackerTroops, defenderTroops);
+    const attackDice = TurnManager.rollDice(diceCount);
+    const defenseDice = TurnManager.rollDice(diceCount);
+
+    let attackerLosses = 0;
+    let defenderLosses = 0;
+
+    for (let i = 0; i < diceCount; i++) {
+      if (attackDice[i] > defenseDice[i]) {
+        defenderLosses++;
+      } else {
+        attackerLosses++;
+      }
+    }
+    return { attackerLosses, defenderLosses, attackDice, defenseDice };
   }
 }
 
