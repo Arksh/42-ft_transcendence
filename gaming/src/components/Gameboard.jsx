@@ -194,6 +194,11 @@ export default function GameBoard() {
   async function handleNextTurn() {
     if (winner) return;
 
+    setAttackFrom(null);
+    setAttackTo(null);
+    setFortifyFrom(null);
+    setFortifyTo(null);
+
     const nextPlayer = await tm.current.nextTurn();
     setCurrentPlayer(nextPlayer);
     setPhase(tm.current.phase);
@@ -731,7 +736,7 @@ export default function GameBoard() {
             boxShadow: '0 0 20px rgba(255, 107, 107, 0.5)',
           }}
         >
-          <h2 style={{ color: '#FF6B6B', marginTop: 0, marginBottom: '16px' }}>⚔️ Battle Report</h2>
+          <h2 style={{ color: '#FF6B6B', marginTop: 0, marginBottom: '16px' }}>Battle Report</h2>
 
           <div
             style={{
