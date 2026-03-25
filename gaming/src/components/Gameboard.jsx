@@ -13,6 +13,7 @@ export default function GameBoard() {
   const tm = useRef(new TurnManager(players));
   const canvasRef = useRef(null);
   const pickingCanvasRef = useRef(null);
+  const territoryPixelsRef = useRef({});
 
   const [currentPlayer, setCurrentPlayer] = useState(tm.current.getCurrentPlayer());
   const [phase, setPhase] = useState(tm.current.phase);
@@ -27,7 +28,7 @@ export default function GameBoard() {
 
   const [attackFrom, setAttackFrom] = useState(null);
   const [attackTo, setAttackTo] = useState(null);
-  const [attackTroops, setAttackTroops] = useState(0);
+  const [attackTroops, setAttackTroops] = useState(1);
   const [territoriesAttackedThisTurn, setTerritoriesAttackedThisTurn] = useState(new Set());
 
   const [fortifyFrom, setFortifyFrom] = useState(null);
@@ -69,7 +70,9 @@ export default function GameBoard() {
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, 800, 600);
+    const canvasHeight = canvas.height;
+    const canvasWidth = canvas.width;
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
     const pickingCanvas = pickingCanvasRef.current;
     const pCtx = pickingCanvas.getContext('2d');
@@ -117,14 +120,62 @@ export default function GameBoard() {
     });
 
     img.onload = () => {
-      pCtx.drawImage(img, 0, 0, 800, 600);
+      pCtx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
+
+      const imageData = pCtx.getImageData(0, 0, canvasWidth, canvasHeight);
+      const data = imageData.data;
+
+      const colorMap = {};
+      Object.entries(TERRITORIES).forEach(([id, t]) => {
+        colorMap[t.colorKey] = id;
+        territoryPixelsRef.current[id] = [];
+      });
+
+      for (let i = 0; i < data.length; i += 4) {
+        const hex =
+          '#' +
+          [data[i], data[i + 1], data[i + 2]].map((c) => c.toString(16).padStart(2, '0')).join('');
+        const id = colorMap[hex];
+        if (id) {
+          territoryPixelsRef.current[id].push([i / 4]);
+        }
+      }
 
       // DEBUG: dibuja la imagen de picking semitransparente encima del canvas visible
-      ctx.globalAlpha = 0.1;
-      ctx.drawImage(img, 0, 0, 800, 600);
+      ctx.globalAlpha = 0.0;
+      ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
       ctx.globalAlpha = 1.0;
     };
-  }, [territoryOwners]);
+
+    const highlighted = [attackFrom, attackTo, fortifyFrom, fortifyTo].filter(Boolean);
+    highlighted.forEach((territoryId) => {
+      const territory = TERRITORIES[territoryId];
+      const pixels = territoryPixelsRef.current[territoryId];
+      if (!territory || !pixels) return;
+
+      pixels.forEach((pixelIndex) => {
+        const x = pixelIndex % canvasWidth;
+        const y = Math.floor(pixelIndex / canvasWidth);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.fillRect(x, y, 1, 1);
+      });
+
+      ctx.beginPath();
+      ctx.arc(territory.cx, territory.cy, 18, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
+      ctx.fill();
+      ctx.strokeStyle = 'yellow';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    });
+  }, [
+    territoryOwners /* Redibuja cuando cambian los propietarios */,
+    troopCount,
+    attackFrom,
+    attackTo,
+    fortifyFrom,
+    fortifyTo,
+  ]);
 
   async function handleNextTurn() {
     if (winner) return;
@@ -153,7 +204,7 @@ export default function GameBoard() {
         setWinner({ factionId: scoreWinner, reason: 'score' });
         return;
       }
-      console.log(`Jugador ${nextPlayer.name} recibe ${reinforcements} tropas para reforzar.`);
+      console.log(`Jugador ${nextPlayer.name} recibe ${reinforcementsLeft} tropas para reforzar.`);
     }
 
     // Reset attacked territories when entering ATTACK phase
@@ -246,6 +297,29 @@ export default function GameBoard() {
     const [clickedId, clickedTerritory] = found;
     setSelectedTerritory({ id: clickedId, ...clickedTerritory });
 
+    if (phase === TurnManager.PHASES.REINFORCE) {
+      // Durante REINFORCE: click en territorio propio para colocar 1 tropa
+      if (territoryOwners[clickedId] !== currentPlayer.faction) {
+        console.log('No puedes reforzar un territorio que no posees:', clickedTerritory.name);
+        return;
+      }
+      if (reinforcementsLeft <= 0) {
+        console.log('No tienes refuerzos disponibles');
+        return;
+      }
+      setTroopCount((prev) => ({
+        ...prev,
+        [clickedId]: prev[clickedId] + 1,
+      }));
+      setReinforcementsLeft((prev) => prev - 1);
+      console.log(
+        `Se añadió 1 tropa a ${clickedTerritory.name}. Refuerzos restantes: ${
+          reinforcementsLeft - 1
+        }`
+      );
+      return;
+    }
+
     if (phase === TurnManager.PHASES.ATTACK) {
       // 1er clic en fase ATTACK: selecciona el territorio de origen
       if (!attackFrom) {
@@ -272,7 +346,11 @@ export default function GameBoard() {
       // 2do clic en fase ATTACK: selecciona el territorio de destino
       if (clickedId === attackFrom) {
         console.log('Deseleccionando origen de ataque:', clickedTerritory.name);
-        return setAttackFrom(null);
+        return setAttackFrom(null), setAttackTo(null);
+      }
+      if (clickedId === attackTo) {
+        console.log('Deseleccionando origen de ataque:', clickedTerritory.name);
+        return setAttackTo(null);
       }
 
       if (territoryOwners[clickedId] === currentPlayer.faction) {
@@ -286,6 +364,7 @@ export default function GameBoard() {
 
       setAttackTo(clickedId);
       console.log('Seleccionado para atacar a:', clickedTerritory.name);
+      setAttackTroops(1); // Reset slider to minimum on new target selection
     }
     if (phase === TurnManager.PHASES.FORTIFY) {
       // 1er clic en fase FORTIFY: selecciona el territorio de origen
@@ -313,89 +392,133 @@ export default function GameBoard() {
   }
 
   return (
-    <div style={{ position: 'relative', width: '800px', margin: '20px auto' }}>
-      <h1>Great Risk</h1>
+    <div
+      style={{
+        position: 'relative',
+        width: '100%',
+        minHeight: '100vh',
+        margin: '0',
+        padding: '20px 0',
+      }}
+    >
+      <h1 style={{ textAlign: 'center', margin: '10px 0' }}>Great Risk</h1>
 
-      <div style={{ position: 'relative', display: 'inline-block' }}>
-        <canvas
-          ref={canvasRef}
-          width={800}
-          height={600}
-          style={{ border: '2px solid #333', display: 'block' }}
-          onClick={handleCanvasClick}
-        />
-        <canvas ref={pickingCanvasRef} width={800} height={600} style={{ display: 'none' }} />
+      {/* Main container: 80% map, 20% UI */}
+      <div
+        style={{
+          width: '1200px',
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '80vh',
+        }}
+      >
+        {/* Canvas area - 80% */}
+        <div style={{ position: 'relative', display: 'inline-block', flex: '0 0 80%' }}>
+          <canvas
+            ref={canvasRef}
+            width={1200}
+            height={800}
+            style={{ border: '2px solid #333', display: 'block', width: '100%', height: '100%' }}
+            onClick={handleCanvasClick}
+          />
+          <canvas ref={pickingCanvasRef} width={1200} height={800} style={{ display: 'none' }} />
 
-        {/* Top-left game info box */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '10px',
-            left: '10px',
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            color: 'white',
-            padding: '12px',
-            borderRadius: '6px',
-            minWidth: '180px',
-            fontSize: '13px',
-            fontFamily: 'monospace',
-            zIndex: 10,
-          }}
-        >
-          <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>{currentPlayer.name}</div>
-          <div>Fase: {phase}</div>
-          {phase === TurnManager.PHASES.REINFORCE && <div>Refuerzos: {reinforcementsLeft}</div>}
+          {/* Territory info box (bottom-left of canvas) */}
+          {selectedTerritory && (
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '20px',
+                left: '20px',
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                color: 'white',
+                padding: '10px',
+                borderRadius: '6px',
+                maxWidth: '250px',
+                fontSize: '12px',
+                fontFamily: 'monospace',
+                zIndex: 10,
+              }}
+            >
+              <div style={{ fontWeight: 'bold' }}>{selectedTerritory.name}</div>
+              <div>Capital: {selectedTerritory.capital}</div>
+              <div>
+                Propietario:{' '}
+                {territoryOwners[selectedTerritory.id]
+                  ? FACTIONS[territoryOwners[selectedTerritory.id]]?.name || 'Desconocido'
+                  : 'Neutral'}
+              </div>
+              <div>Tropas: {troopCount[selectedTerritory.id]}</div>
+            </div>
+          )}
         </div>
 
-        {/* Territory info box (bottom-left) */}
-        {selectedTerritory && (
-          <div
-            style={{
-              position: 'absolute',
-              bottom: '10px',
-              left: '10px',
-              backgroundColor: 'rgba(0, 0, 0, 0.8)',
-              color: 'white',
-              padding: '10px',
-              borderRadius: '6px',
-              maxWidth: '250px',
-              fontSize: '12px',
-              fontFamily: 'monospace',
-              zIndex: 10,
-            }}
-          >
-            <div style={{ fontWeight: 'bold' }}>{selectedTerritory.name}</div>
-            <div>Capital: {selectedTerritory.capital}</div>
-            <div>
-              Propietario:{' '}
-              {territoryOwners[selectedTerritory.id]
-                ? FACTIONS[territoryOwners[selectedTerritory.id]]?.name || 'Desconocido'
-                : 'Neutral'}
-            </div>
-            <div>Tropas: {troopCount[selectedTerritory.id]}</div>
+        {/* UI Bottom section - 20% - Three-way layout */}
+        <div
+          style={{
+            flex: '0 0 20%',
+            backgroundColor: '#1a1a1a',
+            borderTop: '2px solid #333',
+            padding: '12px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '12px',
+            fontFamily: 'monospace',
+          }}
+        >
+          {/* LEFT: Player data */}
+          <div style={{ color: 'white', fontSize: '13px', flex: 1 }}>
+            <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>{currentPlayer.name}</div>
+            <div>Facción: {FACTIONS[currentPlayer.faction]?.name || 'Unknown'}</div>
+            <div style={{ marginTop: '4px' }}>Fase: {phase}</div>
+            {phase === TurnManager.PHASES.REINFORCE && (
+              <div style={{ marginTop: '4px', color: '#FFD700' }}>
+                Refuerzos: {reinforcementsLeft}
+              </div>
+            )}
           </div>
-        )}
 
-        {/* Action box (bottom-right) */}
-        {(phase === TurnManager.PHASES.FORTIFY || phase === TurnManager.PHASES.ATTACK) && (
+          {/* CENTER: Turn info and button */}
           <div
             style={{
-              position: 'absolute',
-              bottom: '10px',
-              right: '10px',
-              backgroundColor: 'rgba(0, 0, 0, 0.85)',
-              color: 'white',
-              padding: '12px',
-              borderRadius: '6px',
-              maxWidth: '200px',
-              fontSize: '12px',
-              fontFamily: 'monospace',
-              zIndex: 10,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '8px',
+              flex: 1,
             }}
           >
+            <div style={{ color: 'white', fontSize: '13px', textAlign: 'center' }}>
+              <div>Turno</div>
+              <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#FFD700' }}>
+                {turn} / {MAX_TURNS}
+              </div>
+            </div>
+            <button
+              onClick={handleNextTurn}
+              style={{
+                padding: '8px 16px',
+                fontSize: '12px',
+                backgroundColor: '#2196F3',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                minWidth: '140px',
+              }}
+            >
+              Siguiente turno
+            </button>
+          </div>
+
+          {/* RIGHT: Action controls (Fortify/Attack) */}
+          <div style={{ flex: 1, minHeight: '60px' }}>
             {phase === TurnManager.PHASES.FORTIFY && fortifyFrom && fortifyTo && (
-              <div>
-                <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
+              <div style={{ color: 'white', fontSize: '12px' }}>
+                <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>
                   {TERRITORIES[fortifyFrom].name} → {TERRITORIES[fortifyTo].name}
                 </div>
                 <input
@@ -404,21 +527,21 @@ export default function GameBoard() {
                   max={troopCount[fortifyFrom] - 1}
                   value={fortifyTroops}
                   onChange={(e) => setFortifyTroops(Number(e.target.value))}
-                  style={{ width: '100%', marginBottom: '6px' }}
+                  style={{ width: '100%', marginBottom: '4px' }}
                 />
-                <div style={{ marginBottom: '8px' }}>Tropas: {fortifyTroops}</div>
+                <div style={{ marginBottom: '6px', fontSize: '11px' }}>Tropas: {fortifyTroops}</div>
                 <button
                   onClick={() => handleFortify(fortifyTo)}
                   style={{
                     width: '100%',
-                    padding: '6px',
-                    marginBottom: '4px',
+                    padding: '4px',
+                    marginBottom: '3px',
                     backgroundColor: '#4CAF50',
                     color: 'white',
                     border: 'none',
-                    borderRadius: '4px',
+                    borderRadius: '3px',
                     cursor: 'pointer',
-                    fontSize: '12px',
+                    fontSize: '11px',
                   }}
                 >
                   Mover
@@ -431,13 +554,13 @@ export default function GameBoard() {
                   }}
                   style={{
                     width: '100%',
-                    padding: '6px',
+                    padding: '4px',
                     backgroundColor: '#f44336',
                     color: 'white',
                     border: 'none',
-                    borderRadius: '4px',
+                    borderRadius: '3px',
                     cursor: 'pointer',
-                    fontSize: '12px',
+                    fontSize: '11px',
                   }}
                 >
                   Cancelar
@@ -446,8 +569,8 @@ export default function GameBoard() {
             )}
 
             {phase === TurnManager.PHASES.ATTACK && attackFrom && attackTo && (
-              <div>
-                <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
+              <div style={{ color: 'white', fontSize: '12px' }}>
+                <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>
                   {TERRITORIES[attackFrom].name} → {TERRITORIES[attackTo].name}
                 </div>
                 <input
@@ -456,21 +579,21 @@ export default function GameBoard() {
                   max={Math.min(3, troopCount[attackFrom] - 1)}
                   value={attackTroops}
                   onChange={(e) => setAttackTroops(Number(e.target.value))}
-                  style={{ width: '100%', marginBottom: '6px' }}
+                  style={{ width: '100%', marginBottom: '4px' }}
                 />
-                <div style={{ marginBottom: '8px' }}>Tropas: {attackTroops}</div>
+                <div style={{ marginBottom: '6px', fontSize: '11px' }}>Tropas: {attackTroops}</div>
                 <button
                   onClick={handleAttack}
                   style={{
                     width: '100%',
-                    padding: '6px',
-                    marginBottom: '4px',
+                    padding: '4px',
+                    marginBottom: '3px',
                     backgroundColor: '#FF9800',
                     color: 'white',
                     border: 'none',
-                    borderRadius: '4px',
+                    borderRadius: '3px',
                     cursor: 'pointer',
-                    fontSize: '12px',
+                    fontSize: '11px',
                     fontWeight: 'bold',
                   }}
                 >
@@ -480,16 +603,17 @@ export default function GameBoard() {
                   onClick={() => {
                     setAttackFrom(null);
                     setAttackTo(null);
+                    setAttackTroops(1);
                   }}
                   style={{
                     width: '100%',
-                    padding: '6px',
+                    padding: '4px',
                     backgroundColor: '#f44336',
                     color: 'white',
                     border: 'none',
-                    borderRadius: '4px',
+                    borderRadius: '3px',
                     cursor: 'pointer',
-                    fontSize: '12px',
+                    fontSize: '11px',
                   }}
                 >
                   Cancelar
@@ -497,23 +621,24 @@ export default function GameBoard() {
               </div>
             )}
           </div>
-        )}
+        </div>
       </div>
 
       {winner && (
         <div
           style={{
-            position: 'absolute',
+            position: 'fixed',
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            backgroundColor: 'rgba(0,0,0,0.9)',
+            backgroundColor: 'rgba(0,0,0,0.95)',
             color: 'white',
             padding: '30px',
             borderRadius: '10px',
             textAlign: 'center',
-            zIndex: 20,
+            zIndex: 30,
             fontFamily: 'monospace',
+            border: '2px solid #FFD700',
           }}
         >
           <h2>¡{FACTIONS[winner.factionId].name} gana!</h2>
@@ -522,27 +647,23 @@ export default function GameBoard() {
               ? 'Ha conquistado todas las capitales enemigas'
               : `Victoria por puntos — ${calculateScore(winner.factionId, territoryOwners)} pts`}
           </p>
-          <button onClick={() => window.location.reload()}>Nueva partida</button>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              padding: '10px 20px',
+              fontSize: '14px',
+              backgroundColor: '#4CAF50',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+            }}
+          >
+            Nueva partida
+          </button>
         </div>
       )}
-
-      <div style={{ marginTop: '12px' }}>
-        <button
-          onClick={handleNextTurn}
-          style={{
-            padding: '10px 20px',
-            fontSize: '14px',
-            backgroundColor: '#2196F3',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontWeight: 'bold',
-          }}
-        >
-          Siguiente turno
-        </button>
-      </div>
     </div>
   );
 }
