@@ -417,12 +417,13 @@ const TERRITORIES_NORMALIZED = {
 export function createScaledTerritories(canvasWidth, canvasHeight) {
   const scaledTerritories = {};
   Object.entries(TERRITORIES_NORMALIZED).forEach(([id, territory]) => {
-    const [nx, ny, ...rest] = territory;
     scaledTerritories[id] = {
-      ...rest,
-      cx: nx * canvasWidth,
-      cy: ny * canvasHeight,
+      ...territory,
+      cx: territory.nx * canvasWidth,
+      cy: territory.ny * canvasHeight,
     };
+    delete scaledTerritories[id].nx;
+    delete scaledTerritories[id].ny;
   });
   return scaledTerritories;
 }
