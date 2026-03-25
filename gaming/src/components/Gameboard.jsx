@@ -732,17 +732,41 @@ export default function GameBoard() {
           }}
         >
           <h2 style={{ color: '#FF6B6B', marginTop: 0, marginBottom: '16px' }}>⚔️ Battle Report</h2>
-          
-          <div style={{ backgroundColor: 'rgba(255, 107, 107, 0.1)', padding: '12px', borderRadius: '6px', marginBottom: '12px' }}>
+
+          <div
+            style={{
+              backgroundColor: 'rgba(255, 107, 107, 0.1)',
+              padding: '12px',
+              borderRadius: '6px',
+              marginBottom: '12px',
+            }}
+          >
             <div style={{ fontSize: '14px', marginBottom: '8px' }}>
-              <strong>{battleReport.attackFrom}</strong> <span style={{ color: '#FFD700' }}>→</span> <strong>{battleReport.attackTo}</strong>
+              <strong>{battleReport.attackFrom}</strong> <span style={{ color: '#FFD700' }}>→</span>{' '}
+              <strong>{battleReport.attackTo}</strong>
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: '12px',
+              marginBottom: '16px',
+            }}
+          >
             {/* Attacker Column */}
-            <div style={{ backgroundColor: 'rgba(100, 150, 255, 0.2)', padding: '12px', borderRadius: '6px', borderLeft: '3px solid #6496FF' }}>
-              <div style={{ fontSize: '12px', color: '#6496FF', marginBottom: '8px' }}>ATTACKER</div>
+            <div
+              style={{
+                backgroundColor: 'rgba(100, 150, 255, 0.2)',
+                padding: '12px',
+                borderRadius: '6px',
+                borderLeft: '3px solid #6496FF',
+              }}
+            >
+              <div style={{ fontSize: '12px', color: '#6496FF', marginBottom: '8px' }}>
+                ATTACKER
+              </div>
               <div style={{ fontSize: '14px', marginBottom: '6px' }}>
                 Troops: <strong>{battleReport.attackerTroops}</strong>
               </div>
@@ -752,8 +776,17 @@ export default function GameBoard() {
             </div>
 
             {/* Defender Column */}
-            <div style={{ backgroundColor: 'rgba(255, 107, 107, 0.2)', padding: '12px', borderRadius: '6px', borderLeft: '3px solid #FF6B6B' }}>
-              <div style={{ fontSize: '12px', color: '#FF6B6B', marginBottom: '8px' }}>DEFENDER</div>
+            <div
+              style={{
+                backgroundColor: 'rgba(255, 107, 107, 0.2)',
+                padding: '12px',
+                borderRadius: '6px',
+                borderLeft: '3px solid #FF6B6B',
+              }}
+            >
+              <div style={{ fontSize: '12px', color: '#FF6B6B', marginBottom: '8px' }}>
+                DEFENDER
+              </div>
               <div style={{ fontSize: '14px', marginBottom: '6px' }}>
                 Troops: <strong>{battleReport.defenderTroops}</strong>
               </div>
@@ -764,29 +797,50 @@ export default function GameBoard() {
           </div>
 
           {/* Losses */}
-          <div style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', padding: '12px', borderRadius: '6px', marginBottom: '16px' }}>
+          <div
+            style={{
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              padding: '12px',
+              borderRadius: '6px',
+              marginBottom: '16px',
+            }}
+          >
             <div style={{ fontSize: '12px', marginBottom: '6px' }}>CASUALTIES</div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div>
                 <div style={{ color: '#6496FF', fontSize: '13px' }}>Attacker Losses</div>
-                <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#FF9999' }}>-{battleReport.attackerLosses}</div>
+                <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#FF9999' }}>
+                  -{battleReport.attackerLosses}
+                </div>
               </div>
               <div>
                 <div style={{ color: '#FF6B6B', fontSize: '13px' }}>Defender Losses</div>
-                <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#FF9999' }}>-{battleReport.defenderLosses}</div>
+                <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#FF9999' }}>
+                  -{battleReport.defenderLosses}
+                </div>
               </div>
             </div>
           </div>
 
           {/* Result */}
-          <div style={{ 
-            backgroundColor: battleReport.conquered ? 'rgba(76, 175, 80, 0.2)' : 'rgba(255, 107, 107, 0.2)',
-            padding: '12px',
-            borderRadius: '6px',
-            marginBottom: '16px',
-            borderLeft: `3px solid ${battleReport.conquered ? '#4CAF50' : '#FF6B6B'}`
-          }}>
-            <div style={{ fontSize: '14px', fontWeight: 'bold', color: battleReport.conquered ? '#4CAF50' : '#FF9999' }}>
+          <div
+            style={{
+              backgroundColor: battleReport.conquered
+                ? 'rgba(76, 175, 80, 0.2)'
+                : 'rgba(255, 107, 107, 0.2)',
+              padding: '12px',
+              borderRadius: '6px',
+              marginBottom: '16px',
+              borderLeft: `3px solid ${battleReport.conquered ? '#4CAF50' : '#FF6B6B'}`,
+            }}
+          >
+            <div
+              style={{
+                fontSize: '14px',
+                fontWeight: 'bold',
+                color: battleReport.conquered ? '#4CAF50' : '#FF9999',
+              }}
+            >
               {battleReport.conquered ? '✓ TERRITORY CONQUERED!' : '✗ Attack Failed'}
             </div>
           </div>
