@@ -1,10 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import Player, { createMockPlayers } from '../game/Player.js';
 import TurnManager from '../game/TurnManager.js';
-import { TERRITORIES } from '../game/Territories.js';
+import { createScaledTerritories } from '../game/Territories.js';
 import { FACTIONS, NEUTRAL_TERRITORIES } from '../game/Factions.js';
 import mapPicking from '../assets/map_picking.png';
 import { calculateScore, checkCapitalVictory, getScoreWinner } from '../game/Victory.js';
+
+const CANVAS_WIDTH = 1100;
+const CANVAS_HEIGHT = 700;
+const TERRITORIES = createScaledTerritories(CANVAS_WIDTH, CANVAS_HEIGHT);
 
 export default function GameBoard() {
   const playerRecords = createMockPlayers(3);
@@ -14,9 +18,19 @@ export default function GameBoard() {
   const canvasRef = useRef(null);
   const pickingCanvasRef = useRef(null);
   const territoryPixelsRef = useRef({});
+  const initializedRef = useRef(false);
 
-  const [currentPlayer, setCurrentPlayer] = useState(tm.current.getCurrentPlayer());
-  const [phase, setPhase] = useState(tm.current.phase);
+  const [currentPlayer, setCurrentPlayer] = useState(null);
+  const [phase, setPhase] = useState(null);
+
+  // Initialize player and phase on mount
+  useEffect(() => {
+    if (!initializedRef.current) {
+      initializedRef.current = true;
+      setCurrentPlayer(tm.current.getCurrentPlayer());
+      setPhase(tm.current.phase);
+    }
+  }, []);
 
   const MAX_TURNS = 100;
   const [turn, setTurn] = useState(1);
@@ -70,9 +84,7 @@ export default function GameBoard() {
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    const canvasHeight = canvas.height;
-    const canvasWidth = canvas.width;
-    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     const pickingCanvas = pickingCanvasRef.current;
     const pCtx = pickingCanvas.getContext('2d');
@@ -120,9 +132,9 @@ export default function GameBoard() {
     });
 
     img.onload = () => {
-      pCtx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
+      pCtx.drawImage(img, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-      const imageData = pCtx.getImageData(0, 0, canvasWidth, canvasHeight);
+      const imageData = pCtx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
       const data = imageData.data;
 
       const colorMap = {};
@@ -143,7 +155,7 @@ export default function GameBoard() {
 
       // DEBUG: dibuja la imagen de picking semitransparente encima del canvas visible
       ctx.globalAlpha = 0.0;
-      ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
+      ctx.drawImage(img, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
       ctx.globalAlpha = 1.0;
     };
 
@@ -154,8 +166,8 @@ export default function GameBoard() {
       if (!territory || !pixels) return;
 
       pixels.forEach((pixelIndex) => {
-        const x = pixelIndex % canvasWidth;
-        const y = Math.floor(pixelIndex / canvasWidth);
+        const x = pixelIndex % CANVAS_WIDTH;
+        const y = Math.floor(pixelIndex / CANVAS_WIDTH);
         ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
         ctx.fillRect(x, y, 1, 1);
       });
@@ -234,7 +246,10 @@ export default function GameBoard() {
       [fortifyFrom]: prev[fortifyFrom] - fortifyTroops,
       [destinationId]: prev[destinationId] + fortifyTroops,
     }));
+
     setFortifyFrom(null);
+    setFortifyTo(null);
+
     setFortifyTroops(1);
   }
 
@@ -379,7 +394,13 @@ export default function GameBoard() {
       // 2do clic en fase FORTIFY: selecciona el territorio de destino (SIN mover tropas aún)
       if (clickedId === fortifyFrom) {
         setFortifyFrom(null);
+        setFortifyTo(null);
         console.log('Fortificación: origen deseleccionado');
+        return;
+      }
+      if (clickedId === fortifyTo) {
+        setFortifyTo(null);
+        console.log('Fortificación: destino deseleccionado');
         return;
       }
       if (territoryOwners[clickedId] !== currentPlayer.faction) return;
@@ -406,7 +427,7 @@ export default function GameBoard() {
       {/* Main container: 80% map, 20% UI */}
       <div
         style={{
-          width: '1200px',
+          width: `${CANVAS_WIDTH}px`,
           margin: '0 auto',
           display: 'flex',
           flexDirection: 'column',
@@ -417,12 +438,17 @@ export default function GameBoard() {
         <div style={{ position: 'relative', display: 'inline-block', flex: '0 0 80%' }}>
           <canvas
             ref={canvasRef}
-            width={1200}
-            height={800}
+            width={CANVAS_WIDTH}
+            height={CANVAS_HEIGHT}
             style={{ border: '2px solid #333', display: 'block', width: '100%', height: '100%' }}
             onClick={handleCanvasClick}
           />
-          <canvas ref={pickingCanvasRef} width={1200} height={800} style={{ display: 'none' }} />
+          <canvas
+            ref={pickingCanvasRef}
+            width={CANVAS_WIDTH}
+            height={CANVAS_HEIGHT}
+            style={{ display: 'none' }}
+          />
 
           {/* Territory info box (bottom-left of canvas) */}
           {selectedTerritory && (
@@ -470,13 +496,17 @@ export default function GameBoard() {
         >
           {/* LEFT: Player data */}
           <div style={{ color: 'white', fontSize: '13px', flex: 1 }}>
-            <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>{currentPlayer.name}</div>
-            <div>Facción: {FACTIONS[currentPlayer.faction]?.name || 'Unknown'}</div>
-            <div style={{ marginTop: '4px' }}>Fase: {phase}</div>
-            {phase === TurnManager.PHASES.REINFORCE && (
-              <div style={{ marginTop: '4px', color: '#FFD700' }}>
-                Refuerzos: {reinforcementsLeft}
-              </div>
+            {currentPlayer && (
+              <>
+                <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>{currentPlayer.name}</div>
+                <div>Facción: {FACTIONS[currentPlayer.faction]?.name || 'Unknown'}</div>
+                <div style={{ marginTop: '4px' }}>Fase: {phase}</div>
+                {phase === TurnManager.PHASES.REINFORCE && (
+                  <div style={{ marginTop: '4px', color: '#FFD700' }}>
+                    Refuerzos: {reinforcementsLeft}
+                  </div>
+                )}
+              </>
             )}
           </div>
 

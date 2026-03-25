@@ -1,12 +1,13 @@
-export const TERRITORIES = {
+// Normalized coordinates (0-1 range) - canvas-size agnostic
+const TERRITORIES_NORMALIZED = {
   // --- NORTH (Top) ---
   scotland: {
     name: 'Scotland',
     capital: 'Glasgow',
     isRegCapital: false,
     colorKey: '#cccc33',
-    cx: 345,
-    cy: 75,
+    nx: 0.2875,
+    ny: 0.09375,
     neighbors: ['england', 'norway', 'ireland'],
   },
   ireland: {
@@ -14,8 +15,8 @@ export const TERRITORIES = {
     capital: 'Dublin',
     isRegCapital: false,
     colorKey: '#05ff23',
-    cx: 240,
-    cy: 142,
+    nx: 0.2,
+    ny: 0.1775,
     neighbors: ['england', 'scotland'],
   },
   england: {
@@ -23,8 +24,8 @@ export const TERRITORIES = {
     capital: 'London',
     isRegCapital: true,
     colorKey: '#ff4005',
-    cx: 352,
-    cy: 200,
+    nx: 0.29333,
+    ny: 0.25,
     neighbors: ['scotland', 'ireland', 'batavia', 'portugal'],
   },
   norway: {
@@ -32,8 +33,8 @@ export const TERRITORIES = {
     capital: 'Oslo',
     isRegCapital: false,
     colorKey: '#ff9905',
-    cx: 570,
-    cy: 33,
+    nx: 0.475,
+    ny: 0.04125,
     neighbors: ['sweden', 'denmark', 'scotland'],
   },
   sweden: {
@@ -41,8 +42,8 @@ export const TERRITORIES = {
     capital: 'Stockholm',
     isRegCapital: true,
     colorKey: '#4a66f7',
-    cx: 705,
-    cy: 42,
+    nx: 0.5875,
+    ny: 0.0525,
     neighbors: ['norway', 'denmark', 'baltic_states'],
   },
   denmark: {
@@ -50,8 +51,8 @@ export const TERRITORIES = {
     capital: 'Copenhagen',
     isRegCapital: false,
     colorKey: '#ff5d05',
-    cx: 585,
-    cy: 150,
+    nx: 0.4875,
+    ny: 0.1875,
     neighbors: ['sweden', 'norway', 'hanover'],
   },
 
@@ -61,8 +62,8 @@ export const TERRITORIES = {
     capital: 'Paris',
     isRegCapital: true,
     colorKey: '#010ce1',
-    cx: 375,
-    cy: 300,
+    nx: 0.3125,
+    ny: 0.375,
     neighbors: ['belgium', 'rhine_west', 'helvetia', 'piemonte', 'catalonia'],
   },
   catalonia: {
@@ -70,8 +71,8 @@ export const TERRITORIES = {
     capital: 'Barcelona',
     isRegCapital: false,
     colorKey: '#f4a398',
-    cx: 338,
-    cy: 475,
+    nx: 0.28167,
+    ny: 0.59375,
     neighbors: ['france', 'spain'],
   },
   spain: {
@@ -79,8 +80,8 @@ export const TERRITORIES = {
     capital: 'Madrid',
     isRegCapital: true,
     colorKey: '#2841fe',
-    cx: 195,
-    cy: 492,
+    nx: 0.1625,
+    ny: 0.615,
     neighbors: ['catalonia', 'portugal', 'barbary'],
   },
   portugal: {
@@ -88,8 +89,8 @@ export const TERRITORIES = {
     capital: 'Lisbon',
     isRegCapital: false,
     colorKey: '#64fa00',
-    cx: 60,
-    cy: 500,
+    nx: 0.05,
+    ny: 0.625,
     neighbors: ['spain', 'england'],
   },
 
@@ -99,8 +100,8 @@ export const TERRITORIES = {
     capital: 'Amsterdam',
     isRegCapital: true,
     colorKey: '#5bf9a5',
-    cx: 465,
-    cy: 200,
+    nx: 0.3875,
+    ny: 0.25,
     neighbors: ['belgium', 'hanover', 'england'],
   },
   belgium: {
@@ -108,8 +109,8 @@ export const TERRITORIES = {
     capital: 'Waterloo',
     isRegCapital: false,
     colorKey: '#ef6394',
-    cx: 458,
-    cy: 250,
+    nx: 0.38167,
+    ny: 0.3125,
     neighbors: ['france', 'batavia', 'rhine_west'],
   },
   hanover: {
@@ -117,8 +118,8 @@ export const TERRITORIES = {
     capital: 'Hanover',
     isRegCapital: false,
     colorKey: '#eec400',
-    cx: 540,
-    cy: 200,
+    nx: 0.45,
+    ny: 0.25,
     neighbors: ['batavia', 'denmark', 'brandenburg', 'saxony', 'rhine_west'],
   },
   rhine_west: {
@@ -126,8 +127,8 @@ export const TERRITORIES = {
     capital: 'Cologne',
     isRegCapital: false,
     colorKey: '#9f4dfb',
-    cx: 518,
-    cy: 250,
+    nx: 0.43167,
+    ny: 0.3125,
     neighbors: ['france', 'belgium', 'hanover', 'saxony', 'bavaria'],
   },
   saxony: {
@@ -135,8 +136,8 @@ export const TERRITORIES = {
     capital: 'Dresden',
     isRegCapital: false,
     colorKey: '#f5e2d1',
-    cx: 600,
-    cy: 233,
+    nx: 0.5,
+    ny: 0.29125,
     neighbors: ['rhine_west', 'hanover', 'brandenburg', 'bohemia', 'bavaria'],
   },
   bavaria: {
@@ -144,8 +145,8 @@ export const TERRITORIES = {
     capital: 'Munich',
     isRegCapital: false,
     colorKey: '#98e8f4',
-    cx: 570,
-    cy: 333,
+    nx: 0.475,
+    ny: 0.41625,
     neighbors: ['rhine_west', 'saxony', 'austria', 'helvetia'],
   },
   helvetia: {
@@ -153,8 +154,8 @@ export const TERRITORIES = {
     capital: 'Geneva',
     isRegCapital: false,
     colorKey: '#01e1d4',
-    cx: 495,
-    cy: 358,
+    nx: 0.4125,
+    ny: 0.4475,
     neighbors: ['france', 'bavaria', 'piemonte'],
   },
 
@@ -164,8 +165,8 @@ export const TERRITORIES = {
     capital: 'Berlin',
     isRegCapital: true,
     colorKey: '#c6f4c6',
-    cx: 630,
-    cy: 200,
+    nx: 0.525,
+    ny: 0.25,
     neighbors: ['hanover', 'saxony', 'bohemia', 'east_prussia', 'poland'],
   },
   east_prussia: {
@@ -173,8 +174,8 @@ export const TERRITORIES = {
     capital: 'Königsberg',
     isRegCapital: true,
     colorKey: '#b23904',
-    cx: 735,
-    cy: 167,
+    nx: 0.6125,
+    ny: 0.20875,
     neighbors: ['brandenburg', 'poland', 'baltic_states'],
   },
   bohemia: {
@@ -182,8 +183,8 @@ export const TERRITORIES = {
     capital: 'Prague',
     isRegCapital: false,
     colorKey: '#dcfb4d',
-    cx: 660,
-    cy: 267,
+    nx: 0.55,
+    ny: 0.33375,
     neighbors: ['saxony', 'brandenburg', 'austria', 'poland'],
   },
   austria: {
@@ -191,8 +192,8 @@ export const TERRITORIES = {
     capital: 'Vienna',
     isRegCapital: true,
     colorKey: '#e000fa',
-    cx: 645,
-    cy: 333,
+    nx: 0.5375,
+    ny: 0.41625,
     neighbors: ['bavaria', 'bohemia', 'hungary', 'venetia', 'dalmatia'],
   },
   poland: {
@@ -200,8 +201,8 @@ export const TERRITORIES = {
     capital: 'Warsaw',
     isRegCapital: false,
     colorKey: '#05a599',
-    cx: 743,
-    cy: 250,
+    nx: 0.61917,
+    ny: 0.3125,
     neighbors: ['brandenburg', 'east_prussia', 'galicia', 'belarus', 'bohemia'],
   },
   galicia: {
@@ -209,8 +210,8 @@ export const TERRITORIES = {
     capital: 'Lviv',
     isRegCapital: false,
     colorKey: '#994133',
-    cx: 825,
-    cy: 283,
+    nx: 0.6875,
+    ny: 0.35375,
     neighbors: ['poland', 'hungary', 'ukraine'],
   },
   hungary: {
@@ -218,8 +219,8 @@ export const TERRITORIES = {
     capital: 'Budapest',
     isRegCapital: false,
     colorKey: '#949439',
-    cx: 750,
-    cy: 333,
+    nx: 0.625,
+    ny: 0.41625,
     neighbors: ['austria', 'galicia', 'serbia', 'wallachia', 'dalmatia'],
   },
   dalmatia: {
@@ -227,8 +228,8 @@ export const TERRITORIES = {
     capital: 'Ljubljana',
     isRegCapital: false,
     colorKey: '#35fd43',
-    cx: 645,
-    cy: 400,
+    nx: 0.5375,
+    ny: 0.5,
     neighbors: ['venetia', 'serbia', 'austria', 'hungary'],
   },
 
@@ -238,8 +239,8 @@ export const TERRITORIES = {
     capital: 'Riga',
     isRegCapital: false,
     colorKey: '#339910',
-    cx: 818,
-    cy: 100,
+    nx: 0.68167,
+    ny: 0.125,
     neighbors: ['sweden', 'east_prussia', 'belarus', 'moscow'],
   },
   belarus: {
@@ -247,8 +248,8 @@ export const TERRITORIES = {
     capital: 'Smolensk',
     isRegCapital: false,
     colorKey: '#336610',
-    cx: 848,
-    cy: 217,
+    nx: 0.70667,
+    ny: 0.27125,
     neighbors: ['poland', 'baltic_states', 'moscow', 'ukraine'],
   },
   moscow: {
@@ -256,8 +257,8 @@ export const TERRITORIES = {
     capital: 'Moscow',
     isRegCapital: true,
     colorKey: '#6bce10',
-    cx: 1050,
-    cy: 133,
+    nx: 0.875,
+    ny: 0.16625,
     neighbors: ['belarus', 'ukraine', 'baltic_states'],
   },
   ukraine: {
@@ -265,8 +266,8 @@ export const TERRITORIES = {
     capital: 'Kiev',
     isRegCapital: false,
     colorKey: '#cee763',
-    cx: 1035,
-    cy: 267,
+    nx: 0.8625,
+    ny: 0.33375,
     neighbors: ['belarus', 'moscow', 'galicia', 'wallachia'],
   },
 
@@ -276,8 +277,8 @@ export const TERRITORIES = {
     capital: 'Turin',
     isRegCapital: false,
     colorKey: '#068598',
-    cx: 480,
-    cy: 408,
+    nx: 0.4,
+    ny: 0.51,
     neighbors: ['france', 'helvetia', 'lombardia', 'papal_states', 'venetia'],
   },
   lombardia: {
@@ -285,8 +286,8 @@ export const TERRITORIES = {
     capital: 'Milan',
     isRegCapital: true,
     colorKey: '#cefa00',
-    cx: 533,
-    cy: 400,
+    nx: 0.44417,
+    ny: 0.5,
     neighbors: ['piemonte', 'venetia', 'papal_states'],
   },
   venetia: {
@@ -294,8 +295,8 @@ export const TERRITORIES = {
     capital: 'Venice',
     isRegCapital: false,
     colorKey: '#b24104',
-    cx: 585,
-    cy: 392,
+    nx: 0.4875,
+    ny: 0.49,
     neighbors: ['piemonte', 'austria', 'dalmatia', 'lombardia', 'papal_states'],
   },
   papal_states: {
@@ -303,8 +304,8 @@ export const TERRITORIES = {
     capital: 'Rome',
     isRegCapital: true,
     colorKey: '#fece28',
-    cx: 570,
-    cy: 483,
+    nx: 0.475,
+    ny: 0.60375,
     neighbors: ['piemonte', 'lombardia', 'venetia', 'naples'],
   },
   naples: {
@@ -312,8 +313,8 @@ export const TERRITORIES = {
     capital: 'Naples',
     isRegCapital: true,
     colorKey: '#1ad701',
-    cx: 623,
-    cy: 517,
+    nx: 0.5192,
+    ny: 0.64625,
     neighbors: ['papal_states', 'tunisia'],
   },
 
@@ -323,8 +324,8 @@ export const TERRITORIES = {
     capital: 'Belgrade',
     isRegCapital: true,
     colorKey: '#ff9400',
-    cx: 765,
-    cy: 433,
+    nx: 0.6375,
+    ny: 0.54125,
     neighbors: ['dalmatia', 'hungary', 'wallachia', 'bulgaria', 'greece'],
   },
   wallachia: {
@@ -332,8 +333,8 @@ export const TERRITORIES = {
     capital: 'Bucharest',
     isRegCapital: false,
     colorKey: '#7be7e7',
-    cx: 855,
-    cy: 383,
+    nx: 0.7125,
+    ny: 0.47875,
     neighbors: ['hungary', 'serbia', 'bulgaria', 'ukraine'],
   },
   bulgaria: {
@@ -341,8 +342,8 @@ export const TERRITORIES = {
     capital: 'Sofia',
     isRegCapital: false,
     colorKey: '#ceade7',
-    cx: 855,
-    cy: 467,
+    nx: 0.7125,
+    ny: 0.58375,
     neighbors: ['serbia', 'wallachia', 'greece', 'constantinople'],
   },
   greece: {
@@ -350,8 +351,8 @@ export const TERRITORIES = {
     capital: 'Athens',
     isRegCapital: false,
     colorKey: '#33e7e7',
-    cx: 855,
-    cy: 583,
+    nx: 0.7125,
+    ny: 0.72875,
     neighbors: ['bulgaria', 'serbia', 'constantinople'],
   },
 
@@ -361,8 +362,8 @@ export const TERRITORIES = {
     capital: 'Konstantiniyye',
     isRegCapital: true,
     colorKey: '#fd35c2',
-    cx: 945,
-    cy: 500,
+    nx: 0.7875,
+    ny: 0.625,
     neighbors: ['bulgaria', 'levant', 'greece'],
   },
   levant: {
@@ -370,8 +371,8 @@ export const TERRITORIES = {
     capital: 'Jerusalem',
     isRegCapital: false,
     colorKey: '#7e03bd',
-    cx: 1125,
-    cy: 700,
+    nx: 0.9375,
+    ny: 0.875,
     neighbors: ['constantinople', 'egypt'],
   },
   egypt: {
@@ -379,8 +380,8 @@ export const TERRITORIES = {
     capital: 'Cairo',
     isRegCapital: true,
     colorKey: '#d79801',
-    cx: 975,
-    cy: 750,
+    nx: 0.8125,
+    ny: 0.9375,
     neighbors: ['cyrenaica', 'levant'],
   },
   cyrenaica: {
@@ -388,8 +389,8 @@ export const TERRITORIES = {
     capital: 'Benghazi',
     isRegCapital: false,
     colorKey: '#9bf868',
-    cx: 743,
-    cy: 683,
+    nx: 0.6192,
+    ny: 0.85375,
     neighbors: ['tunisia', 'egypt'],
   },
   tunisia: {
@@ -397,8 +398,8 @@ export const TERRITORIES = {
     capital: 'Tunis',
     isRegCapital: false,
     colorKey: '#b98df5',
-    cx: 525,
-    cy: 617,
+    nx: 0.4375,
+    ny: 0.77125,
     neighbors: ['barbary', 'naples', 'cyrenaica'],
   },
   barbary: {
@@ -406,8 +407,25 @@ export const TERRITORIES = {
     capital: 'Algiers',
     isRegCapital: false,
     colorKey: '#11ffb9',
-    cx: 285,
-    cy: 617,
+    nx: 0.2375,
+    ny: 0.77125,
     neighbors: ['spain', 'tunisia'],
   },
 };
+
+// Utility function to scale normalized coordinates to canvas dimensions
+export function createScaledTerritories(canvasWidth, canvasHeight) {
+  const scaledTerritories = {};
+  Object.entries(TERRITORIES_NORMALIZED).forEach(([id, territory]) => {
+    const [nx, ny, ...rest] = territory;
+    scaledTerritories[id] = {
+      ...rest,
+      cx: nx * canvasWidth,
+      cy: ny * canvasHeight,
+    };
+  });
+  return scaledTerritories;
+}
+
+// Default export for current canvas size (1200x800)
+export const TERRITORIES = createScaledTerritories(1200, 800);
