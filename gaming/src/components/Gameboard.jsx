@@ -49,6 +49,8 @@ export default function GameBoard() {
   const [fortifyTo, setFortifyTo] = useState(null);
   const [fortifyTroops, setFortifyTroops] = useState(1);
 
+  const [battleReport, setBattleReport] = useState(null);
+
   const [territoryOwners, setTerritoryOwners] = useState(() => {
     const owners = {};
 
@@ -264,16 +266,31 @@ export default function GameBoard() {
     newTroopCount[attackFrom] -= attackerLosses;
     newTroopCount[attackTo] -= defenderLosses;
 
+    let conquered = false;
     if (newTroopCount[attackTo] <= 0) {
       newTroopCount[attackTo] = 1;
       newTroopCount[attackFrom] -= 1;
       setTerritoryOwners((prev) => ({ ...prev, [attackTo]: currentPlayer.faction }));
+      conquered = true;
     }
 
     setTroopCount(newTroopCount);
 
     // Mark this territory as having attacked this turn
     setTerritoriesAttackedThisTurn((prev) => new Set([...prev, attackFrom]));
+
+    // Store battle report
+    setBattleReport({
+      attackFrom: TERRITORIES[attackFrom].name,
+      attackTo: TERRITORIES[attackTo].name,
+      attackerTroops: attackTroops,
+      defenderTroops,
+      attackDice,
+      defenseDice,
+      attackerLosses,
+      defenderLosses,
+      conquered,
+    });
 
     setAttackFrom(null);
     setAttackTo(null);
@@ -691,6 +708,108 @@ export default function GameBoard() {
             }}
           >
             Nueva partida
+          </button>
+        </div>
+      )}
+
+      {battleReport && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            backgroundColor: 'rgba(0,0,0,0.95)',
+            color: 'white',
+            padding: '24px',
+            borderRadius: '10px',
+            textAlign: 'center',
+            zIndex: 25,
+            fontFamily: 'monospace',
+            border: '2px solid #FF6B6B',
+            maxWidth: '400px',
+            boxShadow: '0 0 20px rgba(255, 107, 107, 0.5)',
+          }}
+        >
+          <h2 style={{ color: '#FF6B6B', marginTop: 0, marginBottom: '16px' }}>⚔️ Battle Report</h2>
+          
+          <div style={{ backgroundColor: 'rgba(255, 107, 107, 0.1)', padding: '12px', borderRadius: '6px', marginBottom: '12px' }}>
+            <div style={{ fontSize: '14px', marginBottom: '8px' }}>
+              <strong>{battleReport.attackFrom}</strong> <span style={{ color: '#FFD700' }}>→</span> <strong>{battleReport.attackTo}</strong>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+            {/* Attacker Column */}
+            <div style={{ backgroundColor: 'rgba(100, 150, 255, 0.2)', padding: '12px', borderRadius: '6px', borderLeft: '3px solid #6496FF' }}>
+              <div style={{ fontSize: '12px', color: '#6496FF', marginBottom: '8px' }}>ATTACKER</div>
+              <div style={{ fontSize: '14px', marginBottom: '6px' }}>
+                Troops: <strong>{battleReport.attackerTroops}</strong>
+              </div>
+              <div style={{ fontSize: '11px', color: '#CCC' }}>
+                Dice: {battleReport.attackDice.join(', ')}
+              </div>
+            </div>
+
+            {/* Defender Column */}
+            <div style={{ backgroundColor: 'rgba(255, 107, 107, 0.2)', padding: '12px', borderRadius: '6px', borderLeft: '3px solid #FF6B6B' }}>
+              <div style={{ fontSize: '12px', color: '#FF6B6B', marginBottom: '8px' }}>DEFENDER</div>
+              <div style={{ fontSize: '14px', marginBottom: '6px' }}>
+                Troops: <strong>{battleReport.defenderTroops}</strong>
+              </div>
+              <div style={{ fontSize: '11px', color: '#CCC' }}>
+                Dice: {battleReport.defenseDice.join(', ')}
+              </div>
+            </div>
+          </div>
+
+          {/* Losses */}
+          <div style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', padding: '12px', borderRadius: '6px', marginBottom: '16px' }}>
+            <div style={{ fontSize: '12px', marginBottom: '6px' }}>CASUALTIES</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div>
+                <div style={{ color: '#6496FF', fontSize: '13px' }}>Attacker Losses</div>
+                <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#FF9999' }}>-{battleReport.attackerLosses}</div>
+              </div>
+              <div>
+                <div style={{ color: '#FF6B6B', fontSize: '13px' }}>Defender Losses</div>
+                <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#FF9999' }}>-{battleReport.defenderLosses}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Result */}
+          <div style={{ 
+            backgroundColor: battleReport.conquered ? 'rgba(76, 175, 80, 0.2)' : 'rgba(255, 107, 107, 0.2)',
+            padding: '12px',
+            borderRadius: '6px',
+            marginBottom: '16px',
+            borderLeft: `3px solid ${battleReport.conquered ? '#4CAF50' : '#FF6B6B'}`
+          }}>
+            <div style={{ fontSize: '14px', fontWeight: 'bold', color: battleReport.conquered ? '#4CAF50' : '#FF9999' }}>
+              {battleReport.conquered ? '✓ TERRITORY CONQUERED!' : '✗ Attack Failed'}
+            </div>
+          </div>
+
+          {/* Close Button */}
+          <button
+            onClick={() => setBattleReport(null)}
+            style={{
+              width: '100%',
+              padding: '10px',
+              fontSize: '13px',
+              backgroundColor: '#2196F3',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              transition: 'background-color 0.2s',
+            }}
+            onMouseEnter={(e) => (e.target.style.backgroundColor = '#1976D2')}
+            onMouseLeave={(e) => (e.target.style.backgroundColor = '#2196F3')}
+          >
+            Continue
           </button>
         </div>
       )}
