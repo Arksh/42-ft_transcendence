@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import Player, { createMockPlayers } from '../game/Player.js';
 import TurnManager from '../game/TurnManager.js';
 import { createScaledTerritories } from '../game/Territories.js';
 import { FACTIONS, NEUTRAL_TERRITORIES } from '../game/Factions.js';
@@ -10,20 +9,73 @@ const CANVAS_WIDTH = 1100;
 const CANVAS_HEIGHT = 700;
 const TERRITORIES = createScaledTerritories(CANVAS_WIDTH, CANVAS_HEIGHT);
 
-export default function GameBoard() {
-  const playerRecords = createMockPlayers(3);
-  const players = playerRecords.map((record) => new Player(record));
+// ========== INITIALIZATION HELPERS ==========
+function initializeTerritoryOwners() {
+  const owners = {};
+  Object.entries(FACTIONS).forEach(([factionId, faction]) => {
+    faction.territories.forEach((territoryId) => {
+      owners[territoryId] = factionId;
+    });
+  });
+  NEUTRAL_TERRITORIES.forEach((territoryId) => {
+    owners[territoryId] = null;
+  });
+  return owners;
+}
 
+function initializeTroopCount() {
+  const counts = {};
+  Object.keys(TERRITORIES).forEach((territoryId) => {
+    const isRegionalCapital = TERRITORIES[territoryId].isRegCapital;
+    counts[territoryId] = isRegionalCapital ? 3 : 2;
+  });
+  return counts;
+}
+
+export default function GameBoard({ players }) {
+  // ========== GAME SETUP ==========
+//   const playerRecords = createMockPlayers(3);
+//   const players = playerRecords.map((record) => new Player(record));
   const tm = useRef(new TurnManager(players));
+  const MAX_TURNS = 100;
+
+  // ========== CANVAS REFS ==========
   const canvasRef = useRef(null);
   const pickingCanvasRef = useRef(null);
   const territoryPixelsRef = useRef({});
   const initializedRef = useRef(false);
 
+  // ========== GAME STATE ==========
   const [currentPlayer, setCurrentPlayer] = useState(null);
   const [phase, setPhase] = useState(null);
+  const [turn, setTurn] = useState(1);
+  const [winner, setWinner] = useState(null);
+  const [activeFactions] = useState(players.map((p) => p.faction));
 
-  // Initialize player and phase on mount
+  // ========== UI STATE ==========
+  const [selectedTerritory, setSelectedTerritory] = useState(null);
+  const [hoveredTerritory, setHoveredTerritory] = useState(null);
+  const [battleReport, setBattleReport] = useState(null);
+
+  // ========== TERRITORY STATE ==========
+  const [territoryOwners, setTerritoryOwners] = useState(initializeTerritoryOwners);
+  const [troopCount, setTroopCount] = useState(initializeTroopCount);
+
+  // ========== REINFORCE PHASE ==========
+  const [reinforcementsLeft, setReinforcementsLeft] = useState(0);
+
+  // ========== ATTACK PHASE ==========
+  const [attackFrom, setAttackFrom] = useState(null);
+  const [attackTo, setAttackTo] = useState(null);
+  const [attackTroops, setAttackTroops] = useState(1);
+  const [territoriesAttackedThisTurn, setTerritoriesAttackedThisTurn] = useState(new Set());
+
+  // ========== FORTIFY PHASE ==========
+  const [fortifyFrom, setFortifyFrom] = useState(null);
+  const [fortifyTo, setFortifyTo] = useState(null);
+  const [fortifyTroops, setFortifyTroops] = useState(1);
+
+  // ========== INITIALIZATION ==========
   useEffect(() => {
     if (!initializedRef.current) {
       initializedRef.current = true;
@@ -32,110 +84,26 @@ export default function GameBoard() {
     }
   }, []);
 
-  const MAX_TURNS = 100;
-  const [turn, setTurn] = useState(1);
-  const [winner, setWinner] = useState(null);
-  const [activeFactions] = useState(players.map((p) => p.faction));
-
-  const [selectedTerritory, setSelectedTerritory] = useState(null);
-  const [reinforcementsLeft, setReinforcementsLeft] = useState(0);
-
-  const [attackFrom, setAttackFrom] = useState(null);
-  const [attackTo, setAttackTo] = useState(null);
-  const [attackTroops, setAttackTroops] = useState(1);
-  const [territoriesAttackedThisTurn, setTerritoriesAttackedThisTurn] = useState(new Set());
-
-  const [fortifyFrom, setFortifyFrom] = useState(null);
-  const [fortifyTo, setFortifyTo] = useState(null);
-  const [fortifyTroops, setFortifyTroops] = useState(1);
-
-  const [battleReport, setBattleReport] = useState(null);
-
-  const [territoryOwners, setTerritoryOwners] = useState(() => {
-    const owners = {};
-
-    // Asigna territorios a facciones
-    Object.entries(FACTIONS).forEach(([factionId, faction]) => {
-      faction.territories.forEach((territoryId) => {
-        owners[territoryId] = factionId;
-      });
-    });
-
-    // Asigna territorios neutrales
-    NEUTRAL_TERRITORIES.forEach((territoryId) => {
-      owners[territoryId] = null; // null indica neutral
-    });
-
-    return owners;
-  });
-
-  const [troopCount, setTroopCount] = useState(() => {
-    const counts = {};
-    Object.keys(TERRITORIES).forEach((territoryId) => {
-      if (NEUTRAL_TERRITORIES.includes(territoryId) && !TERRITORIES[territoryId].isRegCapital) {
-        counts[territoryId] = 2; // Inicialmente con 2 tropas
-      } else if (TERRITORIES[territoryId].isRegCapital) {
-        counts[territoryId] = 3; // Capitales regionales empiezan con 3 tropas
-      } else {
-        counts[territoryId] = 2; // Otros territorios empiezan con 2 tropas
-      }
-    });
-    return counts;
-  });
-
+  // ========== CANVAS SETUP ==========
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
     const pickingCanvas = pickingCanvasRef.current;
-    const pCtx = pickingCanvas.getContext('2d');
+    const pCtx = pickingCanvas.getContext('2d', { willReadFrequently: true});
     const img = new Image();
     img.src = mapPicking;
 
-    // Dibuja los territorios en el canvas de picking
-    Object.entries(TERRITORIES).forEach(([, territory]) => {
-      pCtx.beginPath();
-      pCtx.arc(territory.cx, territory.cy, 15, 0, Math.PI * 2);
-      pCtx.fillStyle = territory.colorKey;
-      pCtx.fill();
-    });
-
-    // Dibuja las conexiones entre territorios
-    Object.entries(TERRITORIES).forEach(([, territory]) => {
-      territory.neighbors.forEach((neighborId) => {
-        const neighbor = TERRITORIES[neighborId];
-        if (!neighbor) return;
-
-        ctx.beginPath();
-        ctx.moveTo(territory.cx, territory.cy);
-        ctx.lineTo(neighbor.cx, neighbor.cy);
-        ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      });
-    });
-
-    // Dibuja los territorios en el canvas principal
-    Object.entries(TERRITORIES).forEach(([id, territory]) => {
-      const factionId = territoryOwners[id];
-      const factionColor =
-        factionId === 'neutral' ? '#888888' : FACTIONS[factionId]?.color ?? '#888888';
-      ctx.fillStyle = factionColor;
-      ctx.beginPath();
-      ctx.arc(territory.cx, territory.cy, 10, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = 'white';
-      ctx.stroke();
-
-      ctx.fillStyle = 'white';
-      ctx.font = '9px Arial';
-      ctx.fillText(territory.name, territory.cx - 10, territory.cy + 20);
-    });
-
     img.onload = () => {
+      // Draw color circles on picking canvas
+      Object.entries(TERRITORIES).forEach(([, territory]) => {
+        pCtx.beginPath();
+        pCtx.arc(territory.cx, territory.cy, 15, 0, Math.PI * 2);
+        pCtx.fillStyle = territory.colorKey;
+        pCtx.fill();
+      });
+
+      // Draw the picking image on top
       pCtx.drawImage(img, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
+      // Process pixel data and cache it
       const imageData = pCtx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
       const data = imageData.data;
 
@@ -154,12 +122,59 @@ export default function GameBoard() {
           territoryPixelsRef.current[id].push([i / 4]);
         }
       }
-
-      // DEBUG: dibuja la imagen de picking semitransparente encima del canvas visible
-      ctx.globalAlpha = 0.0;
-      ctx.drawImage(img, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-      ctx.globalAlpha = 1.0;
     };
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true});
+    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    // Drawing Territory connections
+    Object.entries(TERRITORIES).forEach(([, territory]) => {
+      territory.neighbors.forEach((neighborId) => {
+        const neighbor = TERRITORIES[neighborId];
+        if (!neighbor) return;
+
+        ctx.beginPath();
+        ctx.moveTo(territory.cx, territory.cy);
+        ctx.lineTo(neighbor.cx, neighbor.cy);
+        ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
+    });
+
+    // Drawing Territories on Canvas
+    Object.entries(TERRITORIES).forEach(([id, territory]) => {
+      const factionId = territoryOwners[id];
+      const factionColor =
+        factionId === 'neutral' ? '#888888' : FACTIONS[factionId]?.color ?? '#888888';
+      ctx.fillStyle = factionColor;
+      ctx.beginPath();
+      ctx.arc(territory.cx, territory.cy, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'white';
+      ctx.stroke();
+
+      ctx.fillStyle = 'white';
+      ctx.font = '9px Arial';
+      ctx.fillText(territory.name, territory.cx - 10, territory.cy + 20);
+    });
+
+    // Draw halo for hovered territory
+    if (hoveredTerritory) {
+      const territory = TERRITORIES[hoveredTerritory];
+      const pixels = territoryPixelsRef.current[hoveredTerritory];
+      if (territory && pixels) {
+        pixels.forEach((pixelIndex) => {
+          const x = pixelIndex % CANVAS_WIDTH;
+          const y = Math.floor(pixelIndex / CANVAS_WIDTH);
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+          ctx.fillRect(x, y, 1, 1);
+        });
+      }
+    }
 
     const highlighted = [attackFrom, attackTo, fortifyFrom, fortifyTo].filter(Boolean);
     highlighted.forEach((territoryId) => {
@@ -189,8 +204,10 @@ export default function GameBoard() {
     attackTo,
     fortifyFrom,
     fortifyTo,
+    hoveredTerritory,
   ]);
 
+  // ========== TURN MANAGEMENT ==========
   async function handleNextTurn() {
     if (winner) return;
 
@@ -233,6 +250,7 @@ export default function GameBoard() {
     }
   }
 
+  // ========== REINFORCEMENTS ==========
   function calculateReinforcements(factionId) {
     const owned = Object.entries(territoryOwners)
       .filter(([, owner]) => owner === factionId)
@@ -247,6 +265,7 @@ export default function GameBoard() {
     return total;
   }
 
+  // ========== FORTIFY ACTIONS ==========
   function handleFortify(destinationId) {
     setTroopCount((prev) => ({
       ...prev,
@@ -260,6 +279,7 @@ export default function GameBoard() {
     setFortifyTroops(1);
   }
 
+  // ========== COMBAT ACTIONS ==========
   function handleAttack() {
     const defenderTroops = Math.min(3, troopCount[attackTo]);
     const { attackerLosses, defenderLosses, attackDice, defenseDice } = TurnManager.resolveCombat(
@@ -309,31 +329,58 @@ export default function GameBoard() {
     );
   }
 
-  function handleCanvasClick(e) {
+  // ========== CANVAS INTERACTION ==========
+  function getClickedTerritory(e) {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
     const pickingCanvas = pickingCanvasRef.current;
-    const pCtx = pickingCanvas.getContext('2d');
+    const pCtx = pickingCanvas.getContext('2d', { willReadFrequently: true});
     const pixel = pCtx.getImageData(x, y, 1, 1).data;
     const colorKey =
       '#' + [pixel[0], pixel[1], pixel[2]].map((c) => c.toString(16).padStart(2, '0')).join('');
 
-    // console.log('Color leído:', colorKey);
-    // console.log(
-    //   'Colores disponibles:',
-    //   Object.values(TERRITORIES).map((t) => t.colorKey)
-    // );
-
-    // Busca el territorio correspondiente al colorKey
     const found = Object.entries(TERRITORIES).find(([, t]) => t.colorKey === colorKey);
-    if (!found) return;
+    return found ? found[0] : null;
+  }
 
-    const [clickedId, clickedTerritory] = found;
+  // ========== MOUSE HANDLERS ==========
+  function handleCanvasMouseMove(e) {
+    const territoryId = getClickedTerritory(e);
+    setHoveredTerritory(territoryId);
+  }
+
+  function handleCanvasMouseLeave() {
+    setHoveredTerritory(null);
+  }
+
+  // ========== CLICK HANDLERS ==========
+  function handleCanvasClick(e) {
+    const clickedId = getClickedTerritory(e);
+    if (!clickedId) {
+      // Clicked outside a territory, clear selection
+      setSelectedTerritory(null);
+	  setFortifyFrom(null);
+	  setAttackFrom(null);
+	  setFortifyTo(null);
+	  setAttackTo(null);
+      return;
+    }
+
+    const clickedTerritory = TERRITORIES[clickedId];
+    
+    // If clicking the same territory that's selected, deselect it
+    if (selectedTerritory && selectedTerritory.id === clickedId) {
+      setSelectedTerritory(null);
+      return;
+    }
+    
+    // Select the new territory
     setSelectedTerritory({ id: clickedId, ...clickedTerritory });
 
+    // Game logic for REINFORCE phase
     if (phase === TurnManager.PHASES.REINFORCE) {
       // Durante REINFORCE: click en territorio propio para colocar 1 tropa
       if (territoryOwners[clickedId] !== currentPlayer.faction) {
@@ -357,6 +404,7 @@ export default function GameBoard() {
       return;
     }
 
+    // Game logic for ATTACK phase
     if (phase === TurnManager.PHASES.ATTACK) {
       // 1er clic en fase ATTACK: selecciona el territorio de origen
       if (!attackFrom) {
@@ -383,11 +431,14 @@ export default function GameBoard() {
       // 2do clic en fase ATTACK: selecciona el territorio de destino
       if (clickedId === attackFrom) {
         console.log('Deseleccionando origen de ataque:', clickedTerritory.name);
-        return setAttackFrom(null), setAttackTo(null);
+        setAttackFrom(null);
+        setAttackTo(null);
+        return;
       }
       if (clickedId === attackTo) {
-        console.log('Deseleccionando origen de ataque:', clickedTerritory.name);
-        return setAttackTo(null);
+        console.log('Deseleccionando destino de ataque:', clickedTerritory.name);
+        setAttackTo(null);
+        return;
       }
 
       if (territoryOwners[clickedId] === currentPlayer.faction) {
@@ -402,7 +453,10 @@ export default function GameBoard() {
       setAttackTo(clickedId);
       console.log('Seleccionado para atacar a:', clickedTerritory.name);
       setAttackTroops(1); // Reset slider to minimum on new target selection
+      return;
     }
+
+    // Game logic for FORTIFY phase
     if (phase === TurnManager.PHASES.FORTIFY) {
       // 1er clic en fase FORTIFY: selecciona el territorio de origen
       if (!fortifyFrom) {
@@ -464,6 +518,8 @@ export default function GameBoard() {
             height={CANVAS_HEIGHT}
             style={{ border: '2px solid #333', display: 'block', width: '100%', height: '100%' }}
             onClick={handleCanvasClick}
+            onMouseMove={handleCanvasMouseMove}
+            onMouseLeave={handleCanvasMouseLeave}
           />
           <canvas
             ref={pickingCanvasRef}
@@ -473,7 +529,7 @@ export default function GameBoard() {
           />
 
           {/* Territory info box (bottom-left of canvas) */}
-          {selectedTerritory && (
+          {(selectedTerritory || hoveredTerritory) && (
             <div
               style={{
                 position: 'absolute',
@@ -489,15 +545,24 @@ export default function GameBoard() {
                 zIndex: 10,
               }}
             >
-              <div style={{ fontWeight: 'bold' }}>{selectedTerritory.name}</div>
-              <div>Capital: {selectedTerritory.capital}</div>
-              <div>
-                Propietario:{' '}
-                {territoryOwners[selectedTerritory.id]
-                  ? FACTIONS[territoryOwners[selectedTerritory.id]]?.name || 'Desconocido'
-                  : 'Neutral'}
-              </div>
-              <div>Tropas: {troopCount[selectedTerritory.id]}</div>
+              {(() => {
+                const territory = selectedTerritory || (hoveredTerritory && TERRITORIES[hoveredTerritory]);
+                const territoryId = selectedTerritory?.id || hoveredTerritory;
+                if (!territory) return null;
+                return (
+                  <>
+                    <div style={{ fontWeight: 'bold' }}>{territory.name}</div>
+                    <div>Capital: {territory.capital}</div>
+                    <div>
+                      Propietario:{' '}
+                      {territoryOwners[territoryId]
+                        ? FACTIONS[territoryOwners[territoryId]]?.name || 'Desconocido'
+                        : 'Neutral'}
+                    </div>
+                    <div>Tropas: {troopCount[territoryId]}</div>
+                  </>
+                );
+              })()}
             </div>
           )}
         </div>
