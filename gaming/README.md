@@ -8,6 +8,7 @@ A turn-based strategy game inspired by Risk, built with React and Vite. Players 
 
 - **Turn-based strategy system** with multiple game phases (Reinforce, Attack, Fortify)
 - **44 Interactive territories** across Europe with bilateral neighbor connections
+- **Dynamic Canvas Scaling** - Territories normalized to 0-1 coordinates for responsive rendering
 - **6 Playable factions** with unique colors:
   - 🔵 **France** (Blue) - #0055FF
   - 🟡 **Spain** (Gold) - #FFD700
@@ -28,12 +29,16 @@ A turn-based strategy game inspired by Risk, built with React and Vite. Players 
 - Territory conquest with automatic troop movement
 - Canvas-based rendering with color-picking for territory selection
 - Turn rotation between players with turn counter
+- **Battle Report Overlay** with detailed combat information (troops, dice rolls, casualties, conquest status)
+- **Province Hover Highlighting** with territory info box (name, owner, troop count)
+- **Unified Dark Theme UI** with red/blue battle aesthetic throughout
 
 ### Victory Conditions
 
 Two distinct ways to win:
 
 1. **Capital Conquest** 🏰
+
    - Capture all enemy faction capitals
    - Each faction has a designated strategic capital
    - Immediate victory upon conquest
@@ -44,6 +49,7 @@ Two distinct ways to win:
    - Fallback victory if neither faction conquers all capitals
 
 ### Regional Capitals
+
 - Marked territories with strategic importance
 - Start with 3 troops (vs 2 for normal territories)
 - Contribute to faction capital victory conditions
@@ -120,15 +126,26 @@ npm run lint
 - **Canvas API** - Territory rendering and interaction
 - **ES6+ Modules** - Clean code organization
 
-## Future Enhancements
+## UI Design & Aesthetic
 
-- [ ] Reinforcement phase UI (manual troop placement)
-- [ ] Multiplayer networking
-- [ ] Save/load game state
-- [ ] Map expansion with more territories
-- [ ] Sound effects and animations
-- [ ] Player statistics and leaderboards
-- [ ] Region control bonuses
-- [ ] Card/mission system
-- [ ] AI players for single-player mode
-- [ ] Elo rating system
+### Color Scheme (Dark Battle Theme)
+
+- **Background**: `#0d0d0d` (deep dark gray)
+- **Primary Red** (Battle/Combat): `#FF6B6B` (with hover: `#FF5252`)
+- **Primary Blue** (Attackers): `#6496FF`
+- **Accent Gold** (Highlights): `#FFD700`
+- **Success Green** (Fortify): `#4CAF50` (with hover: `#45a049`)
+- **Text**: `#E0E0E0` (light gray)
+
+### UI Components
+
+- **Title**: Red (#FF6B6B) with sword emojis (⚔️) and text shadow glow
+- **Canvas**: 3px red border with 20px glow shadow effect
+- **Territory Info Box**: Blue border with dark background, city/troop details
+- **Bottom Panel**: Three-way layout
+  - **LEFT**: Player data (blue name, gold faction, red phase indicator)
+  - **CENTER**: Turn counter and red "Next Turn" button with hover glow
+  - **RIGHT**: Action controls (green Fortify, red Attack buttons)
+- **Battle Report**: Red border with detailed combat grid (blue attacker, red defender)
+- **Winner Modal**: Red border with victory message and green restart button
+- **All Buttons**: Smooth transitions with hover glow effects
