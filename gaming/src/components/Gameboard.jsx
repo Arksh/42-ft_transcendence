@@ -34,8 +34,8 @@ function initializeTroopCount() {
 
 export default function GameBoard({ players }) {
   // ========== GAME SETUP ==========
-//   const playerRecords = createMockPlayers(3);
-//   const players = playerRecords.map((record) => new Player(record));
+  //   const playerRecords = createMockPlayers(3);
+  //   const players = playerRecords.map((record) => new Player(record));
   const tm = useRef(new TurnManager(players));
   const MAX_TURNS = 100;
 
@@ -87,7 +87,7 @@ export default function GameBoard({ players }) {
   // ========== CANVAS SETUP ==========
   useEffect(() => {
     const pickingCanvas = pickingCanvasRef.current;
-    const pCtx = pickingCanvas.getContext('2d', { willReadFrequently: true});
+    const pCtx = pickingCanvas.getContext('2d', { willReadFrequently: true });
     const img = new Image();
     img.src = mapPicking;
 
@@ -127,7 +127,7 @@ export default function GameBoard({ players }) {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true});
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
     // Drawing Territory connections
@@ -337,7 +337,7 @@ export default function GameBoard({ players }) {
     const y = e.clientY - rect.top;
 
     const pickingCanvas = pickingCanvasRef.current;
-    const pCtx = pickingCanvas.getContext('2d', { willReadFrequently: true});
+    const pCtx = pickingCanvas.getContext('2d', { willReadFrequently: true });
     const pixel = pCtx.getImageData(x, y, 1, 1).data;
     const colorKey =
       '#' + [pixel[0], pixel[1], pixel[2]].map((c) => c.toString(16).padStart(2, '0')).join('');
@@ -362,21 +362,21 @@ export default function GameBoard({ players }) {
     if (!clickedId) {
       // Clicked outside a territory, clear selection
       setSelectedTerritory(null);
-	  setFortifyFrom(null);
-	  setAttackFrom(null);
-	  setFortifyTo(null);
-	  setAttackTo(null);
+      setFortifyFrom(null);
+      setAttackFrom(null);
+      setFortifyTo(null);
+      setAttackTo(null);
       return;
     }
 
     const clickedTerritory = TERRITORIES[clickedId];
-    
+
     // If clicking the same territory that's selected, deselect it
     if (selectedTerritory && selectedTerritory.id === clickedId) {
       setSelectedTerritory(null);
       return;
     }
-    
+
     // Select the new territory
     setSelectedTerritory({ id: clickedId, ...clickedTerritory });
 
@@ -496,9 +496,22 @@ export default function GameBoard({ players }) {
         minHeight: '100vh',
         margin: '0',
         padding: '20px 0',
+        backgroundColor: '#0d0d0d',
       }}
     >
-      <h1 style={{ textAlign: 'center', margin: '10px 0' }}>Great Risk</h1>
+      <h1
+        style={{
+          textAlign: 'center',
+          margin: '10px 0',
+          color: '#FF6B6B',
+          fontFamily: 'monospace',
+          fontSize: '32px',
+          letterSpacing: '2px',
+          textShadow: '0 0 10px rgba(255, 107, 107, 0.3)',
+        }}
+      >
+        ⚔️ GREAT RISK ⚔️
+      </h1>
 
       {/* Main container: 80% map, 20% UI */}
       <div
@@ -516,7 +529,13 @@ export default function GameBoard({ players }) {
             ref={canvasRef}
             width={CANVAS_WIDTH}
             height={CANVAS_HEIGHT}
-            style={{ border: '2px solid #333', display: 'block', width: '100%', height: '100%' }}
+            style={{
+              border: '3px solid #FF6B6B',
+              display: 'block',
+              width: '100%',
+              height: '100%',
+              boxShadow: '0 0 20px rgba(255, 107, 107, 0.3)',
+            }}
             onClick={handleCanvasClick}
             onMouseMove={handleCanvasMouseMove}
             onMouseLeave={handleCanvasMouseLeave}
@@ -535,31 +554,38 @@ export default function GameBoard({ players }) {
                 position: 'absolute',
                 bottom: '20px',
                 left: '20px',
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                color: 'white',
-                padding: '10px',
+                backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                color: '#E0E0E0',
+                padding: '12px',
                 borderRadius: '6px',
                 maxWidth: '250px',
                 fontSize: '12px',
                 fontFamily: 'monospace',
                 zIndex: 10,
+                border: '2px solid #6496FF',
+                boxShadow: '0 0 15px rgba(100, 150, 255, 0.3)',
               }}
             >
               {(() => {
-                const territory = selectedTerritory || (hoveredTerritory && TERRITORIES[hoveredTerritory]);
+                const territory =
+                  selectedTerritory || (hoveredTerritory && TERRITORIES[hoveredTerritory]);
                 const territoryId = selectedTerritory?.id || hoveredTerritory;
                 if (!territory) return null;
                 return (
                   <>
-                    <div style={{ fontWeight: 'bold' }}>{territory.name}</div>
-                    <div>Capital: {territory.capital}</div>
-                    <div>
+                    <div style={{ fontWeight: 'bold', color: '#6496FF', marginBottom: '6px' }}>
+                      {territory.name}
+                    </div>
+                    <div style={{ fontSize: '11px' }}>Capital: {territory.capital}</div>
+                    <div style={{ fontSize: '11px' }}>
                       Propietario:{' '}
                       {territoryOwners[territoryId]
                         ? FACTIONS[territoryOwners[territoryId]]?.name || 'Desconocido'
                         : 'Neutral'}
                     </div>
-                    <div>Tropas: {troopCount[territoryId]}</div>
+                    <div style={{ fontSize: '11px', color: '#FFD700', marginTop: '4px' }}>
+                      Tropas: {troopCount[territoryId]}
+                    </div>
                   </>
                 );
               })()}
@@ -571,25 +597,35 @@ export default function GameBoard({ players }) {
         <div
           style={{
             flex: '0 0 20%',
-            backgroundColor: '#1a1a1a',
-            borderTop: '2px solid #333',
+            backgroundColor: '#0f0f0f',
+            borderTop: '3px solid #FF6B6B',
             padding: '12px',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             gap: '12px',
             fontFamily: 'monospace',
+            boxShadow: '0 -5px 15px rgba(255, 107, 107, 0.2)',
           }}
         >
           {/* LEFT: Player data */}
-          <div style={{ color: 'white', fontSize: '13px', flex: 1 }}>
+          <div style={{ color: '#E0E0E0', fontSize: '13px', flex: 1 }}>
             {currentPlayer && (
               <>
-                <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>{currentPlayer.name}</div>
-                <div>Facción: {FACTIONS[currentPlayer.faction]?.name || 'Unknown'}</div>
-                <div style={{ marginTop: '4px' }}>Fase: {phase}</div>
+                <div style={{ fontWeight: 'bold', marginBottom: '6px', color: '#6496FF' }}>
+                  {currentPlayer.name}
+                </div>
+                <div>
+                  Facción:{' '}
+                  <span style={{ color: '#FFD700' }}>
+                    {FACTIONS[currentPlayer.faction]?.name || 'Unknown'}
+                  </span>
+                </div>
+                <div style={{ marginTop: '4px' }}>
+                  Fase: <span style={{ color: '#FF6B6B', fontWeight: 'bold' }}>{phase}</span>
+                </div>
                 {phase === TurnManager.PHASES.REINFORCE && (
-                  <div style={{ marginTop: '4px', color: '#FFD700' }}>
+                  <div style={{ marginTop: '4px', color: '#4CAF50', fontWeight: 'bold' }}>
                     Refuerzos: {reinforcementsLeft}
                   </div>
                 )}
@@ -618,13 +654,23 @@ export default function GameBoard({ players }) {
               style={{
                 padding: '8px 16px',
                 fontSize: '12px',
-                backgroundColor: '#2196F3',
+                backgroundColor: '#FF6B6B',
                 color: 'white',
                 border: 'none',
                 borderRadius: '4px',
                 cursor: 'pointer',
                 fontWeight: 'bold',
                 minWidth: '140px',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 0 10px rgba(255, 107, 107, 0.3)',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = '#FF5252';
+                e.target.style.boxShadow = '0 0 20px rgba(255, 107, 107, 0.6)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = '#FF6B6B';
+                e.target.style.boxShadow = '0 0 10px rgba(255, 107, 107, 0.3)';
               }}
             >
               Siguiente turno
@@ -659,6 +705,16 @@ export default function GameBoard({ players }) {
                     borderRadius: '3px',
                     cursor: 'pointer',
                     fontSize: '11px',
+                    fontWeight: 'bold',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = '#45a049';
+                    e.target.style.boxShadow = '0 0 10px rgba(76, 175, 80, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = '#4CAF50';
+                    e.target.style.boxShadow = 'none';
                   }}
                 >
                   Mover
@@ -672,12 +728,22 @@ export default function GameBoard({ players }) {
                   style={{
                     width: '100%',
                     padding: '4px',
-                    backgroundColor: '#f44336',
+                    backgroundColor: '#FF6B6B',
                     color: 'white',
                     border: 'none',
                     borderRadius: '3px',
                     cursor: 'pointer',
                     fontSize: '11px',
+                    fontWeight: 'bold',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = '#FF5252';
+                    e.target.style.boxShadow = '0 0 10px rgba(255, 107, 107, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = '#FF6B6B';
+                    e.target.style.boxShadow = 'none';
                   }}
                 >
                   Cancelar
@@ -705,13 +771,22 @@ export default function GameBoard({ players }) {
                     width: '100%',
                     padding: '4px',
                     marginBottom: '3px',
-                    backgroundColor: '#FF9800',
+                    backgroundColor: '#FF6B6B',
                     color: 'white',
                     border: 'none',
                     borderRadius: '3px',
                     cursor: 'pointer',
                     fontSize: '11px',
                     fontWeight: 'bold',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = '#FF5252';
+                    e.target.style.boxShadow = '0 0 10px rgba(255, 107, 107, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = '#FF6B6B';
+                    e.target.style.boxShadow = 'none';
                   }}
                 >
                   ¡Atacar!
@@ -725,12 +800,22 @@ export default function GameBoard({ players }) {
                   style={{
                     width: '100%',
                     padding: '4px',
-                    backgroundColor: '#f44336',
+                    backgroundColor: '#FF6B6B',
                     color: 'white',
                     border: 'none',
                     borderRadius: '3px',
                     cursor: 'pointer',
                     fontSize: '11px',
+                    fontWeight: 'bold',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.backgroundColor = '#FF5252';
+                    e.target.style.boxShadow = '0 0 10px rgba(255, 107, 107, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.backgroundColor = '#FF6B6B';
+                    e.target.style.boxShadow = 'none';
                   }}
                 >
                   Cancelar
@@ -755,11 +840,14 @@ export default function GameBoard({ players }) {
             textAlign: 'center',
             zIndex: 30,
             fontFamily: 'monospace',
-            border: '2px solid #FFD700',
+            border: '3px solid #FF6B6B',
+            boxShadow: '0 0 30px rgba(255, 107, 107, 0.5)',
           }}
         >
-          <h2>¡{FACTIONS[winner.factionId].name} gana!</h2>
-          <p>
+          <h2 style={{ color: '#FF6B6B', marginTop: 0, marginBottom: '16px' }}>
+            ¡{FACTIONS[winner.factionId].name} gana!
+          </h2>
+          <p style={{ color: '#E0E0E0', marginBottom: '20px' }}>
             {winner.reason === 'capitals'
               ? 'Ha conquistado todas las capitales enemigas'
               : `Victoria por puntos — ${calculateScore(winner.factionId, territoryOwners)} pts`}
@@ -775,6 +863,15 @@ export default function GameBoard({ players }) {
               borderRadius: '4px',
               cursor: 'pointer',
               fontWeight: 'bold',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = '#45a049';
+              e.target.style.boxShadow = '0 0 15px rgba(76, 175, 80, 0.5)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = '#4CAF50';
+              e.target.style.boxShadow = 'none';
             }}
           >
             Nueva partida
@@ -922,16 +1019,22 @@ export default function GameBoard({ players }) {
               width: '100%',
               padding: '10px',
               fontSize: '13px',
-              backgroundColor: '#2196F3',
+              backgroundColor: '#FF6B6B',
               color: 'white',
               border: 'none',
               borderRadius: '4px',
               cursor: 'pointer',
               fontWeight: 'bold',
-              transition: 'background-color 0.2s',
+              transition: 'all 0.2s ease',
             }}
-            onMouseEnter={(e) => (e.target.style.backgroundColor = '#1976D2')}
-            onMouseLeave={(e) => (e.target.style.backgroundColor = '#2196F3')}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = '#FF5252';
+              e.target.style.boxShadow = '0 0 15px rgba(255, 107, 107, 0.5)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = '#FF6B6B';
+              e.target.style.boxShadow = 'none';
+            }}
           >
             Continue
           </button>
