@@ -121,8 +121,12 @@ export default class TurnManager {
    */
   static resolveCombat(attackerTroops, defenderTroops) {
     const diceCount = Math.min(attackerTroops, defenderTroops);
+    const troopBonus = Math.max(0, attackerTroops - defenderTroops);
     const attackDice = TurnManager.rollDice(diceCount);
     const defenseDice = TurnManager.rollDice(diceCount);
+    for (let i = 0; i < attackDice.length; i++) {
+      attackDice[i] += troopBonus;
+    }
 
     let attackerLosses = 0;
     let defenderLosses = 0;
@@ -134,7 +138,7 @@ export default class TurnManager {
         attackerLosses++;
       }
     }
-    return { attackerLosses, defenderLosses, attackDice, defenseDice };
+    return { attackerLosses, defenderLosses, attackDice, defenseDice, troopBonus };
   }
 }
 

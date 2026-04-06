@@ -4,6 +4,7 @@ import { createScaledTerritories } from '../game/Territories.js';
 import { FACTIONS, NEUTRAL_TERRITORIES } from '../game/Factions.js';
 import mapPicking from '../assets/map_picking.png';
 import { calculateScore, checkCapitalVictory, getScoreWinner } from '../game/Victory.js';
+import Player, { createMockPlayers } from '../game/Player.js';
 
 const CANVAS_WIDTH = 1100;
 const CANVAS_HEIGHT = 700;
@@ -32,10 +33,11 @@ function initializeTroopCount() {
   return counts;
 }
 
-export default function GameBoard({ players }) {
+// export default function GameBoard({ players }) {
+export default function GameBoard() {
   // ========== GAME SETUP ==========
-  //   const playerRecords = createMockPlayers(3);
-  //   const players = playerRecords.map((record) => new Player(record));
+  const playerRecords = createMockPlayers(3);
+  const players = playerRecords.map((record) => new Player(record));
   const tm = useRef(new TurnManager(players));
   const MAX_TURNS = 100;
 
@@ -48,7 +50,7 @@ export default function GameBoard({ players }) {
   // ========== GAME STATE ==========
   const [currentPlayer, setCurrentPlayer] = useState(null);
   const [phase, setPhase] = useState(null);
-  const [turn, setTurn] = useState(1);
+  const [turn, setTurn] = useState(0);
   const [winner, setWinner] = useState(null);
   const [activeFactions] = useState(players.map((p) => p.faction));
 
@@ -282,10 +284,8 @@ export default function GameBoard({ players }) {
   // ========== COMBAT ACTIONS ==========
   function handleAttack() {
     const defenderTroops = Math.min(3, troopCount[attackTo]);
-    const { attackerLosses, defenderLosses, attackDice, defenseDice } = TurnManager.resolveCombat(
-      attackTroops,
-      defenderTroops
-    );
+    const { attackerLosses, defenderLosses, attackDice, defenseDice, troopBonus } =
+      TurnManager.resolveCombat(attackTroops, defenderTroops);
 
     const newTroopCount = { ...troopCount };
     newTroopCount[attackFrom] -= attackerLosses;
@@ -315,6 +315,7 @@ export default function GameBoard({ players }) {
       attackerLosses,
       defenderLosses,
       conquered,
+      troopBonus,
     });
 
     setAttackFrom(null);
@@ -962,6 +963,23 @@ export default function GameBoard({ players }) {
               </div>
             </div>
           </div>
+
+          {/* Reinforcement Bonus Display */}
+          {battleReport.troopBonus > 0 && (
+            <div
+              style={{
+                backgroundColor: 'rgba(76, 175, 80, 0.15)',
+                padding: '10px',
+                borderRadius: '6px',
+                marginBottom: '16px',
+                borderLeft: '3px solid #4CAF50',
+              }}
+            >
+              <div style={{ fontSize: '12px', color: '#4CAF50', fontWeight: 'bold' }}>
+                ✦ Reinforcements increased attack in +{battleReport.troopBonus}
+              </div>
+            </div>
+          )}
 
           {/* Losses */}
           <div
