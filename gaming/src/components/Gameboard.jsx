@@ -44,6 +44,7 @@ export default function GameBoard() {
   // ========== CANVAS REFS ==========
   const canvasRef = useRef(null);
   const pickingCanvasRef = useRef(null);
+  const territoryCanvasRef = useRef(null);
   const territoryPixelsRef = useRef({});
   const initializedRef = useRef(false);
 
@@ -124,14 +125,72 @@ export default function GameBoard() {
           territoryPixelsRef.current[id].push([i / 4]);
         }
       }
+
+      // Initialize territory canvas
+      const terrCanvas = document.createElement('canvas');
+      terrCanvas.width = CANVAS_WIDTH;
+      terrCanvas.height = CANVAS_HEIGHT;
+      const tCtx = terrCanvas.getContext('2d');
+      territoryCanvasRef.current = terrCanvas;
+
+      // Fill provinces with faction colors immediately
+      Object.entries(TERRITORIES).forEach(([id]) => {
+        const factionId = territoryOwners[id];
+        const factionColor =
+          factionId === 'neutral' ? '#888888' : FACTIONS[factionId]?.color ?? '#888888';
+        const pixels = territoryPixelsRef.current[id];
+
+        if (pixels && pixels.length > 0) {
+          pixels.forEach(([pixelIndex]) => {
+            const x = pixelIndex % CANVAS_WIDTH;
+            const y = Math.floor(pixelIndex / CANVAS_WIDTH);
+            tCtx.fillStyle = factionColor;
+            tCtx.fillRect(x, y, 1, 1);
+          });
+        }
+      });
     };
   }, []);
+
+  // ========== FILL PROVINCES CACHE ==========
+  useEffect(() => {
+    if (!territoryCanvasRef.current) return;
+
+    const tCtx = territoryCanvasRef.current.getContext('2d');
+    tCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    // Refill provinces with updated faction colors when ownership changes
+    Object.entries(TERRITORIES).forEach(([id]) => {
+      const factionId = territoryOwners[id];
+      const factionColor =
+        factionId === 'neutral' ? '#888888' : FACTIONS[factionId]?.color ?? '#888888';
+      const pixels = territoryPixelsRef.current[id];
+
+      if (pixels && pixels.length > 0) {
+        pixels.forEach(([pixelIndex]) => {
+          const x = pixelIndex % CANVAS_WIDTH;
+          const y = Math.floor(pixelIndex / CANVAS_WIDTH);
+          tCtx.fillStyle = factionColor;
+          tCtx.fillRect(x, y, 1, 1);
+        });
+      }
+    });
+  }, [territoryOwners]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
+    // Draw picking map as background layer
+    const pickingCanvas = pickingCanvasRef.current;
+    if (pickingCanvas) {
+      ctx.globalAlpha = 0.0;
+      ctx.drawImage(pickingCanvas, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+      ctx.globalAlpha = 1.0;
+    }
+
+	
     // Drawing Territory connections
     Object.entries(TERRITORIES).forEach(([, territory]) => {
       territory.neighbors.forEach((neighborId) => {
@@ -141,11 +200,16 @@ export default function GameBoard() {
         ctx.beginPath();
         ctx.moveTo(territory.cx, territory.cy);
         ctx.lineTo(neighbor.cx, neighbor.cy);
-        ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+        ctx.strokeStyle = 'rgba(0,0,0,1)';
         ctx.lineWidth = 1;
         ctx.stroke();
       });
     });
+
+    // Draw cached territory fills
+    if (territoryCanvasRef.current) {
+      ctx.drawImage(territoryCanvasRef.current, 0, 0);
+    }
 
     // Drawing Territories on Canvas
     Object.entries(TERRITORIES).forEach(([id, territory]) => {
@@ -511,7 +575,7 @@ export default function GameBoard() {
           textShadow: '0 0 10px rgba(255, 107, 107, 0.3)',
         }}
       >
-        ⚔️ GREAT RISK ⚔️
+        GREAT RISK
       </h1>
 
       {/* Main container: 80% map, 20% UI */}
@@ -545,7 +609,16 @@ export default function GameBoard() {
             ref={pickingCanvasRef}
             width={CANVAS_WIDTH}
             height={CANVAS_HEIGHT}
-            style={{ display: 'none' }}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              display: 'none',
+              width: '100%',
+              height: '100%',
+              zIndex: -1,
+              opacity: 0.9,
+            }}
           />
 
           {/* Territory info box (bottom-left of canvas) */}

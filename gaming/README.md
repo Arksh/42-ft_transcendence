@@ -32,6 +32,18 @@ A turn-based strategy game inspired by Risk, built with React and Vite. Players 
 - **Battle Report Overlay** with detailed combat information (troops, dice rolls, casualties, conquest status)
 - **Province Hover Highlighting** with territory info box (name, owner, troop count)
 - **Unified Dark Theme UI** with red/blue battle aesthetic throughout
+- **Filled Province Shapes** - Entire territory regions rendered in faction colors, not just center circles
+- **Optimized Canvas Rendering** - Offscreen territory canvas cache for high-performance province rendering
+
+### Rendering System
+
+- **Dual-Canvas Architecture**:
+  - **Picking Canvas**: Hidden canvas with color-coded territories for click detection
+  - **Territory Canvas**: Offscreen cache storing pre-rendered filled provinces
+  - **Main Canvas**: Visible interactive game board
+- **Pixel-Based Province Fills**: Uses cached pixel data from map to fill provinces with faction colors
+- **Performance Optimization**: Territory canvas only redraws when ownership changes, not every frame
+- **Visual Hierarchy**: Background map → Territory fills → Connection lines → Territory points → Effects
 
 ### Victory Conditions
 
