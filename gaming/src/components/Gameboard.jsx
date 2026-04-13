@@ -137,9 +137,15 @@ export default function GameBoard() {
 
       // Fill provinces with initial faction colors
       Object.entries(TERRITORIES).forEach(([id]) => {
-        const factionId = territoryOwners[id];
-        const factionColor =
-          factionId === 'neutral' ? '#888888' : FACTIONS[factionId]?.color ?? '#888888';
+        let factionColor;
+        if (id === 'mountains') {
+          factionColor = '#000000'; // Black for mountains
+        } else {
+          const factionId = territoryOwners[id];
+          factionColor =
+            factionId === 'neutral' ? '#888888' : FACTIONS[factionId]?.color ?? '#888888';
+        }
+
         const pixels = territoryPixelsRef.current[id];
 
         if (pixels && pixels.length > 0) {
@@ -163,9 +169,15 @@ export default function GameBoard() {
 
     // Refill provinces with updated faction colors when ownership changes
     Object.entries(TERRITORIES).forEach(([id]) => {
-      const factionId = territoryOwners[id];
-      const factionColor =
-        factionId === 'neutral' ? '#888888' : FACTIONS[factionId]?.color ?? '#888888';
+      let factionColor;
+      if (id === 'mountains') {
+        factionColor = '#000000'; // Black for mountains
+      } else {
+        const factionId = territoryOwners[id];
+        factionColor =
+          factionId === 'neutral' ? '#888888' : FACTIONS[factionId]?.color ?? '#888888';
+      }
+
       const pixels = territoryPixelsRef.current[id];
 
       if (pixels && pixels.length > 0) {
@@ -188,36 +200,16 @@ export default function GameBoard() {
     ctx.fillStyle = '#1A3A52';
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Draw the picking map as background layer
-    const pickingCanvas = pickingCanvasRef.current;
-    if (pickingCanvas) {
-      ctx.globalAlpha = 0.0;
-      ctx.drawImage(pickingCanvas, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-      ctx.globalAlpha = 1.0;
-    }
-
-    // Draw territory borders
-    Object.entries(TERRITORIES).forEach(([, territory]) => {
-      territory.neighbors.forEach((neighborId) => {
-        const neighbor = TERRITORIES[neighborId];
-        if (!neighbor) return;
-
-        ctx.beginPath();
-        ctx.moveTo(territory.cx, territory.cy);
-        ctx.lineTo(neighbor.cx, neighbor.cy);
-        ctx.strokeStyle = 'rgba(0,0,0,1)';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-      });
-    });
-
-    // Draw cached territory fills
+    // Draw cached territory fills (includes mountains in black)
     if (territoryCanvasRef.current) {
       ctx.drawImage(territoryCanvasRef.current, 0, 0);
     }
 
     // Draw territories on canvas (circles + names)
     Object.entries(TERRITORIES).forEach(([id, territory]) => {
+      // Skip mountains - rendered in black as part of fills
+      if (id === 'mountains') return;
+
       const factionId = territoryOwners[id];
       const factionColor =
         factionId === 'neutral' ? '#888888' : FACTIONS[factionId]?.color ?? '#888888';
@@ -234,7 +226,7 @@ export default function GameBoard() {
     });
 
     // Draw halo for hovered territory
-    if (hoveredTerritory) {
+    if (hoveredTerritory && hoveredTerritory !== 'mountains') {
       const territory = TERRITORIES[hoveredTerritory];
       const pixels = territoryPixelsRef.current[hoveredTerritory];
       if (territory && pixels) {
@@ -269,6 +261,21 @@ export default function GameBoard() {
       ctx.lineWidth = 3;
       ctx.stroke();
     });
+
+    // Draw territory borders
+    // Object.entries(TERRITORIES).forEach(([, territory]) => {
+    //   territory.neighbors.forEach((neighborId) => {
+    //     const neighbor = TERRITORIES[neighborId];
+    //     if (!neighbor) return;
+
+    //     ctx.beginPath();
+    //     ctx.moveTo(territory.cx, territory.cy);
+    //     ctx.lineTo(neighbor.cx, neighbor.cy);
+    //     ctx.strokeStyle = 'rgba(0,0,0,1)';
+    //     ctx.lineWidth = 1;
+    //     ctx.stroke();
+    //   });
+    // });
   }, [territoryOwners, troopCount, attackFrom, attackTo, fortifyFrom, fortifyTo, hoveredTerritory]);
 
   // ========== TURN MANAGEMENT ==========
@@ -405,7 +412,9 @@ export default function GameBoard() {
     const colorKey =
       '#' + [pixel[0], pixel[1], pixel[2]].map((c) => c.toString(16).padStart(2, '0')).join('');
 
-    const found = Object.entries(TERRITORIES).find(([, t]) => t.colorKey === colorKey);
+    const found = Object.entries(TERRITORIES).find(
+      ([id, t]) => t.colorKey === colorKey && id !== 'mountains'
+    );
     return found ? found[0] : null;
   }
 

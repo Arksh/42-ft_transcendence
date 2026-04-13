@@ -102,7 +102,7 @@ const TERRITORIES_NORMALIZED = {
     colorKey: '#5bf9a5',
     nx: 0.3875,
     ny: 0.25,
-    neighbors: ['belgium', 'hanover', 'england'],
+    neighbors: ['belgium', 'hanover', 'rhine_west', 'england'],
   },
   belgium: {
     name: 'Belgium',
@@ -129,7 +129,7 @@ const TERRITORIES_NORMALIZED = {
     colorKey: '#9f4dfb',
     nx: 0.43167,
     ny: 0.3125,
-    neighbors: ['france', 'belgium', 'hanover', 'saxony', 'bavaria'],
+    neighbors: ['france', 'belgium', 'hanover', 'batavia', 'saxony', 'bavaria'],
   },
   saxony: {
     name: 'Saxony',
@@ -353,7 +353,7 @@ const TERRITORIES_NORMALIZED = {
     colorKey: '#33e7e7',
     nx: 0.7125,
     ny: 0.72875,
-    neighbors: ['bulgaria', 'serbia', 'constantinople'],
+    neighbors: ['bulgaria', 'serbia'],
   },
 
   // --- MEDITERRANEAN AND AFRICA (Background) ---
@@ -364,7 +364,7 @@ const TERRITORIES_NORMALIZED = {
     colorKey: '#fd35c2',
     nx: 0.7875,
     ny: 0.625,
-    neighbors: ['bulgaria', 'levant', 'greece'],
+    neighbors: ['bulgaria', 'levant'],
   },
   levant: {
     name: 'Levant',
@@ -410,6 +410,17 @@ const TERRITORIES_NORMALIZED = {
     nx: 0.2375,
     ny: 0.77125,
     neighbors: ['spain', 'tunisia'],
+  },
+
+  // --- MOUNTAIN TERRITORIES (Background) ---
+  mountains: {
+    name: 'Alps',
+    capital: null,
+    isRegCapital: false,
+    colorKey: '#000000',
+    nx: 0,
+    ny: 0,
+    neighbors: [],
   },
 };
 
