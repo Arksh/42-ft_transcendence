@@ -24,6 +24,7 @@ function initializeTerritoryOwners() {
   return owners;
 }
 
+// ========== INITIAL TROOP COUNT: REGIONAL CAPITALS = 3, OTHERS = 2 ==========
 function initializeTroopCount() {
   const counts = {};
   Object.keys(TERRITORIES).forEach((territoryId) => {
@@ -94,6 +95,7 @@ export default function GameBoard() {
     const img = new Image();
     img.src = mapPicking;
 
+    // ========== PIXEL DATA EXTRACTION & CACHING ==========
     img.onload = () => {
       // Draw color circles on picking canvas
       Object.entries(TERRITORIES).forEach(([, territory]) => {
@@ -126,14 +128,14 @@ export default function GameBoard() {
         }
       }
 
-      // Initialize territory canvas
+      // ========== TERRITORY FILL CACHE ==========
       const terrCanvas = document.createElement('canvas');
       terrCanvas.width = CANVAS_WIDTH;
       terrCanvas.height = CANVAS_HEIGHT;
       const tCtx = terrCanvas.getContext('2d');
       territoryCanvasRef.current = terrCanvas;
 
-      // Fill provinces with faction colors immediately
+      // Fill provinces with initial faction colors
       Object.entries(TERRITORIES).forEach(([id]) => {
         const factionId = territoryOwners[id];
         const factionColor =
@@ -150,7 +152,7 @@ export default function GameBoard() {
         }
       });
     };
-  }, []);
+  }, [territoryOwners]);
 
   // ========== FILL PROVINCES CACHE ==========
   useEffect(() => {
@@ -177,12 +179,16 @@ export default function GameBoard() {
     });
   }, [territoryOwners]);
 
+  // ========== MAIN DRAWING EFFECT ==========
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-    // Draw picking map as background layer
+    // ========== WATER BACKGROUND ==========
+    ctx.fillStyle = '#1A3A52';
+    ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+    // Draw the picking map as background layer
     const pickingCanvas = pickingCanvasRef.current;
     if (pickingCanvas) {
       ctx.globalAlpha = 0.0;
@@ -190,8 +196,7 @@ export default function GameBoard() {
       ctx.globalAlpha = 1.0;
     }
 
-	
-    // Drawing Territory connections
+    // Draw territory borders
     Object.entries(TERRITORIES).forEach(([, territory]) => {
       territory.neighbors.forEach((neighborId) => {
         const neighbor = TERRITORIES[neighborId];
@@ -211,7 +216,7 @@ export default function GameBoard() {
       ctx.drawImage(territoryCanvasRef.current, 0, 0);
     }
 
-    // Drawing Territories on Canvas
+    // Draw territories on canvas (circles + names)
     Object.entries(TERRITORIES).forEach(([id, territory]) => {
       const factionId = territoryOwners[id];
       const factionColor =
@@ -220,11 +225,11 @@ export default function GameBoard() {
       ctx.beginPath();
       ctx.arc(territory.cx, territory.cy, 10, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = 'white';
+      ctx.strokeStyle = 'black';
       ctx.stroke();
 
-      ctx.fillStyle = 'white';
-      ctx.font = '9px Arial';
+      ctx.fillStyle = 'black';
+      ctx.font = '11px Arial';
       ctx.fillText(territory.name, territory.cx - 10, territory.cy + 20);
     });
 
@@ -242,6 +247,7 @@ export default function GameBoard() {
       }
     }
 
+    // Highlight selected territories
     const highlighted = [attackFrom, attackTo, fortifyFrom, fortifyTo].filter(Boolean);
     highlighted.forEach((territoryId) => {
       const territory = TERRITORIES[territoryId];
@@ -263,15 +269,7 @@ export default function GameBoard() {
       ctx.lineWidth = 3;
       ctx.stroke();
     });
-  }, [
-    territoryOwners /* Redibuja cuando cambian los propietarios */,
-    troopCount,
-    attackFrom,
-    attackTo,
-    fortifyFrom,
-    fortifyTo,
-    hoveredTerritory,
-  ]);
+  }, [territoryOwners, troopCount, attackFrom, attackTo, fortifyFrom, fortifyTo, hoveredTerritory]);
 
   // ========== TURN MANAGEMENT ==========
   async function handleNextTurn() {
@@ -756,7 +754,7 @@ export default function GameBoard() {
             {phase === TurnManager.PHASES.FORTIFY && fortifyFrom && fortifyTo && (
               <div style={{ color: 'white', fontSize: '12px' }}>
                 <div style={{ fontWeight: 'bold', marginBottom: '6px' }}>
-                  {TERRITORIES[fortifyFrom].name} → {TERRITORIES[fortifyTo].name}
+                  {TERRITORIES[fortifyFrom].name} '&gt;' {TERRITORIES[fortifyTo].name}
                 </div>
                 <input
                   type="range"
