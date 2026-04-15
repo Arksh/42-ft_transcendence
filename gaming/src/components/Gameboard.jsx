@@ -3,8 +3,8 @@ import TurnManager from '../game/TurnManager.js';
 import { createScaledTerritories } from '../game/Territories.js';
 import { FACTIONS, NEUTRAL_TERRITORIES } from '../game/Factions.js';
 import mapPicking from '../assets/map_picking.png';
-import { calculateScore, checkCapitalVictory, getScoreWinner } from '../game/Victory.js';
-import Player, { createMockPlayers } from '../game/Player.js';
+import { calculateScore } from '../game/Victory.js';
+import { api } from '../api.js';
 
 const CANVAS_WIDTH = 1100;
 const CANVAS_HEIGHT = 700;
@@ -37,9 +37,6 @@ function initializeTroopCount() {
 // export default function GameBoard({ players }) {
 export default function GameBoard() {
   // ========== GAME SETUP ==========
-  const playerRecords = createMockPlayers(3);
-  const players = playerRecords.map((record) => new Player(record));
-  const tm = useRef(new TurnManager(players));
   const MAX_TURNS = 100;
 
   // ========== CANVAS REFS ==========
@@ -47,14 +44,13 @@ export default function GameBoard() {
   const pickingCanvasRef = useRef(null);
   const territoryCanvasRef = useRef(null);
   const territoryPixelsRef = useRef({});
-  const initializedRef = useRef(false);
+  // const initializedRef = useRef(false);
 
   // ========== GAME STATE ==========
   const [currentPlayer, setCurrentPlayer] = useState(null);
   const [phase, setPhase] = useState(null);
   const [turn, setTurn] = useState(0);
   const [winner, setWinner] = useState(null);
-  const [activeFactions] = useState(players.map((p) => p.faction));
 
   // ========== UI STATE ==========
   const [selectedTerritory, setSelectedTerritory] = useState(null);
@@ -72,20 +68,27 @@ export default function GameBoard() {
   const [attackFrom, setAttackFrom] = useState(null);
   const [attackTo, setAttackTo] = useState(null);
   const [attackTroops, setAttackTroops] = useState(1);
-  const [territoriesAttackedThisTurn, setTerritoriesAttackedThisTurn] = useState(new Set());
 
   // ========== FORTIFY PHASE ==========
   const [fortifyFrom, setFortifyFrom] = useState(null);
   const [fortifyTo, setFortifyTo] = useState(null);
   const [fortifyTroops, setFortifyTroops] = useState(1);
 
+  function applyState(state) {
+    setCurrentPlayer(state.currentPlayer);
+    setPhase(state.phase);
+    setTurn(state.turn);
+    setWinner(state.winner);
+    setTerritoryOwners(state.territoryOwners);
+    setTroopCount(state.troopCount);
+    setReinforcementsLeft(state.reinforcementsLeft);
+  }
+
   // ========== INITIALIZATION ==========
   useEffect(() => {
-    if (!initializedRef.current) {
-      initializedRef.current = true;
-      setCurrentPlayer(tm.current.getCurrentPlayer());
-      setPhase(tm.current.phase);
-    }
+    api.startGame(['france', 'england', 'russia']).then((res) => {
+      if (res.ok) applyState(res.state);
+    });
   }, []);
 
   // ========== CANVAS SETUP ==========
@@ -205,24 +208,19 @@ export default function GameBoard() {
       ctx.drawImage(territoryCanvasRef.current, 0, 0);
     }
 
-    // Draw territories on canvas (circles + names)
-    Object.entries(TERRITORIES).forEach(([id, territory]) => {
-      // Skip mountains - rendered in black as part of fills
-      if (id === 'mountains') return;
+    // Draw territory borders first (so they appear underneath)
+    Object.entries(TERRITORIES).forEach(([, territory]) => {
+      territory.neighbors.forEach((neighborId) => {
+        const neighbor = TERRITORIES[neighborId];
+        if (!neighbor) return;
 
-      const factionId = territoryOwners[id];
-      const factionColor =
-        factionId === 'neutral' ? '#888888' : FACTIONS[factionId]?.color ?? '#888888';
-      ctx.fillStyle = factionColor;
-      ctx.beginPath();
-      ctx.arc(territory.cx, territory.cy, 10, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = 'black';
-      ctx.stroke();
-
-      ctx.fillStyle = 'black';
-      ctx.font = '11px Arial';
-      ctx.fillText(territory.name, territory.cx - 10, territory.cy + 20);
+        ctx.beginPath();
+        ctx.moveTo(territory.cx, territory.cy);
+        ctx.lineTo(neighbor.cx, neighbor.cy);
+        ctx.strokeStyle = 'rgba(0,0,0,1)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
     });
 
     // Draw halo for hovered territory
@@ -262,20 +260,34 @@ export default function GameBoard() {
       ctx.stroke();
     });
 
-    // Draw territory borders
-    // Object.entries(TERRITORIES).forEach(([, territory]) => {
-    //   territory.neighbors.forEach((neighborId) => {
-    //     const neighbor = TERRITORIES[neighborId];
-    //     if (!neighbor) return;
+    // Draw territories on canvas (circles + names + troops) - rendered last so they appear on top
+    Object.entries(TERRITORIES).forEach(([id, territory]) => {
+      // Skip mountains - rendered in black as part of fills
+      if (id === 'mountains') return;
 
-    //     ctx.beginPath();
-    //     ctx.moveTo(territory.cx, territory.cy);
-    //     ctx.lineTo(neighbor.cx, neighbor.cy);
-    //     ctx.strokeStyle = 'rgba(0,0,0,1)';
-    //     ctx.lineWidth = 1;
-    //     ctx.stroke();
-    //   });
-    // });
+      const factionId = territoryOwners[id];
+      const factionColor =
+        factionId === 'neutral' ? '#888888' : FACTIONS[factionId]?.color ?? '#888888';
+      ctx.fillStyle = factionColor;
+      ctx.beginPath();
+      ctx.arc(territory.cx, territory.cy, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'black';
+      ctx.stroke();
+
+      // Draw troop count inside the circle
+      ctx.fillStyle = 'black';
+      ctx.font = 'bold 12px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(troopCount[id], territory.cx, territory.cy);
+
+      // Draw territory name below
+      ctx.fillStyle = 'black';
+      ctx.font = '11px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(territory.name, territory.cx, territory.cy + 20);
+    });
   }, [territoryOwners, troopCount, attackFrom, attackTo, fortifyFrom, fortifyTo, hoveredTerritory]);
 
   // ========== TURN MANAGEMENT ==========
@@ -287,116 +299,50 @@ export default function GameBoard() {
     setFortifyFrom(null);
     setFortifyTo(null);
 
-    const nextPlayer = await tm.current.nextTurn();
-    setCurrentPlayer(nextPlayer);
-    setPhase(tm.current.phase);
-
-    if (tm.current.phase === TurnManager.PHASES.REINFORCE) {
-      const newTurn = turn + 1;
-      setTurn(newTurn);
-      setReinforcementsLeft(calculateReinforcements(nextPlayer.faction));
-
-      // Comprueba victoria por capitales
-      const capitalWinner = activeFactions.find((fId) =>
-        checkCapitalVictory(fId, territoryOwners, activeFactions)
-      );
-      if (capitalWinner) {
-        setWinner({ factionId: capitalWinner, reason: 'capitals' });
-        return;
-      }
-
-      // Comprueba victoria por turnos
-      if (newTurn > MAX_TURNS) {
-        const scoreWinner = getScoreWinner(territoryOwners, activeFactions);
-        setWinner({ factionId: scoreWinner, reason: 'score' });
-        return;
-      }
-      console.log(`Jugador ${nextPlayer.name} recibe ${reinforcementsLeft} tropas para reforzar.`);
-    }
-
-    // Reset attacked territories when entering ATTACK phase
-    if (tm.current.phase === TurnManager.PHASES.ATTACK) {
-      setTerritoriesAttackedThisTurn(new Set());
-      console.log('Fase de ataque iniciada. Territorios pueden atacar nuevamente.');
-    }
+    const res = await api.nextTurn();
+    if (res.ok) applyState(res.state);
   }
 
-  // ========== REINFORCEMENTS ==========
-  function calculateReinforcements(factionId) {
-    const owned = Object.entries(territoryOwners)
-      .filter(([, owner]) => owner === factionId)
-      .map(([id]) => id);
-    let total = Math.max(3, Math.floor(owned.length / 3));
+  // ========== REINFORCE ACTIONS ==========
+  // function calculateReinforcements(factionId) {
+  //   const owned = Object.entries(territoryOwners)
+  //     .filter(([, owner]) => owner === factionId)
+  //     .map(([id]) => id);
+  //   let total = Math.max(3, Math.floor(owned.length / 3));
 
-    // Aquí irían los bonus futuros:
-    // total += calculateRegionBonus(owned);
-    // total += calculateCapitalBonus(owned);
-    // total += calculateCardBonus(factionId);
+  //   // Aquí irían los bonus futuros:
+  //   // total += calculateRegionBonus(owned);
+  //   // total += calculateCapitalBonus(owned);
+  //   // total += calculateCardBonus(factionId);
 
-    return total;
+  //   return total;
+  // }
+
+  async function handleReinforce(territoryId) {
+    const res = await api.reinforce(territoryId);
+    if (res.ok) applyState(res.state);
   }
 
   // ========== FORTIFY ACTIONS ==========
-  function handleFortify(destinationId) {
-    setTroopCount((prev) => ({
-      ...prev,
-      [fortifyFrom]: prev[fortifyFrom] - fortifyTroops,
-      [destinationId]: prev[destinationId] + fortifyTroops,
-    }));
-
-    setFortifyFrom(null);
-    setFortifyTo(null);
-
-    setFortifyTroops(1);
+  async function handleFortify(destinationId) {
+    const res = await api.fortify(fortifyFrom, destinationId, fortifyTroops);
+    if (res.ok) {
+      applyState(res.state);
+      setFortifyFrom(null);
+      setFortifyTo(null);
+      setFortifyTroops(1);
+    }
   }
 
   // ========== COMBAT ACTIONS ==========
-  function handleAttack() {
-    const defenderTroops = Math.min(3, troopCount[attackTo]);
-    const { attackerLosses, defenderLosses, attackDice, defenseDice, troopBonus } =
-      TurnManager.resolveCombat(attackTroops, defenderTroops);
-
-    const newTroopCount = { ...troopCount };
-    newTroopCount[attackFrom] -= attackerLosses;
-    newTroopCount[attackTo] -= defenderLosses;
-
-    let conquered = false;
-    if (newTroopCount[attackTo] <= 0) {
-      newTroopCount[attackTo] = 1;
-      newTroopCount[attackFrom] -= 1;
-      setTerritoryOwners((prev) => ({ ...prev, [attackTo]: currentPlayer.faction }));
-      conquered = true;
+  async function handleAttack() {
+    const res = await api.attack(attackFrom, attackTo, attackTroops);
+    if (res.ok) {
+      applyState(res.state);
+      setBattleReport(res.battleReport);
+      setAttackFrom(null);
+      setAttackTo(null);
     }
-
-    setTroopCount(newTroopCount);
-
-    // Mark this territory as having attacked this turn
-    setTerritoriesAttackedThisTurn((prev) => new Set([...prev, attackFrom]));
-
-    // Store battle report
-    setBattleReport({
-      attackFrom: TERRITORIES[attackFrom].name,
-      attackTo: TERRITORIES[attackTo].name,
-      attackerTroops: attackTroops,
-      defenderTroops,
-      attackDice,
-      defenseDice,
-      attackerLosses,
-      defenderLosses,
-      conquered,
-      troopBonus,
-    });
-
-    setAttackFrom(null);
-    setAttackTo(null);
-
-    console.log(
-      `Resultado del ataque: ${attackTroops} atacan a ${defenderTroops}\n` +
-        `Dados de ataque: ${attackDice.join(', ')}\n` +
-        `Dados de defensa: ${defenseDice.join(', ')}\n` +
-        `Pérdidas del atacante: ${attackerLosses}\n` +
-        `Pérdidas del defensor: ${defenderLosses}`
-    );
   }
 
   // ========== CANVAS INTERACTION ==========
@@ -454,25 +400,9 @@ export default function GameBoard() {
 
     // Game logic for REINFORCE phase
     if (phase === TurnManager.PHASES.REINFORCE) {
-      // Durante REINFORCE: click en territorio propio para colocar 1 tropa
-      if (territoryOwners[clickedId] !== currentPlayer.faction) {
-        console.log('No puedes reforzar un territorio que no posees:', clickedTerritory.name);
-        return;
-      }
-      if (reinforcementsLeft <= 0) {
-        console.log('No tienes refuerzos disponibles');
-        return;
-      }
-      setTroopCount((prev) => ({
-        ...prev,
-        [clickedId]: prev[clickedId] + 1,
-      }));
-      setReinforcementsLeft((prev) => prev - 1);
-      console.log(
-        `Se añadió 1 tropa a ${clickedTerritory.name}. Refuerzos restantes: ${
-          reinforcementsLeft - 1
-        }`
-      );
+      if (territoryOwners[clickedId] !== currentPlayer.faction) return;
+      if (reinforcementsLeft <= 0) return;
+      handleReinforce(clickedId);
       return;
     }
 
@@ -489,10 +419,6 @@ export default function GameBoard() {
             'No puedes atacar desde un territorio con 1 tropa o menos:',
             clickedTerritory.name
           );
-          return;
-        }
-        if (territoriesAttackedThisTurn.has(clickedId)) {
-          console.log('Este territorio ya ha atacado esta ronda:', clickedTerritory.name);
           return;
         }
         setAttackFrom(clickedId);

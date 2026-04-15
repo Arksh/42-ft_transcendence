@@ -10,7 +10,7 @@ export default class TurnManager {
   constructor(players = []) {
     this.players = players;
     this.currentPlayer = 0;
-    this.phase = null;
+    this.phase = TurnManager.PHASES.REINFORCE;
   }
   /**
    * Enum for game phases.
