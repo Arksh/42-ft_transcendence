@@ -1,0 +1,22 @@
+services:
+  gaming-server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+      args:
+        - VITE_API_URL=http://localhost:3000
+    ports:
+      - '3000:3000'
+    restart: unless-stopped
+
+  gaming-client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=http://localhost:3000
+    ports:
+      - '80:80'
+    depends_on:
+      - gaming-server
+    restart: unless-stopped
