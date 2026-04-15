@@ -86,7 +86,7 @@ export default function GameBoard() {
 
   // ========== INITIALIZATION ==========
   useEffect(() => {
-    api.startGame(['france', 'england', 'russia']).then((res) => {
+    api.getState().then((res) => {
       if (res.ok) applyState(res.state);
     });
   }, []);
