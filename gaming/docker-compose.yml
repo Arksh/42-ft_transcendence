@@ -6,7 +6,7 @@ services:
       args:
         - VITE_API_URL=http://localhost:3000
     ports:
-      - '3000:3000'
+      - '0.0.0.0:3000:3000'
     restart: unless-stopped
 
   gaming-client:
@@ -14,7 +14,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=http://localhost:3000
+        - VITE_API_URL=http://10.19.227.195:3000
         - BACKEND_URL=http://backend:8000
     ports:
       - '80:80'

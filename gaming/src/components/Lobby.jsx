@@ -12,18 +12,26 @@ export default function Lobby({ onStart }) {
     setSelections((prev) => ({ ...prev, [playerIndex]: factionId }));
   }
 
-  async function handleStart() {
-    for (let i = 0; i < playerCount; i++) {
-      if (!selections[i]) return;
-    }
+	async function handleStart() {
+		for (let i = 0; i < playerCount; i++) {
+			if (!selections[i]) {
+			console.log(`Player ${i + 1} has no faction selected`);
+			return;
+			}
+		}
 
-    const chosen = Object.values(selections).slice(0, playerCount);
-    if (new Set(chosen).size !== playerCount) return;
+		const chosen = Object.values(selections).slice(0, playerCount);
+		if (new Set(chosen).size !== playerCount) {
+			console.log('Duplicate factions selected');
+			return;
+		}
 
-    const factions = Array.from({ length: playerCount }, (_, i) => selections[i]);
-    const res = await api.startGame(factions);
-    if (res.ok) onStart();
-  }
+		const factions = Array.from({ length: playerCount }, (_, i) => selections[i]);
+		console.log('Starting game with factions:', factions);
+		const res = await api.startGame(factions);
+		console.log('Server response:', res);
+		if (res.ok) onStart();
+	}
 
   return (
     <div

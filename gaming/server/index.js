@@ -81,7 +81,7 @@ app.post('/game/next-turn', async (req, res) => {
 });
 
 const PORT = 3000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Great Risk server running on http://localhost:${PORT}`);
 });
 
