@@ -5,6 +5,8 @@ import { FACTIONS, NEUTRAL_TERRITORIES } from '../game/Factions.js';
 import mapPicking from '../assets/map_picking.png';
 import { calculateScore } from '../game/Victory.js';
 import { api } from '../api.js';
+import AchievementNotification from './AchievementNotification.jsx';
+import { checkAchievements } from '../../server/Achievements.js';
 
 const CANVAS_WIDTH = 1100;
 const CANVAS_HEIGHT = 700;
@@ -57,6 +59,10 @@ export default function GameBoard() {
   const [hoveredTerritory, setHoveredTerritory] = useState(null);
   const [battleReport, setBattleReport] = useState(null);
 
+  // ========== ACHIEVEMENT STATE ==========
+  const [visibleAchievements, setVisibleAchievements] = useState([]);
+  const [playerUnlockedAchievements, setPlayerUnlockedAchievements] = useState({});
+
   // ========== TERRITORY STATE ==========
   const [territoryOwners, setTerritoryOwners] = useState(initializeTerritoryOwners);
   const [troopCount, setTroopCount] = useState(initializeTroopCount);
@@ -74,6 +80,9 @@ export default function GameBoard() {
   const [fortifyTo, setFortifyTo] = useState(null);
   const [fortifyTroops, setFortifyTroops] = useState(1);
 
+  // ========== PLAYER STATS STATE ==========
+  const [playerStats, setPlayerStats] = useState({});
+
   function applyState(state) {
     setCurrentPlayer(state.currentPlayer);
     setPhase(state.phase);
@@ -82,6 +91,9 @@ export default function GameBoard() {
     setTerritoryOwners(state.territoryOwners);
     setTroopCount(state.troopCount);
     setReinforcementsLeft(state.reinforcementsLeft);
+    if (state.playerStats) {
+      setPlayerStats(state.playerStats);
+    }
   }
 
   // ========== INITIALIZATION ==========
@@ -90,6 +102,32 @@ export default function GameBoard() {
       if (res.ok) applyState(res.state);
     });
   }, []);
+
+  // ========== ACHIEVEMENT CHECKING ==========
+  useEffect(() => {
+    if (!playerStats || Object.keys(playerStats).length === 0) return;
+
+    Object.entries(playerStats).forEach(([playerId, playerStat]) => {
+      const playerUnlockedSet = playerUnlockedAchievements[playerId] || new Set();
+      const newAchievements = checkAchievements(
+        playerStat,
+        territoryOwners,
+        Array.from(playerUnlockedSet)
+      );
+
+      newAchievements.forEach((achievementId) => {
+        setVisibleAchievements((prev) => [...prev, { id: achievementId, playerId }]);
+        setPlayerUnlockedAchievements((prev) => ({
+          ...prev,
+          [playerId]: new Set([...playerUnlockedSet, achievementId]),
+        }));
+      });
+    });
+  }, [territoryOwners, playerStats, playerUnlockedAchievements]);
+
+  function handleAchievementDismiss(achievementId) {
+    setVisibleAchievements((prev) => prev.filter((item) => item.id !== achievementId));
+  }
 
   // ========== CANVAS SETUP ==========
   useEffect(() => {
@@ -497,6 +535,15 @@ export default function GameBoard() {
         backgroundColor: '#0d0d0d',
       }}
     >
+      {/* Achievement Notifications */}
+      {visibleAchievements.map((achievement) => (
+        <AchievementNotification
+          key={`${achievement.playerId}-${achievement.id}`}
+          achievementId={achievement.id}
+          onDismiss={() => handleAchievementDismiss(achievement.id)}
+        />
+      ))}
+
       <h1
         style={{
           textAlign: 'center',
