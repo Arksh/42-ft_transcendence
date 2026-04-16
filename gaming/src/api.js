@@ -20,4 +20,9 @@ export const api = {
   fortify: (fortifyFrom, fortifyTo, troops) =>
     request('POST', '/game/fortify', { fortifyFrom, fortifyTo, troops }),
   nextTurn: () => request('POST', '/game/next-turn'),
+  
+  getPlayer:          (id) => request('GET', `/players/${id}`),
+  saveMatch:          (data) => request('POST', '/matches', data),
+  unlockAchievement:  (playerId, achievementId) => 
+    request('POST', `/players/${playerId}/achievements`, { achievementId }),
 };

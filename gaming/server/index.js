@@ -3,6 +3,8 @@ import cors from 'cors';
 import Gamestate from './GameState.js';
 import Player from '../src/game/Player.js';
 import { FACTIONS } from '../src/game/Factions.js';
+import { getPlayer, saveMatchResult, unlockAchievement } from './services/PlayerService.js';
+
 
 const app = express();
 app.use(cors());
@@ -81,4 +83,23 @@ app.post('/game/next-turn', async (req, res) => {
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Great Risk server running on http://localhost:${PORT}`);
+});
+
+// Obtener datos de un jugador
+app.get('/players/:id', async (req, res) => {
+  const player = await getPlayer(req.params.id);
+  if (!player) return res.status(404).json({ ok: false, error: 'Player not found' });
+  res.json({ ok: true, player });
+});
+
+// Guardar resultado de partida — se llama cuando hay ganador
+app.post('/matches', async (req, res) => {
+  await saveMatchResult(req.body);
+  res.json({ ok: true });
+});
+
+// Desbloquear logro
+app.post('/players/:id/achievements', async (req, res) => {
+  await unlockAchievement(req.params.id, req.body.achievementId);
+  res.json({ ok: true });
 });
