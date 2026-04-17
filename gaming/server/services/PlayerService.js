@@ -8,11 +8,11 @@ const BACKEND_URL = process.env.BACKEND_URL || null;
 // ========== MOCK DATA ==========
 const mockPlayers = {
 	'player-1': {
-	id: 'player-1',
-	name: 'Player 1',
-	achievements: [],
-	stats: { gamesPlayed: 0, gamesWon: 0, territoriesConquered: 0, totalTurns: 0 },
-	matchHistory: [],
+		id: 'player-1',
+		name: 'Player 1',
+		achievements: [],
+		stats: { gamesPlayed: 0, gamesWon: 0, territoriesConquered: 0, totalTurns: 0 },
+		matchHistory: [],
 	},
 	'player-2': {
 		id: 'player-2',

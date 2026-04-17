@@ -3,8 +3,6 @@ services:
     build:
       context: .
       dockerfile: server/Dockerfile
-      args:
-        - VITE_API_URL=http://localhost:3000
     ports:
       - '0.0.0.0:3000:3000'
     restart: unless-stopped
@@ -13,9 +11,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        - VITE_API_URL=http://10.19.227.195:3000
-        - BACKEND_URL=http://backend:8000
     ports:
       - '80:80'
     depends_on:
