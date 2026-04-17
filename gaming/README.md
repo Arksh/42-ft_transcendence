@@ -112,22 +112,32 @@ This starts the development server with hot module replacement (HMR) on `http://
 
 ### Docker Setup (Recommended)
 
-The project is containerized with Docker Compose, which orchestrates:
+The project is containerized with Docker Compose, orchestrated from the **repository root** (one level above `gaming/`):
 
-- **Gaming Server** (Node.js backend): Runs on port 3000
-- **Gaming Client** (React frontend): Served by Nginx on port 80
+- **Redis** (Pub/Sub broker): internal-only, not exposed
+- **Realtime** (TypeScript WebSocket service): port `42069`
+- **Gaming Server** (Node.js REST API): port `3000`
+- **Gaming Client** (React frontend, Nginx): port `80`
 
 ```bash
+# from the repo root, NOT from gaming/
 docker-compose up --build
 ```
 
 Access the game at `http://localhost` (Nginx on port 80).
 
+**Real-time architecture**:
+
+- The REST API publishes `game:<roomId>:state` to Redis after every state mutation.
+- The `realtime` service subscribes via `psubscribe game:*:state` and fans messages out to all WebSocket clients in the matching room.
+- The client opens a single WebSocket to `ws://<host>:42069`, sends `{ type: 'join', roomId, playerId }`, and receives `state` and `chat` pushes.
+- Chat is ephemeral (no persistence, no history).
+
 **Docker Configuration**:
 
 - Client: Multi-stage build with Node.js builder and Nginx production server
 - Server: Node.js service with automatic restart policy
-- Both services use `http://localhost:3000` for API communication
+- Realtime: Multi-stage TypeScript build, runs `node dist/index.js`
 - Services restart automatically unless manually stopped
 
 ### Validation
@@ -175,9 +185,11 @@ npm run lint
 - **Vite 8.0.0** - Build tool with HMR
 - **Canvas API** - Territory rendering and interaction
 - **ES6+ Modules** - Clean code organization
-- **Docker & Docker Compose** - Containerization and orchestration
+- **Docker & Docker Compose** - Containerization and orchestration (compose file lives at repo root)
 - **Nginx** - Production web server
 - **Node.js 20 (Alpine)** - Backend runtime
+- **TypeScript + `ws` + `ioredis`** - Realtime microservice (`realtime/`)
+- **Redis 7 (Alpine)** - Pub/Sub broker for state fan-out
 
 ## UI Design & Aesthetic
 
