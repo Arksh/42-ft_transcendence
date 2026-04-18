@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import Redis from 'ioredis';
 import Gamestate from './GameState.js';
 import Player from '../src/game/Player.js';
 import { FACTIONS } from '../src/game/Factions.js';
@@ -14,6 +15,26 @@ const rooms = new Map();
 
 function getRoom(roomId) {
 	return rooms.get(roomId) ?? null;
+}
+
+const REDIS_URL = process.env.REDIS_URL ?? null;
+const redisPub = REDIS_URL
+  ? new Redis(REDIS_URL, { maxRetriesPerRequest: null, lazyConnect: false })
+  : null;
+if (redisPub) {
+  redisPub.on('connect', () => console.log(`[redis] publisher connected to ${REDIS_URL}`));
+  redisPub.on('error', (err) => console.error('[redis] publisher error:', err.message));
+} else {
+  console.warn('[redis] REDIS_URL not set — game state will not be broadcast');
+}
+
+function publishState(roomId, room) {
+  if (!redisPub || !room?.gameState) return;
+  try {
+    redisPub.publish(`game:${roomId}:state`, JSON.stringify(room.gameState.serialize()));
+  } catch (err) {
+    console.error(`[redis] publish failed for room=${roomId}:`, err.message);
+  }
 }
 
 app.post('/rooms', (req, res) => {
@@ -67,6 +88,7 @@ app.post('/rooms/:roomId/start', (req, res) => {
 
   room.gameState = new Gamestate(room.players);
   room.started = true;
+  publishState(req.params.roomId, room);
   res.json({ ok: true, state: room.gameState.serialize() });
 });
 
@@ -105,27 +127,35 @@ app.post('/rooms/:roomId/game/reinforce', (req, res) => {
   const room = getRoom(req.params.roomId);
   if (!room?.gameState) return res.status(404).json({ ok: false, error: 'No game in progress' });
   const { territoryId } = req.body;
-  res.json(room.gameState.reinforce(territoryId));
+  const result = room.gameState.reinforce(territoryId);
+  if (result.ok) publishState(req.params.roomId, room);
+  res.json(result);
 });
 
 app.post('/rooms/:roomId/game/attack', (req, res) => {
   const room = getRoom(req.params.roomId);
   if (!room?.gameState) return res.status(404).json({ ok: false, error: 'No game in progress' });
   const { attackFrom, attackTo, attackTroops } = req.body;
-  res.json(room.gameState.attack(attackFrom, attackTo, attackTroops));
+  const result = room.gameState.attack(attackFrom, attackTo, attackTroops);
+  if (result.ok) publishState(req.params.roomId, room);
+  res.json(result);
 });
 
 app.post('/rooms/:roomId/game/fortify', (req, res) => {
   const room = getRoom(req.params.roomId);
   if (!room?.gameState) return res.status(404).json({ ok: false, error: 'No game in progress' });
   const { fortifyFrom, fortifyTo, troops } = req.body;
-  res.json(room.gameState.fortify(fortifyFrom, fortifyTo, troops));
+  const result = room.gameState.fortify(fortifyFrom, fortifyTo, troops);
+  if (result.ok) publishState(req.params.roomId, room);
+  res.json(result);
 });
 
 app.post('/rooms/:roomId/game/next-turn', async (req, res) => {
   const room = getRoom(req.params.roomId);
   if (!room?.gameState) return res.status(404).json({ ok: false, error: 'No game in progress' });
-  res.json(await room.gameState.nextTurn());
+  const result = await room.gameState.nextTurn();
+  if (result.ok) publishState(req.params.roomId, room);
+  res.json(result);
 });
 
 const PORT = 3000;

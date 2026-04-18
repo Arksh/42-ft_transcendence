@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import TurnManager from '../game/TurnManager.js';
 import { createScaledTerritories } from '../game/Territories.js';
 import { FACTIONS, NEUTRAL_TERRITORIES } from '../game/Factions.js';
@@ -6,6 +6,8 @@ import mapPicking from '../assets/map_picking.png';
 import { calculateScore } from '../game/Victory.js';
 import { api } from '../api.js';
 import AchievementNotification from './AchievementNotification.jsx';
+import Chat from './Chat.jsx';
+import useGameSocket from '../hooks/useGameSocket.js';
 import { checkAchievements } from '../../server/Achievements.js';
 
 const CANVAS_WIDTH = 1100;
@@ -84,7 +86,10 @@ export default function GameBoard({ roomId, playerId }) {
 	// ========== PLAYER STATS STATE ==========
 	const [playerStats, setPlayerStats] = useState({});
 
-	function applyState(state) {
+	// ========== CHAT STATE ==========
+	const [chatMessages, setChatMessages] = useState([]);
+
+	const applyState = useCallback((state) => {
 		setCurrentPlayer(state.currentPlayer);
 		setPhase(state.phase);
 		setTurn(state.turn);
@@ -95,14 +100,27 @@ export default function GameBoard({ roomId, playerId }) {
 		if (state.playerStats) {
 			setPlayerStats(state.playerStats);
 		}
-	}
+	}, []);
 
-	// ========== INITIALIZATION ==========
+	const handleChat = useCallback((msg) => {
+		setChatMessages((prev) => [...prev, msg]);
+	}, []);
+
+	// ========== INITIAL SNAPSHOT (one-shot before WS pushes take over) ==========
 	useEffect(() => {
+		if (!roomId) return;
 		api.getState(roomId).then((res) => {
 			if (res.ok) applyState(res.state);
 		});
-	}, [roomId]);
+	}, [roomId, applyState]);
+
+	// ========== REAL-TIME (WebSocket) ==========
+	const { status: wsStatus, sendChat } = useGameSocket({
+		roomId,
+		playerId,
+		onState: applyState,
+		onChat: handleChat,
+	});
 
 	// ========== ACHIEVEMENT CHECKING ==========
 	useEffect(() => {
@@ -125,16 +143,6 @@ export default function GameBoard({ roomId, playerId }) {
 			});
 		});
 	}, [territoryOwners, playerStats, playerUnlockedAchievements]);
-
-	// ========== POLLING ==========
-	useEffect(() => {
-		if (!roomId) return;
-		const interval = setInterval(async () => {
-			const res = await api.getState(roomId);
-			if (res.ok) applyState(res.state);
-		}, 2000);
-		return () => clearInterval(interval);
-	}, [roomId]);
 
 	function handleAchievementDismiss(achievementId) {
 		setVisibleAchievements((prev) => prev.filter((item) => item.id !== achievementId));
@@ -381,12 +389,6 @@ export default function GameBoard({ roomId, playerId }) {
 		}
 	}
 
-	useEffect(() => {
-		api.getState(roomId).then(res => {
-			if (res.ok) applyState(res.state);
-		});
-	}, [roomId]);
-
 	// ========== CANVAS INTERACTION ==========
 	function getClickedTerritory(e) {
 		const canvas = canvasRef.current;
@@ -550,6 +552,25 @@ export default function GameBoard({ roomId, playerId }) {
 					onDismiss={() => handleAchievementDismiss(achievement.id)}
 				/>
 			))}
+
+			{/* Chat panel (fixed bottom-right) */}
+			<div
+				style={{
+					position: 'fixed',
+					bottom: '20px',
+					right: '20px',
+					width: '280px',
+					zIndex: 20,
+				}}
+			>
+				<Chat
+					messages={chatMessages}
+					onSend={sendChat}
+					status={wsStatus}
+					playerId={playerId}
+				/>
+			</div>
+
 
 			<h1
 				style={{
