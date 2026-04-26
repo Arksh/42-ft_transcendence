@@ -1,0 +1,55 @@
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+  realtime:
+    build: ./realtime
+    ports:
+      - '0.0.0.0:42069:42069'
+    environment:
+      PORT: 42069
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  gaming-server:
+    build:
+      context: ./gaming
+      dockerfile: server/Dockerfile
+    ports:
+      - '0.0.0.0:3000:3000'
+    environment:
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  gaming-client:
+    build:
+      context: ./gaming
+      dockerfile: Dockerfile
+    ports:
+      - '80:80'
+    depends_on:
+      - gaming-server
+      - realtime
+    restart: unless-stopped
+
+  postgres:
+    container_name: transcendence_postgres
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./db/seed.sql:/docker-entrypoint-initdb.d/seed.sql
+    ports:
+      - "5432:5432"
+
+volumes:
