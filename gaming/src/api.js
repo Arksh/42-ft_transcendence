@@ -1,5 +1,7 @@
 const BASE_URL = `http://${window.location.hostname}:3000`;
 
+export const wsUrl = () => `ws://${window.location.hostname}:42069`;
+
 async function request(method, endpoint, body = null) {
   const options = {
     method,
