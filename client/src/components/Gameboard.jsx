@@ -1,14 +1,14 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import TurnManager from '../game/TurnManager.js';
-import { createScaledTerritories } from '../game/Territories.js';
-import { FACTIONS, NEUTRAL_TERRITORIES } from '../game/Factions.js';
+import TurnManager from '@trascendence/shared/TurnManager';
+import { createScaledTerritories } from '@trascendence/shared/Territories';
+import { FACTIONS, NEUTRAL_TERRITORIES } from '@trascendence/shared/Factions';
 import mapPicking from '../assets/map_picking.png';
-import { calculateScore } from '../game/Victory.js';
+import { calculateScore } from '@trascendence/shared/Victory';
 import { api } from '../api.js';
 import AchievementNotification from './AchievementNotification.jsx';
 import Chat from './Chat.jsx';
 import useGameSocket from '../hooks/useGameSocket.js';
-import { checkAchievements } from '../../server/Achievements.js';
+import { checkAchievements } from '@trascendence/shared/Achievements';
 
 const CANVAS_WIDTH = 1100;
 const CANVAS_HEIGHT = 700;

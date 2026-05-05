@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FACTIONS } from '../game/Factions.js';
+import { FACTIONS } from '@trascendence/shared/Factions';
 import { api } from '../api.js';
 
 export default function Lobby({ onStart }) {

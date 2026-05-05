@@ -1,8 +1,7 @@
-import { FACTIONS, NEUTRAL_TERRITORIES } from '../src/game/Factions.js';
-import { createScaledTerritories } from '../src/game/Territories.js';
-import { checkCapitalVictory, getScoreWinner } from '../src/game/Victory.js';
-import TurnManager from '../src/game/TurnManager.js';
-import Player from '../src/game/Player.js';
+import { FACTIONS, NEUTRAL_TERRITORIES } from '@trascendence/shared/Factions';
+import { createScaledTerritories } from '@trascendence/shared/Territories';
+import { checkCapitalVictory, getScoreWinner } from '@trascendence/shared/Victory';
+import TurnManager from '@trascendence/shared/TurnManager';
 
 const CANVAS_WIDTH = 1100;
 const CANVAS_HEIGHT = 700;
