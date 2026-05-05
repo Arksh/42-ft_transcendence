@@ -692,27 +692,44 @@ export default function GameBoard({ roomId, playerId }) {
 				>
 					{/* LEFT: Player data */}
 					<div style={{ color: '#E0E0E0', fontSize: '13px', flex: 1 }}>
-						{currentPlayer && (
-							<>
-								<div style={{ fontWeight: 'bold', marginBottom: '6px', color: '#6496FF' }}>
-									{currentPlayer.name}
-								</div>
-								<div>
-									Facción:{' '}
-									<span style={{ color: '#FFD700' }}>
-										{FACTIONS[currentPlayer.faction]?.name || 'Unknown'}
-									</span>
-								</div>
-								<div style={{ marginTop: '4px' }}>
-									Fase: <span style={{ color: '#FF6B6B', fontWeight: 'bold' }}>{phase}</span>
-								</div>
-								{phase === TurnManager.PHASES.REINFORCE && (
-									<div style={{ marginTop: '4px', color: '#4CAF50', fontWeight: 'bold' }}>
-										Refuerzos: {reinforcementsLeft}
+						{(() => {
+							const myFaction = playerStats?.[playerId]?.faction;
+							const isMyTurn = currentPlayer?.id === playerId;
+							return (
+								<>
+									<div>
+										Facción:{' '}
+										<span style={{ color: '#FFD700' }}>
+											{myFaction ? FACTIONS[myFaction]?.name : '—'}
+										</span>
 									</div>
-								)}
-							</>
-						)}
+									<div style={{ marginTop: '4px' }}>
+										Fase: <span style={{ color: '#FF6B6B', fontWeight: 'bold' }}>{phase}</span>
+									</div>
+									{currentPlayer && (
+										<div
+											style={{
+												marginTop: '6px',
+												fontSize: '11px',
+												color: isMyTurn ? '#4CAF50' : '#888',
+											}}
+										>
+											Turno:{' '}
+											<span style={{ color: isMyTurn ? '#4CAF50' : '#bbb' }}>
+												{isMyTurn
+													? 'Tu turno'
+													: `${currentPlayer.name} — ${FACTIONS[currentPlayer.faction]?.name || '?'}`}
+											</span>
+										</div>
+									)}
+									{isMyTurn && phase === TurnManager.PHASES.REINFORCE && (
+										<div style={{ marginTop: '4px', color: '#4CAF50', fontWeight: 'bold' }}>
+											Refuerzos: {reinforcementsLeft}
+										</div>
+									)}
+								</>
+							);
+						})()}
 					</div>
 
 					{/* CENTER: Turn info and button */}
