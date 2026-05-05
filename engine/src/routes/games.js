@@ -3,16 +3,6 @@ import Player from '@trascendence/shared/Player';
 import { FACTIONS } from '@trascendence/shared/Factions';
 import Gamestate from '../gameState.js';
 
-// Issue #4 requirement: 403 when it isn't this player's turn.
-// Body must carry `playerId`; auth-resolved identity will replace this once
-// the Auth Service lands.
-function ensureTurn(room, playerId) {
-  if (!playerId) return { ok: false, code: 400, error: 'playerId required' };
-  if (room.gameState.currentPlayer.id !== playerId)
-    return { ok: false, code: 403, error: 'Not your turn' };
-  return { ok: true };
-}
-
 export function createGamesRouter({ db, publisher }) {
   const router = Router();
 
@@ -54,10 +44,7 @@ export function createGamesRouter({ db, publisher }) {
     if (!room?.gameState)
       return res.status(404).json({ ok: false, error: 'No game in progress' });
 
-    const { playerId, territoryId } = req.body;
-    const turn = ensureTurn(room, playerId);
-    if (!turn.ok) return res.status(turn.code).json({ ok: false, error: turn.error });
-
+    const { territoryId } = req.body;
     const result = room.gameState.reinforce(territoryId);
     if (result.ok) {
       await db.saveRoom(req.params.roomId, room);
@@ -71,10 +58,7 @@ export function createGamesRouter({ db, publisher }) {
     if (!room?.gameState)
       return res.status(404).json({ ok: false, error: 'No game in progress' });
 
-    const { playerId, attackFrom, attackTo, attackTroops } = req.body;
-    const turn = ensureTurn(room, playerId);
-    if (!turn.ok) return res.status(turn.code).json({ ok: false, error: turn.error });
-
+    const { attackFrom, attackTo, attackTroops } = req.body;
     const result = room.gameState.attack(attackFrom, attackTo, attackTroops);
     if (result.ok) {
       await db.saveRoom(req.params.roomId, room);
@@ -88,10 +72,7 @@ export function createGamesRouter({ db, publisher }) {
     if (!room?.gameState)
       return res.status(404).json({ ok: false, error: 'No game in progress' });
 
-    const { playerId, fortifyFrom, fortifyTo, troops } = req.body;
-    const turn = ensureTurn(room, playerId);
-    if (!turn.ok) return res.status(turn.code).json({ ok: false, error: turn.error });
-
+    const { fortifyFrom, fortifyTo, troops } = req.body;
     const result = room.gameState.fortify(fortifyFrom, fortifyTo, troops);
     if (result.ok) {
       await db.saveRoom(req.params.roomId, room);
@@ -104,10 +85,6 @@ export function createGamesRouter({ db, publisher }) {
     const room = await db.getRoom(req.params.roomId);
     if (!room?.gameState)
       return res.status(404).json({ ok: false, error: 'No game in progress' });
-
-    const { playerId } = req.body;
-    const turn = ensureTurn(room, playerId);
-    if (!turn.ok) return res.status(turn.code).json({ ok: false, error: turn.error });
 
     const result = await room.gameState.nextTurn();
     if (result.ok) {
