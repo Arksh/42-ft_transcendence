@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ACHIEVEMENTS } from '../../server/Achievements.js';
+import { ACHIEVEMENTS } from '@trascendence/shared/Achievements';
 import '../styles/AchievementNotification.css';
 
 export default function AchievementNotification({ achievementId, onDismiss }) {

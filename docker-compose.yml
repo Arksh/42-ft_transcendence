@@ -14,10 +14,10 @@ services:
       - redis
     restart: unless-stopped
 
-  gaming-server:
+  engine:
     build:
-      context: ./gaming
-      dockerfile: server/Dockerfile
+      context: .
+      dockerfile: engine/Dockerfile
     ports:
       - '0.0.0.0:3000:3000'
     environment:
@@ -26,13 +26,13 @@ services:
       - redis
     restart: unless-stopped
 
-  gaming-client:
+  client:
     build:
-      context: ./gaming
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: client/Dockerfile
     ports:
       - '80:80'
     depends_on:
-      - gaming-server
+      - engine
       - realtime
     restart: unless-stopped
