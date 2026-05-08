@@ -1,14 +1,14 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import TurnManager from '../game/TurnManager.js';
-import { createScaledTerritories } from '../game/Territories.js';
-import { FACTIONS, NEUTRAL_TERRITORIES } from '../game/Factions.js';
+import TurnManager from '@trascendence/shared/TurnManager';
+import { createScaledTerritories } from '@trascendence/shared/Territories';
+import { FACTIONS, NEUTRAL_TERRITORIES } from '@trascendence/shared/Factions';
 import mapPicking from '../assets/map_picking.png';
-import { calculateScore } from '../game/Victory.js';
+import { calculateScore } from '@trascendence/shared/Victory';
 import { api } from '../api.js';
 import AchievementNotification from './AchievementNotification.jsx';
 import Chat from './Chat.jsx';
 import useGameSocket from '../hooks/useGameSocket.js';
-import { checkAchievements } from '../../server/Achievements.js';
+import { checkAchievements } from '@trascendence/shared/Achievements';
 
 const CANVAS_WIDTH = 1100;
 const CANVAS_HEIGHT = 700;
@@ -692,27 +692,44 @@ export default function GameBoard({ roomId, playerId }) {
 				>
 					{/* LEFT: Player data */}
 					<div style={{ color: '#E0E0E0', fontSize: '13px', flex: 1 }}>
-						{currentPlayer && (
-							<>
-								<div style={{ fontWeight: 'bold', marginBottom: '6px', color: '#6496FF' }}>
-									{currentPlayer.name}
-								</div>
-								<div>
-									Facción:{' '}
-									<span style={{ color: '#FFD700' }}>
-										{FACTIONS[currentPlayer.faction]?.name || 'Unknown'}
-									</span>
-								</div>
-								<div style={{ marginTop: '4px' }}>
-									Fase: <span style={{ color: '#FF6B6B', fontWeight: 'bold' }}>{phase}</span>
-								</div>
-								{phase === TurnManager.PHASES.REINFORCE && (
-									<div style={{ marginTop: '4px', color: '#4CAF50', fontWeight: 'bold' }}>
-										Refuerzos: {reinforcementsLeft}
+						{(() => {
+							const myFaction = playerStats?.[playerId]?.faction;
+							const isMyTurn = currentPlayer?.id === playerId;
+							return (
+								<>
+									<div>
+										Facción:{' '}
+										<span style={{ color: '#FFD700' }}>
+											{myFaction ? FACTIONS[myFaction]?.name : '—'}
+										</span>
 									</div>
-								)}
-							</>
-						)}
+									<div style={{ marginTop: '4px' }}>
+										Fase: <span style={{ color: '#FF6B6B', fontWeight: 'bold' }}>{phase}</span>
+									</div>
+									{currentPlayer && (
+										<div
+											style={{
+												marginTop: '6px',
+												fontSize: '11px',
+												color: isMyTurn ? '#4CAF50' : '#888',
+											}}
+										>
+											Turno:{' '}
+											<span style={{ color: isMyTurn ? '#4CAF50' : '#bbb' }}>
+												{isMyTurn
+													? 'Tu turno'
+													: `${currentPlayer.name} — ${FACTIONS[currentPlayer.faction]?.name || '?'}`}
+											</span>
+										</div>
+									)}
+									{isMyTurn && phase === TurnManager.PHASES.REINFORCE && (
+										<div style={{ marginTop: '4px', color: '#4CAF50', fontWeight: 'bold' }}>
+											Refuerzos: {reinforcementsLeft}
+										</div>
+									)}
+								</>
+							);
+						})()}
 					</div>
 
 					{/* CENTER: Turn info and button */}

@@ -82,45 +82,66 @@ Some territories are designated as regional capitals with strategic importance:
 
 ## Project Structure
 
+The repository is an npm-workspaces monorepo. Game-rule modules live in the
+top-level `shared/` package (`@trascendence/shared`) and are consumed by both
+this client and the `engine/` REST API service.
+
 ```
-src/
-├── components/
-│   └── Gameboard.jsx           # Main game interface
-├── game/
+trascendence/
+├── shared/                     # @trascendence/shared — pure rule modules
 │   ├── Territories.js          # Territory data with neighbors & capitals
 │   ├── Factions.js             # Faction definitions with capitals
 │   ├── Player.js               # Player class and factory
 │   ├── TurnManager.js          # Turn, phase, & combat management
 │   ├── Victory.js              # Victory condition checkers
 │   └── validateConnections.js  # Territory connection validator
-└── assets/
-    └── map_picking.png         # Color-coded territory map
+├── engine/                     # Core Game REST API (Express, Node)
+├── realtime/                   # WebSocket fan-out (TS, ws, Redis sub)
+└── client/                     # this package — React client
+    ├── src/
+    │   ├── components/
+    │   │   └── Gameboard.jsx
+    │   └── assets/
+    │       └── map_picking.png
+    └── …
 ```
 
 ## Development
 
 ### Local Setup (Without Docker)
 
+Install once at the **repo root** (npm workspaces):
+
 ```bash
+# from the repo root
 npm install
-npm run dev
 ```
 
-This starts the development server with hot module replacement (HMR) on `http://localhost:5173`.
+Then in two terminals:
 
-**Note**: The local setup requires a separate backend server to be running. The client communicates with the API at `http://localhost:3000` by default (configurable via `VITE_API_URL` environment variable).
+```bash
+# Terminal 1 — REST API
+node engine/src/index.js
+
+# Terminal 2 — React dev server (HMR on http://localhost:5173)
+npm run dev -w client
+```
+
+The client communicates with the API at `http://localhost:3000` by default
+(configurable via `VITE_API_URL`). For real-time updates you also need
+`realtime/` and a local Redis running — easier via Docker (below).
 
 ### Docker Setup (Recommended)
 
-The project is containerized with Docker Compose, orchestrated from the **repository root** (one level above `gaming/`):
+The project is containerized with Docker Compose, orchestrated from the **repository root** (one level above `client/`):
 
 - **Redis** (Pub/Sub broker): internal-only, not exposed
 - **Realtime** (TypeScript WebSocket service): port `42069`
-- **Gaming Server** (Node.js REST API): port `3000`
-- **Gaming Client** (React frontend, Nginx): port `80`
+- **Engine** (Core Game REST API, Node.js): port `3000`
+- **Client** (React frontend, Nginx): port `80`
 
 ```bash
-# from the repo root, NOT from gaming/
+# from the repo root, NOT from client/
 docker-compose up --build
 ```
 
@@ -135,8 +156,8 @@ Access the game at `http://localhost` (Nginx on port 80).
 
 **Docker Configuration**:
 
-- Client: Multi-stage build with Node.js builder and Nginx production server
-- Server: Node.js service with automatic restart policy
+- Client: Multi-stage build with Node.js builder (root context, resolves the `shared` workspace) and Nginx production server
+- Engine: Node.js service built from the repo root so the `shared` workspace resolves
 - Realtime: Multi-stage TypeScript build, runs `node dist/index.js`
 - Services restart automatically unless manually stopped
 
@@ -145,7 +166,9 @@ Access the game at `http://localhost` (Nginx on port 80).
 Verify that all territory connections are bilateral:
 
 ```bash
-npm run validate:territories
+npm run validate:territories -w client
+# or directly:
+node shared/validateConnections.js
 ```
 
 This ensures map integrity, especially useful when expanding the map with new territories.
