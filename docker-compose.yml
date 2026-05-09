@@ -39,17 +39,46 @@ services:
 
   postgres:
     container_name: transcendence_postgres
-    image: postgres:16
+    image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:-transcendence}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-transcendence}
+      POSTGRES_DB: ${POSTGRES_DB:-transcendence}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ./db/seed.sql:/docker-entrypoint-initdb.d/seed.sql
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-transcendence} -d ${POSTGRES_DB:-transcendence}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  database:
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    container_name: transcendence_database
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 4000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-transcendence}:${POSTGRES_PASSWORD:-transcendence}@postgres:5432/${POSTGRES_DB:-transcendence}
+      DB_HOST: postgres
+      DB_PORT: 5432
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
 volumes:
+  postgres_data:
+
