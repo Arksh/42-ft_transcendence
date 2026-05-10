@@ -42,18 +42,18 @@ COPY tsconfig.json ./
 
 # Variables de entorno por defecto
 ENV NODE_ENV=production
-ENV PORT=4000
+ENV PORT=${PRISMA_PORT:-4000}
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:4000/health || exit 1
+    CMD curl -f http://localhost:${PRISMA_PORT:-4000}/health || exit 1
 
 # Copiar script de entrada
 COPY docker-entrypoint.sh ./
 RUN chmod +x ./docker-entrypoint.sh
 
 # Exponer puerto
-EXPOSE 4000
+EXPOSE ${PRISMA_PORT:-4000}
 
 # Ejecutar script de entrada
 ENTRYPOINT ["./docker-entrypoint.sh"]

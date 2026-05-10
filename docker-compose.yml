@@ -62,10 +62,10 @@ services:
     container_name: transcendence_database
     restart: unless-stopped
     ports:
-      - "4000:4000"
+      - "${PRISMA_PORT:-4000}:${PRISMA_PORT:-4000}"
     environment:
       NODE_ENV: ${NODE_ENV:-development}
-      PORT: 4000
+      PORT: ${PRISMA_PORT:-4000}
       DATABASE_URL: postgresql://${POSTGRES_USER:-transcendence}:${POSTGRES_PASSWORD:-transcendence}@postgres:5432/${POSTGRES_DB:-transcendence}
       DB_HOST: postgres
       DB_PORT: 5432
@@ -73,7 +73,7 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:${PRISMA_PORT:-4000}/health"]
       interval: 10s
       timeout: 5s
       retries: 3
