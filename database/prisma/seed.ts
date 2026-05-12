@@ -77,26 +77,32 @@ const usersBase = [
 // Datos de logros
 const achievementData: Prisma.AchievementCreateInput[] = [
   {
+    name_id: 'first_blood',
     name: 'First Blood',
     description: 'Win your first match',
   },
   {
+    name_id: 'conqueror',
     name: 'Conqueror',
     description: 'Win 10 matches',
   },
   {
+    name_id: 'legend',
     name: 'Legend',
     description: 'Reach ELO 1500',
   },
   {
+    name_id: 'dominator',
     name: 'Dominator',
     description: 'Win 25 matches',
   },
   {
+    name_id: 'undefeated',
     name: 'Undefeated',
     description: 'Win 5 consecutive matches',
   },
   {
+    name_id: 'social_butterfly',
     name: 'Social Butterfly',
     description: 'Add 5 friends',
   },
@@ -263,12 +269,12 @@ async function main() {
     // Asignar logros a usuarios
     console.log('🎖️  Asignando logros a usuarios...')
     const userAchievements = [
-      { userId: users[0].id, achievementId: achievements[0].id },
-      { userId: users[0].id, achievementId: achievements[1].id },
-      { userId: users[0].id, achievementId: achievements[2].id },
-      { userId: users[1].id, achievementId: achievements[0].id },
-      { userId: users[1].id, achievementId: achievements[1].id },
-      { userId: users[2].id, achievementId: achievements[0].id },
+      { userusername: users[0].username, achievementName_id: achievements[0].name_id },
+      { userusername: users[0].username, achievementName_id: achievements[1].name_id },
+      { userusername: users[0].username, achievementName_id: achievements[2].name_id },
+      { userusername: users[1].username, achievementName_id: achievements[0].name_id },
+      { userusername: users[1].username, achievementName_id: achievements[1].name_id },
+      { userusername: users[2].username, achievementName_id: achievements[0].name_id },
     ]
 
     for (const ua of userAchievements) {

@@ -87,7 +87,8 @@ model Stat {
 
 model Achievement {
   id          Int    @id @default(autoincrement())
-  name        String @db.VarChar(50)
+  name_id     String @unique @db.VarChar(50)
+  name        String @db.VarChar(100)
   description String @db.Text
 
   // Relations
@@ -97,14 +98,14 @@ model Achievement {
 }
 
 model UserAchievement {
-  userId        Int
-  achievementId Int
-  unlockedAt    DateTime @default(now()) @db.Timestamp(6)
+  userusername           String
+  achievementName_id String  @db.VarChar(50)
+  unlockedAt        DateTime @default(now()) @db.Timestamp(6)
 
   // Relations
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userusername], references: [username], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementName_id], references: [name_id], onDelete: Cascade)
 
-  @@id([userId, achievementId])
+  @@id([userusername, achievementName_id])
   @@map("user_achievements")
 }

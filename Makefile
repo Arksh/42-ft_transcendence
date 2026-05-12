@@ -43,3 +43,7 @@ add-volumes:
 
 exec-db:
 	docker exec -it -it transcendence_postgres psql -U $(shell grep '^POSTGRES_USER=' $(ENV) | cut -d'=' -f2)
+
+make re:
+	$(MAKE) fclean
+	$(MAKE) all

@@ -597,15 +597,15 @@ app.post('/achievements', async (req, res) => {
   }
 })
 
-// POST /users/:userId/achievements/:achievementId - Desbloquear logro
-app.post('/users/:userId/achievements/:achievementId', async (req, res) => {
-  const { userId, achievementId } = req.params
+// POST /users/:userId/achievements/:achievementName_id - Desbloquear logro
+app.post('/users/:userId/achievements/:achievementName_id', async (req, res) => {
+  const { userId, achievementName_id } = req.params
 
   try {
     const userAchievement = await prisma.userAchievement.create({
       data: {
         userId: Number(userId),
-        achievementId: Number(achievementId)
+        achievementName_id: achievementName_id
       },
       include: {
         user: true,

@@ -164,13 +164,14 @@ exports.Prisma.StatScalarFieldEnum = {
 
 exports.Prisma.AchievementScalarFieldEnum = {
   id: 'id',
+  name_id: 'name_id',
   name: 'name',
   description: 'description'
 };
 
 exports.Prisma.UserAchievementScalarFieldEnum = {
-  userId: 'userId',
-  achievementId: 'achievementId',
+  userusername: 'userusername',
+  achievementName_id: 'achievementName_id',
   unlockedAt: 'unlockedAt'
 };
 

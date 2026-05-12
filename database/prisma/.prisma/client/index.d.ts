@@ -7206,18 +7206,21 @@ export namespace Prisma {
 
   export type AchievementMinAggregateOutputType = {
     id: number | null
+    name_id: string | null
     name: string | null
     description: string | null
   }
 
   export type AchievementMaxAggregateOutputType = {
     id: number | null
+    name_id: string | null
     name: string | null
     description: string | null
   }
 
   export type AchievementCountAggregateOutputType = {
     id: number
+    name_id: number
     name: number
     description: number
     _all: number
@@ -7234,18 +7237,21 @@ export namespace Prisma {
 
   export type AchievementMinAggregateInputType = {
     id?: true
+    name_id?: true
     name?: true
     description?: true
   }
 
   export type AchievementMaxAggregateInputType = {
     id?: true
+    name_id?: true
     name?: true
     description?: true
   }
 
   export type AchievementCountAggregateInputType = {
     id?: true
+    name_id?: true
     name?: true
     description?: true
     _all?: true
@@ -7339,6 +7345,7 @@ export namespace Prisma {
 
   export type AchievementGroupByOutputType = {
     id: number
+    name_id: string
     name: string
     description: string
     _count: AchievementCountAggregateOutputType | null
@@ -7364,6 +7371,7 @@ export namespace Prisma {
 
   export type AchievementSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    name_id?: boolean
     name?: boolean
     description?: boolean
     userAchievements?: boolean | Achievement$userAchievementsArgs<ExtArgs>
@@ -7372,23 +7380,26 @@ export namespace Prisma {
 
   export type AchievementSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    name_id?: boolean
     name?: boolean
     description?: boolean
   }, ExtArgs["result"]["achievement"]>
 
   export type AchievementSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    name_id?: boolean
     name?: boolean
     description?: boolean
   }, ExtArgs["result"]["achievement"]>
 
   export type AchievementSelectScalar = {
     id?: boolean
+    name_id?: boolean
     name?: boolean
     description?: boolean
   }
 
-  export type AchievementOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description", ExtArgs["result"]["achievement"]>
+  export type AchievementOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name_id" | "name" | "description", ExtArgs["result"]["achievement"]>
   export type AchievementInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     userAchievements?: boolean | Achievement$userAchievementsArgs<ExtArgs>
     _count?: boolean | AchievementCountOutputTypeDefaultArgs<ExtArgs>
@@ -7403,6 +7414,7 @@ export namespace Prisma {
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
+      name_id: string
       name: string
       description: string
     }, ExtArgs["result"]["achievement"]>
@@ -7830,6 +7842,7 @@ export namespace Prisma {
    */
   interface AchievementFieldRefs {
     readonly id: FieldRef<"Achievement", 'Int'>
+    readonly name_id: FieldRef<"Achievement", 'String'>
     readonly name: FieldRef<"Achievement", 'String'>
     readonly description: FieldRef<"Achievement", 'String'>
   }
@@ -8268,67 +8281,45 @@ export namespace Prisma {
 
   export type AggregateUserAchievement = {
     _count: UserAchievementCountAggregateOutputType | null
-    _avg: UserAchievementAvgAggregateOutputType | null
-    _sum: UserAchievementSumAggregateOutputType | null
     _min: UserAchievementMinAggregateOutputType | null
     _max: UserAchievementMaxAggregateOutputType | null
   }
 
-  export type UserAchievementAvgAggregateOutputType = {
-    userId: number | null
-    achievementId: number | null
-  }
-
-  export type UserAchievementSumAggregateOutputType = {
-    userId: number | null
-    achievementId: number | null
-  }
-
   export type UserAchievementMinAggregateOutputType = {
-    userId: number | null
-    achievementId: number | null
+    userusername: string | null
+    achievementName_id: string | null
     unlockedAt: Date | null
   }
 
   export type UserAchievementMaxAggregateOutputType = {
-    userId: number | null
-    achievementId: number | null
+    userusername: string | null
+    achievementName_id: string | null
     unlockedAt: Date | null
   }
 
   export type UserAchievementCountAggregateOutputType = {
-    userId: number
-    achievementId: number
+    userusername: number
+    achievementName_id: number
     unlockedAt: number
     _all: number
   }
 
 
-  export type UserAchievementAvgAggregateInputType = {
-    userId?: true
-    achievementId?: true
-  }
-
-  export type UserAchievementSumAggregateInputType = {
-    userId?: true
-    achievementId?: true
-  }
-
   export type UserAchievementMinAggregateInputType = {
-    userId?: true
-    achievementId?: true
+    userusername?: true
+    achievementName_id?: true
     unlockedAt?: true
   }
 
   export type UserAchievementMaxAggregateInputType = {
-    userId?: true
-    achievementId?: true
+    userusername?: true
+    achievementName_id?: true
     unlockedAt?: true
   }
 
   export type UserAchievementCountAggregateInputType = {
-    userId?: true
-    achievementId?: true
+    userusername?: true
+    achievementName_id?: true
     unlockedAt?: true
     _all?: true
   }
@@ -8371,18 +8362,6 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
-     * Select which fields to average
-    **/
-    _avg?: UserAchievementAvgAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to sum
-    **/
-    _sum?: UserAchievementSumAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
      * Select which fields to find the minimum value
     **/
     _min?: UserAchievementMinAggregateInputType
@@ -8413,19 +8392,15 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: UserAchievementCountAggregateInputType | true
-    _avg?: UserAchievementAvgAggregateInputType
-    _sum?: UserAchievementSumAggregateInputType
     _min?: UserAchievementMinAggregateInputType
     _max?: UserAchievementMaxAggregateInputType
   }
 
   export type UserAchievementGroupByOutputType = {
-    userId: number
-    achievementId: number
+    userusername: string
+    achievementName_id: string
     unlockedAt: Date
     _count: UserAchievementCountAggregateOutputType | null
-    _avg: UserAchievementAvgAggregateOutputType | null
-    _sum: UserAchievementSumAggregateOutputType | null
     _min: UserAchievementMinAggregateOutputType | null
     _max: UserAchievementMaxAggregateOutputType | null
   }
@@ -8445,36 +8420,36 @@ export namespace Prisma {
 
 
   export type UserAchievementSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    userId?: boolean
-    achievementId?: boolean
+    userusername?: boolean
+    achievementName_id?: boolean
     unlockedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     achievement?: boolean | AchievementDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["userAchievement"]>
 
   export type UserAchievementSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    userId?: boolean
-    achievementId?: boolean
+    userusername?: boolean
+    achievementName_id?: boolean
     unlockedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     achievement?: boolean | AchievementDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["userAchievement"]>
 
   export type UserAchievementSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    userId?: boolean
-    achievementId?: boolean
+    userusername?: boolean
+    achievementName_id?: boolean
     unlockedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     achievement?: boolean | AchievementDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["userAchievement"]>
 
   export type UserAchievementSelectScalar = {
-    userId?: boolean
-    achievementId?: boolean
+    userusername?: boolean
+    achievementName_id?: boolean
     unlockedAt?: boolean
   }
 
-  export type UserAchievementOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"userId" | "achievementId" | "unlockedAt", ExtArgs["result"]["userAchievement"]>
+  export type UserAchievementOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"userusername" | "achievementName_id" | "unlockedAt", ExtArgs["result"]["userAchievement"]>
   export type UserAchievementInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     achievement?: boolean | AchievementDefaultArgs<ExtArgs>
@@ -8495,8 +8470,8 @@ export namespace Prisma {
       achievement: Prisma.$AchievementPayload<ExtArgs>
     }
     scalars: $Extensions.GetPayloadResult<{
-      userId: number
-      achievementId: number
+      userusername: string
+      achievementName_id: string
       unlockedAt: Date
     }, ExtArgs["result"]["userAchievement"]>
     composites: {}
@@ -8581,8 +8556,8 @@ export namespace Prisma {
      * // Get first 10 UserAchievements
      * const userAchievements = await prisma.userAchievement.findMany({ take: 10 })
      * 
-     * // Only select the `userId`
-     * const userAchievementWithUserIdOnly = await prisma.userAchievement.findMany({ select: { userId: true } })
+     * // Only select the `userusername`
+     * const userAchievementWithUserusernameOnly = await prisma.userAchievement.findMany({ select: { userusername: true } })
      * 
      */
     findMany<T extends UserAchievementFindManyArgs>(args?: SelectSubset<T, UserAchievementFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserAchievementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
@@ -8626,9 +8601,9 @@ export namespace Prisma {
      *   ]
      * })
      * 
-     * // Create many UserAchievements and only return the `userId`
-     * const userAchievementWithUserIdOnly = await prisma.userAchievement.createManyAndReturn({
-     *   select: { userId: true },
+     * // Create many UserAchievements and only return the `userusername`
+     * const userAchievementWithUserusernameOnly = await prisma.userAchievement.createManyAndReturn({
+     *   select: { userusername: true },
      *   data: [
      *     // ... provide data here
      *   ]
@@ -8717,9 +8692,9 @@ export namespace Prisma {
      *   ]
      * })
      * 
-     * // Update zero or more UserAchievements and only return the `userId`
-     * const userAchievementWithUserIdOnly = await prisma.userAchievement.updateManyAndReturn({
-     *   select: { userId: true },
+     * // Update zero or more UserAchievements and only return the `userusername`
+     * const userAchievementWithUserusernameOnly = await prisma.userAchievement.updateManyAndReturn({
+     *   select: { userusername: true },
      *   where: {
      *     // ... provide filter here
      *   },
@@ -8923,8 +8898,8 @@ export namespace Prisma {
    * Fields of the UserAchievement model
    */
   interface UserAchievementFieldRefs {
-    readonly userId: FieldRef<"UserAchievement", 'Int'>
-    readonly achievementId: FieldRef<"UserAchievement", 'Int'>
+    readonly userusername: FieldRef<"UserAchievement", 'String'>
+    readonly achievementName_id: FieldRef<"UserAchievement", 'String'>
     readonly unlockedAt: FieldRef<"UserAchievement", 'DateTime'>
   }
     
@@ -9413,6 +9388,7 @@ export namespace Prisma {
 
   export const AchievementScalarFieldEnum: {
     id: 'id',
+    name_id: 'name_id',
     name: 'name',
     description: 'description'
   };
@@ -9421,8 +9397,8 @@ export namespace Prisma {
 
 
   export const UserAchievementScalarFieldEnum: {
-    userId: 'userId',
-    achievementId: 'achievementId',
+    userusername: 'userusername',
+    achievementName_id: 'achievementName_id',
     unlockedAt: 'unlockedAt'
   };
 
@@ -9837,6 +9813,7 @@ export namespace Prisma {
     OR?: AchievementWhereInput[]
     NOT?: AchievementWhereInput | AchievementWhereInput[]
     id?: IntFilter<"Achievement"> | number
+    name_id?: StringFilter<"Achievement"> | string
     name?: StringFilter<"Achievement"> | string
     description?: StringFilter<"Achievement"> | string
     userAchievements?: UserAchievementListRelationFilter
@@ -9844,6 +9821,7 @@ export namespace Prisma {
 
   export type AchievementOrderByWithRelationInput = {
     id?: SortOrder
+    name_id?: SortOrder
     name?: SortOrder
     description?: SortOrder
     userAchievements?: UserAchievementOrderByRelationAggregateInput
@@ -9851,16 +9829,18 @@ export namespace Prisma {
 
   export type AchievementWhereUniqueInput = Prisma.AtLeast<{
     id?: number
+    name_id?: string
     AND?: AchievementWhereInput | AchievementWhereInput[]
     OR?: AchievementWhereInput[]
     NOT?: AchievementWhereInput | AchievementWhereInput[]
     name?: StringFilter<"Achievement"> | string
     description?: StringFilter<"Achievement"> | string
     userAchievements?: UserAchievementListRelationFilter
-  }, "id">
+  }, "id" | "name_id">
 
   export type AchievementOrderByWithAggregationInput = {
     id?: SortOrder
+    name_id?: SortOrder
     name?: SortOrder
     description?: SortOrder
     _count?: AchievementCountOrderByAggregateInput
@@ -9875,6 +9855,7 @@ export namespace Prisma {
     OR?: AchievementScalarWhereWithAggregatesInput[]
     NOT?: AchievementScalarWhereWithAggregatesInput | AchievementScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"Achievement"> | number
+    name_id?: StringWithAggregatesFilter<"Achievement"> | string
     name?: StringWithAggregatesFilter<"Achievement"> | string
     description?: StringWithAggregatesFilter<"Achievement"> | string
   }
@@ -9883,50 +9864,48 @@ export namespace Prisma {
     AND?: UserAchievementWhereInput | UserAchievementWhereInput[]
     OR?: UserAchievementWhereInput[]
     NOT?: UserAchievementWhereInput | UserAchievementWhereInput[]
-    userId?: IntFilter<"UserAchievement"> | number
-    achievementId?: IntFilter<"UserAchievement"> | number
+    userusername?: StringFilter<"UserAchievement"> | string
+    achievementName_id?: StringFilter<"UserAchievement"> | string
     unlockedAt?: DateTimeFilter<"UserAchievement"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     achievement?: XOR<AchievementScalarRelationFilter, AchievementWhereInput>
   }
 
   export type UserAchievementOrderByWithRelationInput = {
-    userId?: SortOrder
-    achievementId?: SortOrder
+    userusername?: SortOrder
+    achievementName_id?: SortOrder
     unlockedAt?: SortOrder
     user?: UserOrderByWithRelationInput
     achievement?: AchievementOrderByWithRelationInput
   }
 
   export type UserAchievementWhereUniqueInput = Prisma.AtLeast<{
-    userId_achievementId?: UserAchievementUserIdAchievementIdCompoundUniqueInput
+    userusername_achievementName_id?: UserAchievementUserusernameAchievementName_idCompoundUniqueInput
     AND?: UserAchievementWhereInput | UserAchievementWhereInput[]
     OR?: UserAchievementWhereInput[]
     NOT?: UserAchievementWhereInput | UserAchievementWhereInput[]
-    userId?: IntFilter<"UserAchievement"> | number
-    achievementId?: IntFilter<"UserAchievement"> | number
+    userusername?: StringFilter<"UserAchievement"> | string
+    achievementName_id?: StringFilter<"UserAchievement"> | string
     unlockedAt?: DateTimeFilter<"UserAchievement"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     achievement?: XOR<AchievementScalarRelationFilter, AchievementWhereInput>
-  }, "userId_achievementId">
+  }, "userusername_achievementName_id">
 
   export type UserAchievementOrderByWithAggregationInput = {
-    userId?: SortOrder
-    achievementId?: SortOrder
+    userusername?: SortOrder
+    achievementName_id?: SortOrder
     unlockedAt?: SortOrder
     _count?: UserAchievementCountOrderByAggregateInput
-    _avg?: UserAchievementAvgOrderByAggregateInput
     _max?: UserAchievementMaxOrderByAggregateInput
     _min?: UserAchievementMinOrderByAggregateInput
-    _sum?: UserAchievementSumOrderByAggregateInput
   }
 
   export type UserAchievementScalarWhereWithAggregatesInput = {
     AND?: UserAchievementScalarWhereWithAggregatesInput | UserAchievementScalarWhereWithAggregatesInput[]
     OR?: UserAchievementScalarWhereWithAggregatesInput[]
     NOT?: UserAchievementScalarWhereWithAggregatesInput | UserAchievementScalarWhereWithAggregatesInput[]
-    userId?: IntWithAggregatesFilter<"UserAchievement"> | number
-    achievementId?: IntWithAggregatesFilter<"UserAchievement"> | number
+    userusername?: StringWithAggregatesFilter<"UserAchievement"> | string
+    achievementName_id?: StringWithAggregatesFilter<"UserAchievement"> | string
     unlockedAt?: DateTimeWithAggregatesFilter<"UserAchievement"> | Date | string
   }
 
@@ -10235,6 +10214,7 @@ export namespace Prisma {
   }
 
   export type AchievementCreateInput = {
+    name_id: string
     name: string
     description: string
     userAchievements?: UserAchievementCreateNestedManyWithoutAchievementInput
@@ -10242,12 +10222,14 @@ export namespace Prisma {
 
   export type AchievementUncheckedCreateInput = {
     id?: number
+    name_id: string
     name: string
     description: string
     userAchievements?: UserAchievementUncheckedCreateNestedManyWithoutAchievementInput
   }
 
   export type AchievementUpdateInput = {
+    name_id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: StringFieldUpdateOperationsInput | string
     userAchievements?: UserAchievementUpdateManyWithoutAchievementNestedInput
@@ -10255,6 +10237,7 @@ export namespace Prisma {
 
   export type AchievementUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
+    name_id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: StringFieldUpdateOperationsInput | string
     userAchievements?: UserAchievementUncheckedUpdateManyWithoutAchievementNestedInput
@@ -10262,17 +10245,20 @@ export namespace Prisma {
 
   export type AchievementCreateManyInput = {
     id?: number
+    name_id: string
     name: string
     description: string
   }
 
   export type AchievementUpdateManyMutationInput = {
+    name_id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: StringFieldUpdateOperationsInput | string
   }
 
   export type AchievementUncheckedUpdateManyInput = {
     id?: IntFieldUpdateOperationsInput | number
+    name_id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: StringFieldUpdateOperationsInput | string
   }
@@ -10284,8 +10270,8 @@ export namespace Prisma {
   }
 
   export type UserAchievementUncheckedCreateInput = {
-    userId: number
-    achievementId: number
+    userusername: string
+    achievementName_id: string
     unlockedAt?: Date | string
   }
 
@@ -10296,14 +10282,14 @@ export namespace Prisma {
   }
 
   export type UserAchievementUncheckedUpdateInput = {
-    userId?: IntFieldUpdateOperationsInput | number
-    achievementId?: IntFieldUpdateOperationsInput | number
+    userusername?: StringFieldUpdateOperationsInput | string
+    achievementName_id?: StringFieldUpdateOperationsInput | string
     unlockedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type UserAchievementCreateManyInput = {
-    userId: number
-    achievementId: number
+    userusername: string
+    achievementName_id: string
     unlockedAt?: Date | string
   }
 
@@ -10312,8 +10298,8 @@ export namespace Prisma {
   }
 
   export type UserAchievementUncheckedUpdateManyInput = {
-    userId?: IntFieldUpdateOperationsInput | number
-    achievementId?: IntFieldUpdateOperationsInput | number
+    userusername?: StringFieldUpdateOperationsInput | string
+    achievementName_id?: StringFieldUpdateOperationsInput | string
     unlockedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -10735,6 +10721,7 @@ export namespace Prisma {
 
   export type AchievementCountOrderByAggregateInput = {
     id?: SortOrder
+    name_id?: SortOrder
     name?: SortOrder
     description?: SortOrder
   }
@@ -10745,12 +10732,14 @@ export namespace Prisma {
 
   export type AchievementMaxOrderByAggregateInput = {
     id?: SortOrder
+    name_id?: SortOrder
     name?: SortOrder
     description?: SortOrder
   }
 
   export type AchievementMinOrderByAggregateInput = {
     id?: SortOrder
+    name_id?: SortOrder
     name?: SortOrder
     description?: SortOrder
   }
@@ -10764,37 +10753,27 @@ export namespace Prisma {
     isNot?: AchievementWhereInput
   }
 
-  export type UserAchievementUserIdAchievementIdCompoundUniqueInput = {
-    userId: number
-    achievementId: number
+  export type UserAchievementUserusernameAchievementName_idCompoundUniqueInput = {
+    userusername: string
+    achievementName_id: string
   }
 
   export type UserAchievementCountOrderByAggregateInput = {
-    userId?: SortOrder
-    achievementId?: SortOrder
+    userusername?: SortOrder
+    achievementName_id?: SortOrder
     unlockedAt?: SortOrder
   }
 
-  export type UserAchievementAvgOrderByAggregateInput = {
-    userId?: SortOrder
-    achievementId?: SortOrder
-  }
-
   export type UserAchievementMaxOrderByAggregateInput = {
-    userId?: SortOrder
-    achievementId?: SortOrder
+    userusername?: SortOrder
+    achievementName_id?: SortOrder
     unlockedAt?: SortOrder
   }
 
   export type UserAchievementMinOrderByAggregateInput = {
-    userId?: SortOrder
-    achievementId?: SortOrder
+    userusername?: SortOrder
+    achievementName_id?: SortOrder
     unlockedAt?: SortOrder
-  }
-
-  export type UserAchievementSumOrderByAggregateInput = {
-    userId?: SortOrder
-    achievementId?: SortOrder
   }
 
   export type FriendshipCreateNestedManyWithoutUserInput = {
@@ -11489,7 +11468,7 @@ export namespace Prisma {
   }
 
   export type UserAchievementUncheckedCreateWithoutUserInput = {
-    achievementId: number
+    achievementName_id: string
     unlockedAt?: Date | string
   }
 
@@ -11617,8 +11596,8 @@ export namespace Prisma {
     AND?: UserAchievementScalarWhereInput | UserAchievementScalarWhereInput[]
     OR?: UserAchievementScalarWhereInput[]
     NOT?: UserAchievementScalarWhereInput | UserAchievementScalarWhereInput[]
-    userId?: IntFilter<"UserAchievement"> | number
-    achievementId?: IntFilter<"UserAchievement"> | number
+    userusername?: StringFilter<"UserAchievement"> | string
+    achievementName_id?: StringFilter<"UserAchievement"> | string
     unlockedAt?: DateTimeFilter<"UserAchievement"> | Date | string
   }
 
@@ -11987,7 +11966,7 @@ export namespace Prisma {
   }
 
   export type UserAchievementUncheckedCreateWithoutAchievementInput = {
-    userId: number
+    userusername: string
     unlockedAt?: Date | string
   }
 
@@ -12048,12 +12027,14 @@ export namespace Prisma {
   }
 
   export type AchievementCreateWithoutUserAchievementsInput = {
+    name_id: string
     name: string
     description: string
   }
 
   export type AchievementUncheckedCreateWithoutUserAchievementsInput = {
     id?: number
+    name_id: string
     name: string
     description: string
   }
@@ -12111,12 +12092,14 @@ export namespace Prisma {
   }
 
   export type AchievementUpdateWithoutUserAchievementsInput = {
+    name_id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: StringFieldUpdateOperationsInput | string
   }
 
   export type AchievementUncheckedUpdateWithoutUserAchievementsInput = {
     id?: IntFieldUpdateOperationsInput | number
+    name_id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     description?: StringFieldUpdateOperationsInput | string
   }
@@ -12140,7 +12123,7 @@ export namespace Prisma {
   }
 
   export type UserAchievementCreateManyUserInput = {
-    achievementId: number
+    achievementName_id: string
     unlockedAt?: Date | string
   }
 
@@ -12203,12 +12186,12 @@ export namespace Prisma {
   }
 
   export type UserAchievementUncheckedUpdateWithoutUserInput = {
-    achievementId?: IntFieldUpdateOperationsInput | number
+    achievementName_id?: StringFieldUpdateOperationsInput | string
     unlockedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type UserAchievementUncheckedUpdateManyWithoutUserInput = {
-    achievementId?: IntFieldUpdateOperationsInput | number
+    achievementName_id?: StringFieldUpdateOperationsInput | string
     unlockedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -12244,7 +12227,7 @@ export namespace Prisma {
   }
 
   export type UserAchievementCreateManyAchievementInput = {
-    userId: number
+    userusername: string
     unlockedAt?: Date | string
   }
 
@@ -12254,12 +12237,12 @@ export namespace Prisma {
   }
 
   export type UserAchievementUncheckedUpdateWithoutAchievementInput = {
-    userId?: IntFieldUpdateOperationsInput | number
+    userusername?: StringFieldUpdateOperationsInput | string
     unlockedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type UserAchievementUncheckedUpdateManyWithoutAchievementInput = {
-    userId?: IntFieldUpdateOperationsInput | number
+    userusername?: StringFieldUpdateOperationsInput | string
     unlockedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
