@@ -58,7 +58,8 @@ CREATE TABLE "stats" (
 -- CreateTable
 CREATE TABLE "achievements" (
     "id" SERIAL NOT NULL,
-    "name" VARCHAR(50) NOT NULL,
+    "name_id" VARCHAR(50) NOT NULL,
+    "name" VARCHAR(100) NOT NULL,
     "description" TEXT NOT NULL,
 
     CONSTRAINT "achievements_pkey" PRIMARY KEY ("id")
@@ -66,11 +67,11 @@ CREATE TABLE "achievements" (
 
 -- CreateTable
 CREATE TABLE "user_achievements" (
-    "userId" INTEGER NOT NULL,
-    "achievementId" INTEGER NOT NULL,
+    "userusername" TEXT NOT NULL,
+    "achievementName_id" VARCHAR(50) NOT NULL,
     "unlockedAt" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "user_achievements_pkey" PRIMARY KEY ("userId","achievementId")
+    CONSTRAINT "user_achievements_pkey" PRIMARY KEY ("userusername","achievementName_id")
 );
 
 -- CreateIndex
@@ -81,6 +82,9 @@ CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "match_players_matchId_userId_key" ON "match_players"("matchId", "userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "achievements_name_id_key" ON "achievements"("name_id");
 
 -- AddForeignKey
 ALTER TABLE "friendships" ADD CONSTRAINT "friendships_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -98,7 +102,7 @@ ALTER TABLE "match_players" ADD CONSTRAINT "match_players_userId_fkey" FOREIGN K
 ALTER TABLE "stats" ADD CONSTRAINT "stats_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "user_achievements" ADD CONSTRAINT "user_achievements_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "user_achievements" ADD CONSTRAINT "user_achievements_userusername_fkey" FOREIGN KEY ("userusername") REFERENCES "users"("username") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "user_achievements" ADD CONSTRAINT "user_achievements_achievementId_fkey" FOREIGN KEY ("achievementId") REFERENCES "achievements"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "user_achievements" ADD CONSTRAINT "user_achievements_achievementName_id_fkey" FOREIGN KEY ("achievementName_id") REFERENCES "achievements"("name_id") ON DELETE CASCADE ON UPDATE CASCADE;

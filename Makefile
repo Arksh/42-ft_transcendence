@@ -11,10 +11,14 @@ ENV		= .env
 
 all: build
 
+# Generar database/.env desde .env raíz
+generate-env:
+	@bash ./scripts/generate-env.sh
+
 build: #$(ENV)
 	docker compose -f ./docker-compose.yml build
 
-up:
+up: generate-env
 	docker compose -f ./docker-compose.yml up --build -d
 
 down:
