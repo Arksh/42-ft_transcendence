@@ -2,10 +2,14 @@ import './App.css';
 import { useState } from 'react';
 import Lobby from './components/Lobby.jsx';
 import GameBoard from './components/Gameboard.jsx';
+import Login from './components/Login.jsx';
 
 export default function App() {
   const [gameInfo, setGameInfo] = useState(null);
-  // gameInfo = { roomId, playerId, faction }
+  const [userName, setUserName] = useState(null);
+  if (!userName){
+	return <Login onLogin={setUserName} />
+  }
 	console.log('gameInfo:', gameInfo);
 	console.log('roomId tipo:', typeof gameInfo?.roomId, gameInfo?.roomId);
   return gameInfo
