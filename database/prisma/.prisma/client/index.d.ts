@@ -1517,22 +1517,11 @@ export namespace Prisma {
 
   export type AggregateUser = {
     _count: UserCountAggregateOutputType | null
-    _avg: UserAvgAggregateOutputType | null
-    _sum: UserSumAggregateOutputType | null
     _min: UserMinAggregateOutputType | null
     _max: UserMaxAggregateOutputType | null
   }
 
-  export type UserAvgAggregateOutputType = {
-    id: number | null
-  }
-
-  export type UserSumAggregateOutputType = {
-    id: number | null
-  }
-
   export type UserMinAggregateOutputType = {
-    id: number | null
     username: string | null
     email: string | null
     passwordHash: string | null
@@ -1541,7 +1530,6 @@ export namespace Prisma {
   }
 
   export type UserMaxAggregateOutputType = {
-    id: number | null
     username: string | null
     email: string | null
     passwordHash: string | null
@@ -1550,7 +1538,6 @@ export namespace Prisma {
   }
 
   export type UserCountAggregateOutputType = {
-    id: number
     username: number
     email: number
     passwordHash: number
@@ -1560,16 +1547,7 @@ export namespace Prisma {
   }
 
 
-  export type UserAvgAggregateInputType = {
-    id?: true
-  }
-
-  export type UserSumAggregateInputType = {
-    id?: true
-  }
-
   export type UserMinAggregateInputType = {
-    id?: true
     username?: true
     email?: true
     passwordHash?: true
@@ -1578,7 +1556,6 @@ export namespace Prisma {
   }
 
   export type UserMaxAggregateInputType = {
-    id?: true
     username?: true
     email?: true
     passwordHash?: true
@@ -1587,7 +1564,6 @@ export namespace Prisma {
   }
 
   export type UserCountAggregateInputType = {
-    id?: true
     username?: true
     email?: true
     passwordHash?: true
@@ -1634,18 +1610,6 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
-     * Select which fields to average
-    **/
-    _avg?: UserAvgAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to sum
-    **/
-    _sum?: UserSumAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
      * Select which fields to find the minimum value
     **/
     _min?: UserMinAggregateInputType
@@ -1676,22 +1640,17 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: UserCountAggregateInputType | true
-    _avg?: UserAvgAggregateInputType
-    _sum?: UserSumAggregateInputType
     _min?: UserMinAggregateInputType
     _max?: UserMaxAggregateInputType
   }
 
   export type UserGroupByOutputType = {
-    id: number
     username: string
     email: string
     passwordHash: string | null
     avatarUrl: string | null
     createdAt: Date
     _count: UserCountAggregateOutputType | null
-    _avg: UserAvgAggregateOutputType | null
-    _sum: UserSumAggregateOutputType | null
     _min: UserMinAggregateOutputType | null
     _max: UserMaxAggregateOutputType | null
   }
@@ -1711,7 +1670,6 @@ export namespace Prisma {
 
 
   export type UserSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
     username?: boolean
     email?: boolean
     passwordHash?: boolean
@@ -1726,7 +1684,6 @@ export namespace Prisma {
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
     username?: boolean
     email?: boolean
     passwordHash?: boolean
@@ -1735,7 +1692,6 @@ export namespace Prisma {
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
     username?: boolean
     email?: boolean
     passwordHash?: boolean
@@ -1744,7 +1700,6 @@ export namespace Prisma {
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectScalar = {
-    id?: boolean
     username?: boolean
     email?: boolean
     passwordHash?: boolean
@@ -1752,7 +1707,7 @@ export namespace Prisma {
     createdAt?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "username" | "email" | "passwordHash" | "avatarUrl" | "createdAt", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"username" | "email" | "passwordHash" | "avatarUrl" | "createdAt", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     friendshipsAsUser?: boolean | User$friendshipsAsUserArgs<ExtArgs>
     friendshipsAsFriend?: boolean | User$friendshipsAsFriendArgs<ExtArgs>
@@ -1774,7 +1729,6 @@ export namespace Prisma {
       userAchievements: Prisma.$UserAchievementPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
-      id: number
       username: string
       email: string
       passwordHash: string | null
@@ -1863,8 +1817,8 @@ export namespace Prisma {
      * // Get first 10 Users
      * const users = await prisma.user.findMany({ take: 10 })
      * 
-     * // Only select the `id`
-     * const userWithIdOnly = await prisma.user.findMany({ select: { id: true } })
+     * // Only select the `username`
+     * const userWithUsernameOnly = await prisma.user.findMany({ select: { username: true } })
      * 
      */
     findMany<T extends UserFindManyArgs>(args?: SelectSubset<T, UserFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
@@ -1908,9 +1862,9 @@ export namespace Prisma {
      *   ]
      * })
      * 
-     * // Create many Users and only return the `id`
-     * const userWithIdOnly = await prisma.user.createManyAndReturn({
-     *   select: { id: true },
+     * // Create many Users and only return the `username`
+     * const userWithUsernameOnly = await prisma.user.createManyAndReturn({
+     *   select: { username: true },
      *   data: [
      *     // ... provide data here
      *   ]
@@ -1999,9 +1953,9 @@ export namespace Prisma {
      *   ]
      * })
      * 
-     * // Update zero or more Users and only return the `id`
-     * const userWithIdOnly = await prisma.user.updateManyAndReturn({
-     *   select: { id: true },
+     * // Update zero or more Users and only return the `username`
+     * const userWithUsernameOnly = await prisma.user.updateManyAndReturn({
+     *   select: { username: true },
      *   where: {
      *     // ... provide filter here
      *   },
@@ -2208,7 +2162,6 @@ export namespace Prisma {
    * Fields of the User model
    */
   interface UserFieldRefs {
-    readonly id: FieldRef<"User", 'Int'>
     readonly username: FieldRef<"User", 'String'>
     readonly email: FieldRef<"User", 'String'>
     readonly passwordHash: FieldRef<"User", 'String'>
@@ -2741,67 +2694,45 @@ export namespace Prisma {
 
   export type AggregateFriendship = {
     _count: FriendshipCountAggregateOutputType | null
-    _avg: FriendshipAvgAggregateOutputType | null
-    _sum: FriendshipSumAggregateOutputType | null
     _min: FriendshipMinAggregateOutputType | null
     _max: FriendshipMaxAggregateOutputType | null
   }
 
-  export type FriendshipAvgAggregateOutputType = {
-    userId: number | null
-    friendId: number | null
-  }
-
-  export type FriendshipSumAggregateOutputType = {
-    userId: number | null
-    friendId: number | null
-  }
-
   export type FriendshipMinAggregateOutputType = {
-    userId: number | null
-    friendId: number | null
+    userUsername: string | null
+    friendUsername: string | null
     createdAt: Date | null
   }
 
   export type FriendshipMaxAggregateOutputType = {
-    userId: number | null
-    friendId: number | null
+    userUsername: string | null
+    friendUsername: string | null
     createdAt: Date | null
   }
 
   export type FriendshipCountAggregateOutputType = {
-    userId: number
-    friendId: number
+    userUsername: number
+    friendUsername: number
     createdAt: number
     _all: number
   }
 
 
-  export type FriendshipAvgAggregateInputType = {
-    userId?: true
-    friendId?: true
-  }
-
-  export type FriendshipSumAggregateInputType = {
-    userId?: true
-    friendId?: true
-  }
-
   export type FriendshipMinAggregateInputType = {
-    userId?: true
-    friendId?: true
+    userUsername?: true
+    friendUsername?: true
     createdAt?: true
   }
 
   export type FriendshipMaxAggregateInputType = {
-    userId?: true
-    friendId?: true
+    userUsername?: true
+    friendUsername?: true
     createdAt?: true
   }
 
   export type FriendshipCountAggregateInputType = {
-    userId?: true
-    friendId?: true
+    userUsername?: true
+    friendUsername?: true
     createdAt?: true
     _all?: true
   }
@@ -2844,18 +2775,6 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
-     * Select which fields to average
-    **/
-    _avg?: FriendshipAvgAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to sum
-    **/
-    _sum?: FriendshipSumAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
      * Select which fields to find the minimum value
     **/
     _min?: FriendshipMinAggregateInputType
@@ -2886,19 +2805,15 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: FriendshipCountAggregateInputType | true
-    _avg?: FriendshipAvgAggregateInputType
-    _sum?: FriendshipSumAggregateInputType
     _min?: FriendshipMinAggregateInputType
     _max?: FriendshipMaxAggregateInputType
   }
 
   export type FriendshipGroupByOutputType = {
-    userId: number
-    friendId: number
+    userUsername: string
+    friendUsername: string
     createdAt: Date
     _count: FriendshipCountAggregateOutputType | null
-    _avg: FriendshipAvgAggregateOutputType | null
-    _sum: FriendshipSumAggregateOutputType | null
     _min: FriendshipMinAggregateOutputType | null
     _max: FriendshipMaxAggregateOutputType | null
   }
@@ -2918,36 +2833,36 @@ export namespace Prisma {
 
 
   export type FriendshipSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    userId?: boolean
-    friendId?: boolean
+    userUsername?: boolean
+    friendUsername?: boolean
     createdAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     friend?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["friendship"]>
 
   export type FriendshipSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    userId?: boolean
-    friendId?: boolean
+    userUsername?: boolean
+    friendUsername?: boolean
     createdAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     friend?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["friendship"]>
 
   export type FriendshipSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    userId?: boolean
-    friendId?: boolean
+    userUsername?: boolean
+    friendUsername?: boolean
     createdAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
     friend?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["friendship"]>
 
   export type FriendshipSelectScalar = {
-    userId?: boolean
-    friendId?: boolean
+    userUsername?: boolean
+    friendUsername?: boolean
     createdAt?: boolean
   }
 
-  export type FriendshipOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"userId" | "friendId" | "createdAt", ExtArgs["result"]["friendship"]>
+  export type FriendshipOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"userUsername" | "friendUsername" | "createdAt", ExtArgs["result"]["friendship"]>
   export type FriendshipInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     friend?: boolean | UserDefaultArgs<ExtArgs>
@@ -2968,8 +2883,8 @@ export namespace Prisma {
       friend: Prisma.$UserPayload<ExtArgs>
     }
     scalars: $Extensions.GetPayloadResult<{
-      userId: number
-      friendId: number
+      userUsername: string
+      friendUsername: string
       createdAt: Date
     }, ExtArgs["result"]["friendship"]>
     composites: {}
@@ -3054,8 +2969,8 @@ export namespace Prisma {
      * // Get first 10 Friendships
      * const friendships = await prisma.friendship.findMany({ take: 10 })
      * 
-     * // Only select the `userId`
-     * const friendshipWithUserIdOnly = await prisma.friendship.findMany({ select: { userId: true } })
+     * // Only select the `userUsername`
+     * const friendshipWithUserUsernameOnly = await prisma.friendship.findMany({ select: { userUsername: true } })
      * 
      */
     findMany<T extends FriendshipFindManyArgs>(args?: SelectSubset<T, FriendshipFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FriendshipPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
@@ -3099,9 +3014,9 @@ export namespace Prisma {
      *   ]
      * })
      * 
-     * // Create many Friendships and only return the `userId`
-     * const friendshipWithUserIdOnly = await prisma.friendship.createManyAndReturn({
-     *   select: { userId: true },
+     * // Create many Friendships and only return the `userUsername`
+     * const friendshipWithUserUsernameOnly = await prisma.friendship.createManyAndReturn({
+     *   select: { userUsername: true },
      *   data: [
      *     // ... provide data here
      *   ]
@@ -3190,9 +3105,9 @@ export namespace Prisma {
      *   ]
      * })
      * 
-     * // Update zero or more Friendships and only return the `userId`
-     * const friendshipWithUserIdOnly = await prisma.friendship.updateManyAndReturn({
-     *   select: { userId: true },
+     * // Update zero or more Friendships and only return the `userUsername`
+     * const friendshipWithUserUsernameOnly = await prisma.friendship.updateManyAndReturn({
+     *   select: { userUsername: true },
      *   where: {
      *     // ... provide filter here
      *   },
@@ -3396,8 +3311,8 @@ export namespace Prisma {
    * Fields of the Friendship model
    */
   interface FriendshipFieldRefs {
-    readonly userId: FieldRef<"Friendship", 'Int'>
-    readonly friendId: FieldRef<"Friendship", 'Int'>
+    readonly userUsername: FieldRef<"Friendship", 'String'>
+    readonly friendUsername: FieldRef<"Friendship", 'String'>
     readonly createdAt: FieldRef<"Friendship", 'DateTime'>
   }
     
@@ -3860,6 +3775,7 @@ export namespace Prisma {
     gameMode: number
     maxPlayers: number
     status: number
+    gameState: number
     createdAt: number
     startedAt: number
     endedAt: number
@@ -3902,6 +3818,7 @@ export namespace Prisma {
     gameMode?: true
     maxPlayers?: true
     status?: true
+    gameState?: true
     createdAt?: true
     startedAt?: true
     endedAt?: true
@@ -3999,6 +3916,7 @@ export namespace Prisma {
     gameMode: string
     maxPlayers: number
     status: string
+    gameState: JsonValue | null
     createdAt: Date
     startedAt: Date | null
     endedAt: Date | null
@@ -4028,6 +3946,7 @@ export namespace Prisma {
     gameMode?: boolean
     maxPlayers?: boolean
     status?: boolean
+    gameState?: boolean
     createdAt?: boolean
     startedAt?: boolean
     endedAt?: boolean
@@ -4040,6 +3959,7 @@ export namespace Prisma {
     gameMode?: boolean
     maxPlayers?: boolean
     status?: boolean
+    gameState?: boolean
     createdAt?: boolean
     startedAt?: boolean
     endedAt?: boolean
@@ -4050,6 +3970,7 @@ export namespace Prisma {
     gameMode?: boolean
     maxPlayers?: boolean
     status?: boolean
+    gameState?: boolean
     createdAt?: boolean
     startedAt?: boolean
     endedAt?: boolean
@@ -4060,12 +3981,13 @@ export namespace Prisma {
     gameMode?: boolean
     maxPlayers?: boolean
     status?: boolean
+    gameState?: boolean
     createdAt?: boolean
     startedAt?: boolean
     endedAt?: boolean
   }
 
-  export type MatchOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "gameMode" | "maxPlayers" | "status" | "createdAt" | "startedAt" | "endedAt", ExtArgs["result"]["match"]>
+  export type MatchOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "gameMode" | "maxPlayers" | "status" | "gameState" | "createdAt" | "startedAt" | "endedAt", ExtArgs["result"]["match"]>
   export type MatchInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     matchPlayers?: boolean | Match$matchPlayersArgs<ExtArgs>
     _count?: boolean | MatchCountOutputTypeDefaultArgs<ExtArgs>
@@ -4083,6 +4005,7 @@ export namespace Prisma {
       gameMode: string
       maxPlayers: number
       status: string
+      gameState: Prisma.JsonValue | null
       createdAt: Date
       startedAt: Date | null
       endedAt: Date | null
@@ -4514,6 +4437,7 @@ export namespace Prisma {
     readonly gameMode: FieldRef<"Match", 'String'>
     readonly maxPlayers: FieldRef<"Match", 'Int'>
     readonly status: FieldRef<"Match", 'String'>
+    readonly gameState: FieldRef<"Match", 'Json'>
     readonly createdAt: FieldRef<"Match", 'DateTime'>
     readonly startedAt: FieldRef<"Match", 'DateTime'>
     readonly endedAt: FieldRef<"Match", 'DateTime'>
@@ -4962,7 +4886,6 @@ export namespace Prisma {
   export type MatchPlayerAvgAggregateOutputType = {
     id: number | null
     matchId: number | null
-    userId: number | null
     score: number | null
     position: number | null
   }
@@ -4970,7 +4893,6 @@ export namespace Prisma {
   export type MatchPlayerSumAggregateOutputType = {
     id: number | null
     matchId: number | null
-    userId: number | null
     score: number | null
     position: number | null
   }
@@ -4978,7 +4900,7 @@ export namespace Prisma {
   export type MatchPlayerMinAggregateOutputType = {
     id: number | null
     matchId: number | null
-    userId: number | null
+    username: string | null
     score: number | null
     position: number | null
     joinedAt: Date | null
@@ -4987,7 +4909,7 @@ export namespace Prisma {
   export type MatchPlayerMaxAggregateOutputType = {
     id: number | null
     matchId: number | null
-    userId: number | null
+    username: string | null
     score: number | null
     position: number | null
     joinedAt: Date | null
@@ -4996,7 +4918,7 @@ export namespace Prisma {
   export type MatchPlayerCountAggregateOutputType = {
     id: number
     matchId: number
-    userId: number
+    username: number
     score: number
     position: number
     joinedAt: number
@@ -5007,7 +4929,6 @@ export namespace Prisma {
   export type MatchPlayerAvgAggregateInputType = {
     id?: true
     matchId?: true
-    userId?: true
     score?: true
     position?: true
   }
@@ -5015,7 +4936,6 @@ export namespace Prisma {
   export type MatchPlayerSumAggregateInputType = {
     id?: true
     matchId?: true
-    userId?: true
     score?: true
     position?: true
   }
@@ -5023,7 +4943,7 @@ export namespace Prisma {
   export type MatchPlayerMinAggregateInputType = {
     id?: true
     matchId?: true
-    userId?: true
+    username?: true
     score?: true
     position?: true
     joinedAt?: true
@@ -5032,7 +4952,7 @@ export namespace Prisma {
   export type MatchPlayerMaxAggregateInputType = {
     id?: true
     matchId?: true
-    userId?: true
+    username?: true
     score?: true
     position?: true
     joinedAt?: true
@@ -5041,7 +4961,7 @@ export namespace Prisma {
   export type MatchPlayerCountAggregateInputType = {
     id?: true
     matchId?: true
-    userId?: true
+    username?: true
     score?: true
     position?: true
     joinedAt?: true
@@ -5137,7 +5057,7 @@ export namespace Prisma {
   export type MatchPlayerGroupByOutputType = {
     id: number
     matchId: number
-    userId: number
+    username: string
     score: number
     position: number | null
     joinedAt: Date
@@ -5165,7 +5085,7 @@ export namespace Prisma {
   export type MatchPlayerSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     matchId?: boolean
-    userId?: boolean
+    username?: boolean
     score?: boolean
     position?: boolean
     joinedAt?: boolean
@@ -5176,7 +5096,7 @@ export namespace Prisma {
   export type MatchPlayerSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     matchId?: boolean
-    userId?: boolean
+    username?: boolean
     score?: boolean
     position?: boolean
     joinedAt?: boolean
@@ -5187,7 +5107,7 @@ export namespace Prisma {
   export type MatchPlayerSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     matchId?: boolean
-    userId?: boolean
+    username?: boolean
     score?: boolean
     position?: boolean
     joinedAt?: boolean
@@ -5198,13 +5118,13 @@ export namespace Prisma {
   export type MatchPlayerSelectScalar = {
     id?: boolean
     matchId?: boolean
-    userId?: boolean
+    username?: boolean
     score?: boolean
     position?: boolean
     joinedAt?: boolean
   }
 
-  export type MatchPlayerOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "matchId" | "userId" | "score" | "position" | "joinedAt", ExtArgs["result"]["matchPlayer"]>
+  export type MatchPlayerOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "matchId" | "username" | "score" | "position" | "joinedAt", ExtArgs["result"]["matchPlayer"]>
   export type MatchPlayerInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     match?: boolean | MatchDefaultArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -5227,7 +5147,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: number
       matchId: number
-      userId: number
+      username: string
       score: number
       position: number | null
       joinedAt: Date
@@ -5658,7 +5578,7 @@ export namespace Prisma {
   interface MatchPlayerFieldRefs {
     readonly id: FieldRef<"MatchPlayer", 'Int'>
     readonly matchId: FieldRef<"MatchPlayer", 'Int'>
-    readonly userId: FieldRef<"MatchPlayer", 'Int'>
+    readonly username: FieldRef<"MatchPlayer", 'String'>
     readonly score: FieldRef<"MatchPlayer", 'Int'>
     readonly position: FieldRef<"MatchPlayer", 'Int'>
     readonly joinedAt: FieldRef<"MatchPlayer", 'DateTime'>
@@ -6089,7 +6009,6 @@ export namespace Prisma {
   }
 
   export type StatAvgAggregateOutputType = {
-    userId: number | null
     gamesPlayed: number | null
     wins: number | null
     losses: number | null
@@ -6097,7 +6016,6 @@ export namespace Prisma {
   }
 
   export type StatSumAggregateOutputType = {
-    userId: number | null
     gamesPlayed: number | null
     wins: number | null
     losses: number | null
@@ -6105,7 +6023,7 @@ export namespace Prisma {
   }
 
   export type StatMinAggregateOutputType = {
-    userId: number | null
+    username: string | null
     gamesPlayed: number | null
     wins: number | null
     losses: number | null
@@ -6113,7 +6031,7 @@ export namespace Prisma {
   }
 
   export type StatMaxAggregateOutputType = {
-    userId: number | null
+    username: string | null
     gamesPlayed: number | null
     wins: number | null
     losses: number | null
@@ -6121,7 +6039,7 @@ export namespace Prisma {
   }
 
   export type StatCountAggregateOutputType = {
-    userId: number
+    username: number
     gamesPlayed: number
     wins: number
     losses: number
@@ -6131,7 +6049,6 @@ export namespace Prisma {
 
 
   export type StatAvgAggregateInputType = {
-    userId?: true
     gamesPlayed?: true
     wins?: true
     losses?: true
@@ -6139,7 +6056,6 @@ export namespace Prisma {
   }
 
   export type StatSumAggregateInputType = {
-    userId?: true
     gamesPlayed?: true
     wins?: true
     losses?: true
@@ -6147,7 +6063,7 @@ export namespace Prisma {
   }
 
   export type StatMinAggregateInputType = {
-    userId?: true
+    username?: true
     gamesPlayed?: true
     wins?: true
     losses?: true
@@ -6155,7 +6071,7 @@ export namespace Prisma {
   }
 
   export type StatMaxAggregateInputType = {
-    userId?: true
+    username?: true
     gamesPlayed?: true
     wins?: true
     losses?: true
@@ -6163,7 +6079,7 @@ export namespace Prisma {
   }
 
   export type StatCountAggregateInputType = {
-    userId?: true
+    username?: true
     gamesPlayed?: true
     wins?: true
     losses?: true
@@ -6258,7 +6174,7 @@ export namespace Prisma {
   }
 
   export type StatGroupByOutputType = {
-    userId: number
+    username: string
     gamesPlayed: number
     wins: number
     losses: number
@@ -6285,7 +6201,7 @@ export namespace Prisma {
 
 
   export type StatSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    userId?: boolean
+    username?: boolean
     gamesPlayed?: boolean
     wins?: boolean
     losses?: boolean
@@ -6294,7 +6210,7 @@ export namespace Prisma {
   }, ExtArgs["result"]["stat"]>
 
   export type StatSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    userId?: boolean
+    username?: boolean
     gamesPlayed?: boolean
     wins?: boolean
     losses?: boolean
@@ -6303,7 +6219,7 @@ export namespace Prisma {
   }, ExtArgs["result"]["stat"]>
 
   export type StatSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    userId?: boolean
+    username?: boolean
     gamesPlayed?: boolean
     wins?: boolean
     losses?: boolean
@@ -6312,14 +6228,14 @@ export namespace Prisma {
   }, ExtArgs["result"]["stat"]>
 
   export type StatSelectScalar = {
-    userId?: boolean
+    username?: boolean
     gamesPlayed?: boolean
     wins?: boolean
     losses?: boolean
     elo?: boolean
   }
 
-  export type StatOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"userId" | "gamesPlayed" | "wins" | "losses" | "elo", ExtArgs["result"]["stat"]>
+  export type StatOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"username" | "gamesPlayed" | "wins" | "losses" | "elo", ExtArgs["result"]["stat"]>
   export type StatInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }
@@ -6336,7 +6252,7 @@ export namespace Prisma {
       user: Prisma.$UserPayload<ExtArgs>
     }
     scalars: $Extensions.GetPayloadResult<{
-      userId: number
+      username: string
       gamesPlayed: number
       wins: number
       losses: number
@@ -6424,8 +6340,8 @@ export namespace Prisma {
      * // Get first 10 Stats
      * const stats = await prisma.stat.findMany({ take: 10 })
      * 
-     * // Only select the `userId`
-     * const statWithUserIdOnly = await prisma.stat.findMany({ select: { userId: true } })
+     * // Only select the `username`
+     * const statWithUsernameOnly = await prisma.stat.findMany({ select: { username: true } })
      * 
      */
     findMany<T extends StatFindManyArgs>(args?: SelectSubset<T, StatFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StatPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
@@ -6469,9 +6385,9 @@ export namespace Prisma {
      *   ]
      * })
      * 
-     * // Create many Stats and only return the `userId`
-     * const statWithUserIdOnly = await prisma.stat.createManyAndReturn({
-     *   select: { userId: true },
+     * // Create many Stats and only return the `username`
+     * const statWithUsernameOnly = await prisma.stat.createManyAndReturn({
+     *   select: { username: true },
      *   data: [
      *     // ... provide data here
      *   ]
@@ -6560,9 +6476,9 @@ export namespace Prisma {
      *   ]
      * })
      * 
-     * // Update zero or more Stats and only return the `userId`
-     * const statWithUserIdOnly = await prisma.stat.updateManyAndReturn({
-     *   select: { userId: true },
+     * // Update zero or more Stats and only return the `username`
+     * const statWithUsernameOnly = await prisma.stat.updateManyAndReturn({
+     *   select: { username: true },
      *   where: {
      *     // ... provide filter here
      *   },
@@ -6765,7 +6681,7 @@ export namespace Prisma {
    * Fields of the Stat model
    */
   interface StatFieldRefs {
-    readonly userId: FieldRef<"Stat", 'Int'>
+    readonly username: FieldRef<"Stat", 'String'>
     readonly gamesPlayed: FieldRef<"Stat", 'Int'>
     readonly wins: FieldRef<"Stat", 'Int'>
     readonly losses: FieldRef<"Stat", 'Int'>
@@ -8286,19 +8202,19 @@ export namespace Prisma {
   }
 
   export type UserAchievementMinAggregateOutputType = {
-    userusername: string | null
+    username: string | null
     achievementName_id: string | null
     unlockedAt: Date | null
   }
 
   export type UserAchievementMaxAggregateOutputType = {
-    userusername: string | null
+    username: string | null
     achievementName_id: string | null
     unlockedAt: Date | null
   }
 
   export type UserAchievementCountAggregateOutputType = {
-    userusername: number
+    username: number
     achievementName_id: number
     unlockedAt: number
     _all: number
@@ -8306,19 +8222,19 @@ export namespace Prisma {
 
 
   export type UserAchievementMinAggregateInputType = {
-    userusername?: true
+    username?: true
     achievementName_id?: true
     unlockedAt?: true
   }
 
   export type UserAchievementMaxAggregateInputType = {
-    userusername?: true
+    username?: true
     achievementName_id?: true
     unlockedAt?: true
   }
 
   export type UserAchievementCountAggregateInputType = {
-    userusername?: true
+    username?: true
     achievementName_id?: true
     unlockedAt?: true
     _all?: true
@@ -8397,7 +8313,7 @@ export namespace Prisma {
   }
 
   export type UserAchievementGroupByOutputType = {
-    userusername: string
+    username: string
     achievementName_id: string
     unlockedAt: Date
     _count: UserAchievementCountAggregateOutputType | null
@@ -8420,7 +8336,7 @@ export namespace Prisma {
 
 
   export type UserAchievementSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    userusername?: boolean
+    username?: boolean
     achievementName_id?: boolean
     unlockedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -8428,7 +8344,7 @@ export namespace Prisma {
   }, ExtArgs["result"]["userAchievement"]>
 
   export type UserAchievementSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    userusername?: boolean
+    username?: boolean
     achievementName_id?: boolean
     unlockedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -8436,7 +8352,7 @@ export namespace Prisma {
   }, ExtArgs["result"]["userAchievement"]>
 
   export type UserAchievementSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    userusername?: boolean
+    username?: boolean
     achievementName_id?: boolean
     unlockedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -8444,12 +8360,12 @@ export namespace Prisma {
   }, ExtArgs["result"]["userAchievement"]>
 
   export type UserAchievementSelectScalar = {
-    userusername?: boolean
+    username?: boolean
     achievementName_id?: boolean
     unlockedAt?: boolean
   }
 
-  export type UserAchievementOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"userusername" | "achievementName_id" | "unlockedAt", ExtArgs["result"]["userAchievement"]>
+  export type UserAchievementOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"username" | "achievementName_id" | "unlockedAt", ExtArgs["result"]["userAchievement"]>
   export type UserAchievementInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     achievement?: boolean | AchievementDefaultArgs<ExtArgs>
@@ -8470,7 +8386,7 @@ export namespace Prisma {
       achievement: Prisma.$AchievementPayload<ExtArgs>
     }
     scalars: $Extensions.GetPayloadResult<{
-      userusername: string
+      username: string
       achievementName_id: string
       unlockedAt: Date
     }, ExtArgs["result"]["userAchievement"]>
@@ -8556,8 +8472,8 @@ export namespace Prisma {
      * // Get first 10 UserAchievements
      * const userAchievements = await prisma.userAchievement.findMany({ take: 10 })
      * 
-     * // Only select the `userusername`
-     * const userAchievementWithUserusernameOnly = await prisma.userAchievement.findMany({ select: { userusername: true } })
+     * // Only select the `username`
+     * const userAchievementWithUsernameOnly = await prisma.userAchievement.findMany({ select: { username: true } })
      * 
      */
     findMany<T extends UserAchievementFindManyArgs>(args?: SelectSubset<T, UserAchievementFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserAchievementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
@@ -8601,9 +8517,9 @@ export namespace Prisma {
      *   ]
      * })
      * 
-     * // Create many UserAchievements and only return the `userusername`
-     * const userAchievementWithUserusernameOnly = await prisma.userAchievement.createManyAndReturn({
-     *   select: { userusername: true },
+     * // Create many UserAchievements and only return the `username`
+     * const userAchievementWithUsernameOnly = await prisma.userAchievement.createManyAndReturn({
+     *   select: { username: true },
      *   data: [
      *     // ... provide data here
      *   ]
@@ -8692,9 +8608,9 @@ export namespace Prisma {
      *   ]
      * })
      * 
-     * // Update zero or more UserAchievements and only return the `userusername`
-     * const userAchievementWithUserusernameOnly = await prisma.userAchievement.updateManyAndReturn({
-     *   select: { userusername: true },
+     * // Update zero or more UserAchievements and only return the `username`
+     * const userAchievementWithUsernameOnly = await prisma.userAchievement.updateManyAndReturn({
+     *   select: { username: true },
      *   where: {
      *     // ... provide filter here
      *   },
@@ -8898,7 +8814,7 @@ export namespace Prisma {
    * Fields of the UserAchievement model
    */
   interface UserAchievementFieldRefs {
-    readonly userusername: FieldRef<"UserAchievement", 'String'>
+    readonly username: FieldRef<"UserAchievement", 'String'>
     readonly achievementName_id: FieldRef<"UserAchievement", 'String'>
     readonly unlockedAt: FieldRef<"UserAchievement", 'DateTime'>
   }
@@ -9330,7 +9246,6 @@ export namespace Prisma {
 
 
   export const UserScalarFieldEnum: {
-    id: 'id',
     username: 'username',
     email: 'email',
     passwordHash: 'passwordHash',
@@ -9342,8 +9257,8 @@ export namespace Prisma {
 
 
   export const FriendshipScalarFieldEnum: {
-    userId: 'userId',
-    friendId: 'friendId',
+    userUsername: 'userUsername',
+    friendUsername: 'friendUsername',
     createdAt: 'createdAt'
   };
 
@@ -9355,6 +9270,7 @@ export namespace Prisma {
     gameMode: 'gameMode',
     maxPlayers: 'maxPlayers',
     status: 'status',
+    gameState: 'gameState',
     createdAt: 'createdAt',
     startedAt: 'startedAt',
     endedAt: 'endedAt'
@@ -9366,7 +9282,7 @@ export namespace Prisma {
   export const MatchPlayerScalarFieldEnum: {
     id: 'id',
     matchId: 'matchId',
-    userId: 'userId',
+    username: 'username',
     score: 'score',
     position: 'position',
     joinedAt: 'joinedAt'
@@ -9376,7 +9292,7 @@ export namespace Prisma {
 
 
   export const StatScalarFieldEnum: {
-    userId: 'userId',
+    username: 'username',
     gamesPlayed: 'gamesPlayed',
     wins: 'wins',
     losses: 'losses',
@@ -9397,7 +9313,7 @@ export namespace Prisma {
 
 
   export const UserAchievementScalarFieldEnum: {
-    userusername: 'userusername',
+    username: 'username',
     achievementName_id: 'achievementName_id',
     unlockedAt: 'unlockedAt'
   };
@@ -9411,6 +9327,14 @@ export namespace Prisma {
   };
 
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+  export const NullableJsonNullValueInput: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull
+  };
+
+  export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
   export const QueryMode: {
@@ -9429,23 +9353,18 @@ export namespace Prisma {
   export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
+  export const JsonNullValueFilter: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull,
+    AnyNull: typeof AnyNull
+  };
+
+  export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
+
+
   /**
    * Field references
    */
-
-
-  /**
-   * Reference to a field of type 'Int'
-   */
-  export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
-    
-
-
-  /**
-   * Reference to a field of type 'Int[]'
-   */
-  export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
-    
 
 
   /**
@@ -9477,6 +9396,34 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Int'
+   */
+  export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+  /**
+   * Reference to a field of type 'Int[]'
+   */
+  export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'Json'
+   */
+  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+  /**
+   * Reference to a field of type 'QueryMode'
+   */
+  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+  /**
    * Reference to a field of type 'Float'
    */
   export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -9497,7 +9444,6 @@ export namespace Prisma {
     AND?: UserWhereInput | UserWhereInput[]
     OR?: UserWhereInput[]
     NOT?: UserWhereInput | UserWhereInput[]
-    id?: IntFilter<"User"> | number
     username?: StringFilter<"User"> | string
     email?: StringFilter<"User"> | string
     passwordHash?: StringNullableFilter<"User"> | string | null
@@ -9511,7 +9457,6 @@ export namespace Prisma {
   }
 
   export type UserOrderByWithRelationInput = {
-    id?: SortOrder
     username?: SortOrder
     email?: SortOrder
     passwordHash?: SortOrderInput | SortOrder
@@ -9525,7 +9470,6 @@ export namespace Prisma {
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
-    id?: number
     username?: string
     email?: string
     AND?: UserWhereInput | UserWhereInput[]
@@ -9539,27 +9483,23 @@ export namespace Prisma {
     matchPlayers?: MatchPlayerListRelationFilter
     stats?: XOR<StatNullableScalarRelationFilter, StatWhereInput> | null
     userAchievements?: UserAchievementListRelationFilter
-  }, "id" | "username" | "email">
+  }, "username" | "username" | "email">
 
   export type UserOrderByWithAggregationInput = {
-    id?: SortOrder
     username?: SortOrder
     email?: SortOrder
     passwordHash?: SortOrderInput | SortOrder
     avatarUrl?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     _count?: UserCountOrderByAggregateInput
-    _avg?: UserAvgOrderByAggregateInput
     _max?: UserMaxOrderByAggregateInput
     _min?: UserMinOrderByAggregateInput
-    _sum?: UserSumOrderByAggregateInput
   }
 
   export type UserScalarWhereWithAggregatesInput = {
     AND?: UserScalarWhereWithAggregatesInput | UserScalarWhereWithAggregatesInput[]
     OR?: UserScalarWhereWithAggregatesInput[]
     NOT?: UserScalarWhereWithAggregatesInput | UserScalarWhereWithAggregatesInput[]
-    id?: IntWithAggregatesFilter<"User"> | number
     username?: StringWithAggregatesFilter<"User"> | string
     email?: StringWithAggregatesFilter<"User"> | string
     passwordHash?: StringNullableWithAggregatesFilter<"User"> | string | null
@@ -9571,50 +9511,48 @@ export namespace Prisma {
     AND?: FriendshipWhereInput | FriendshipWhereInput[]
     OR?: FriendshipWhereInput[]
     NOT?: FriendshipWhereInput | FriendshipWhereInput[]
-    userId?: IntFilter<"Friendship"> | number
-    friendId?: IntFilter<"Friendship"> | number
+    userUsername?: StringFilter<"Friendship"> | string
+    friendUsername?: StringFilter<"Friendship"> | string
     createdAt?: DateTimeFilter<"Friendship"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     friend?: XOR<UserScalarRelationFilter, UserWhereInput>
   }
 
   export type FriendshipOrderByWithRelationInput = {
-    userId?: SortOrder
-    friendId?: SortOrder
+    userUsername?: SortOrder
+    friendUsername?: SortOrder
     createdAt?: SortOrder
     user?: UserOrderByWithRelationInput
     friend?: UserOrderByWithRelationInput
   }
 
   export type FriendshipWhereUniqueInput = Prisma.AtLeast<{
-    userId_friendId?: FriendshipUserIdFriendIdCompoundUniqueInput
+    userUsername_friendUsername?: FriendshipUserUsernameFriendUsernameCompoundUniqueInput
     AND?: FriendshipWhereInput | FriendshipWhereInput[]
     OR?: FriendshipWhereInput[]
     NOT?: FriendshipWhereInput | FriendshipWhereInput[]
-    userId?: IntFilter<"Friendship"> | number
-    friendId?: IntFilter<"Friendship"> | number
+    userUsername?: StringFilter<"Friendship"> | string
+    friendUsername?: StringFilter<"Friendship"> | string
     createdAt?: DateTimeFilter<"Friendship"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     friend?: XOR<UserScalarRelationFilter, UserWhereInput>
-  }, "userId_friendId">
+  }, "userUsername_friendUsername">
 
   export type FriendshipOrderByWithAggregationInput = {
-    userId?: SortOrder
-    friendId?: SortOrder
+    userUsername?: SortOrder
+    friendUsername?: SortOrder
     createdAt?: SortOrder
     _count?: FriendshipCountOrderByAggregateInput
-    _avg?: FriendshipAvgOrderByAggregateInput
     _max?: FriendshipMaxOrderByAggregateInput
     _min?: FriendshipMinOrderByAggregateInput
-    _sum?: FriendshipSumOrderByAggregateInput
   }
 
   export type FriendshipScalarWhereWithAggregatesInput = {
     AND?: FriendshipScalarWhereWithAggregatesInput | FriendshipScalarWhereWithAggregatesInput[]
     OR?: FriendshipScalarWhereWithAggregatesInput[]
     NOT?: FriendshipScalarWhereWithAggregatesInput | FriendshipScalarWhereWithAggregatesInput[]
-    userId?: IntWithAggregatesFilter<"Friendship"> | number
-    friendId?: IntWithAggregatesFilter<"Friendship"> | number
+    userUsername?: StringWithAggregatesFilter<"Friendship"> | string
+    friendUsername?: StringWithAggregatesFilter<"Friendship"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Friendship"> | Date | string
   }
 
@@ -9626,6 +9564,7 @@ export namespace Prisma {
     gameMode?: StringFilter<"Match"> | string
     maxPlayers?: IntFilter<"Match"> | number
     status?: StringFilter<"Match"> | string
+    gameState?: JsonNullableFilter<"Match">
     createdAt?: DateTimeFilter<"Match"> | Date | string
     startedAt?: DateTimeNullableFilter<"Match"> | Date | string | null
     endedAt?: DateTimeNullableFilter<"Match"> | Date | string | null
@@ -9637,6 +9576,7 @@ export namespace Prisma {
     gameMode?: SortOrder
     maxPlayers?: SortOrder
     status?: SortOrder
+    gameState?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     startedAt?: SortOrderInput | SortOrder
     endedAt?: SortOrderInput | SortOrder
@@ -9651,6 +9591,7 @@ export namespace Prisma {
     gameMode?: StringFilter<"Match"> | string
     maxPlayers?: IntFilter<"Match"> | number
     status?: StringFilter<"Match"> | string
+    gameState?: JsonNullableFilter<"Match">
     createdAt?: DateTimeFilter<"Match"> | Date | string
     startedAt?: DateTimeNullableFilter<"Match"> | Date | string | null
     endedAt?: DateTimeNullableFilter<"Match"> | Date | string | null
@@ -9662,6 +9603,7 @@ export namespace Prisma {
     gameMode?: SortOrder
     maxPlayers?: SortOrder
     status?: SortOrder
+    gameState?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     startedAt?: SortOrderInput | SortOrder
     endedAt?: SortOrderInput | SortOrder
@@ -9680,6 +9622,7 @@ export namespace Prisma {
     gameMode?: StringWithAggregatesFilter<"Match"> | string
     maxPlayers?: IntWithAggregatesFilter<"Match"> | number
     status?: StringWithAggregatesFilter<"Match"> | string
+    gameState?: JsonNullableWithAggregatesFilter<"Match">
     createdAt?: DateTimeWithAggregatesFilter<"Match"> | Date | string
     startedAt?: DateTimeNullableWithAggregatesFilter<"Match"> | Date | string | null
     endedAt?: DateTimeNullableWithAggregatesFilter<"Match"> | Date | string | null
@@ -9691,7 +9634,7 @@ export namespace Prisma {
     NOT?: MatchPlayerWhereInput | MatchPlayerWhereInput[]
     id?: IntFilter<"MatchPlayer"> | number
     matchId?: IntFilter<"MatchPlayer"> | number
-    userId?: IntFilter<"MatchPlayer"> | number
+    username?: StringFilter<"MatchPlayer"> | string
     score?: IntFilter<"MatchPlayer"> | number
     position?: IntNullableFilter<"MatchPlayer"> | number | null
     joinedAt?: DateTimeFilter<"MatchPlayer"> | Date | string
@@ -9702,7 +9645,7 @@ export namespace Prisma {
   export type MatchPlayerOrderByWithRelationInput = {
     id?: SortOrder
     matchId?: SortOrder
-    userId?: SortOrder
+    username?: SortOrder
     score?: SortOrder
     position?: SortOrderInput | SortOrder
     joinedAt?: SortOrder
@@ -9712,23 +9655,23 @@ export namespace Prisma {
 
   export type MatchPlayerWhereUniqueInput = Prisma.AtLeast<{
     id?: number
-    matchId_userId?: MatchPlayerMatchIdUserIdCompoundUniqueInput
+    matchId_username?: MatchPlayerMatchIdUsernameCompoundUniqueInput
     AND?: MatchPlayerWhereInput | MatchPlayerWhereInput[]
     OR?: MatchPlayerWhereInput[]
     NOT?: MatchPlayerWhereInput | MatchPlayerWhereInput[]
     matchId?: IntFilter<"MatchPlayer"> | number
-    userId?: IntFilter<"MatchPlayer"> | number
+    username?: StringFilter<"MatchPlayer"> | string
     score?: IntFilter<"MatchPlayer"> | number
     position?: IntNullableFilter<"MatchPlayer"> | number | null
     joinedAt?: DateTimeFilter<"MatchPlayer"> | Date | string
     match?: XOR<MatchScalarRelationFilter, MatchWhereInput>
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
-  }, "id" | "matchId_userId">
+  }, "id" | "matchId_username">
 
   export type MatchPlayerOrderByWithAggregationInput = {
     id?: SortOrder
     matchId?: SortOrder
-    userId?: SortOrder
+    username?: SortOrder
     score?: SortOrder
     position?: SortOrderInput | SortOrder
     joinedAt?: SortOrder
@@ -9745,7 +9688,7 @@ export namespace Prisma {
     NOT?: MatchPlayerScalarWhereWithAggregatesInput | MatchPlayerScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"MatchPlayer"> | number
     matchId?: IntWithAggregatesFilter<"MatchPlayer"> | number
-    userId?: IntWithAggregatesFilter<"MatchPlayer"> | number
+    username?: StringWithAggregatesFilter<"MatchPlayer"> | string
     score?: IntWithAggregatesFilter<"MatchPlayer"> | number
     position?: IntNullableWithAggregatesFilter<"MatchPlayer"> | number | null
     joinedAt?: DateTimeWithAggregatesFilter<"MatchPlayer"> | Date | string
@@ -9755,7 +9698,7 @@ export namespace Prisma {
     AND?: StatWhereInput | StatWhereInput[]
     OR?: StatWhereInput[]
     NOT?: StatWhereInput | StatWhereInput[]
-    userId?: IntFilter<"Stat"> | number
+    username?: StringFilter<"Stat"> | string
     gamesPlayed?: IntFilter<"Stat"> | number
     wins?: IntFilter<"Stat"> | number
     losses?: IntFilter<"Stat"> | number
@@ -9764,7 +9707,7 @@ export namespace Prisma {
   }
 
   export type StatOrderByWithRelationInput = {
-    userId?: SortOrder
+    username?: SortOrder
     gamesPlayed?: SortOrder
     wins?: SortOrder
     losses?: SortOrder
@@ -9773,7 +9716,7 @@ export namespace Prisma {
   }
 
   export type StatWhereUniqueInput = Prisma.AtLeast<{
-    userId?: number
+    username?: string
     AND?: StatWhereInput | StatWhereInput[]
     OR?: StatWhereInput[]
     NOT?: StatWhereInput | StatWhereInput[]
@@ -9782,10 +9725,10 @@ export namespace Prisma {
     losses?: IntFilter<"Stat"> | number
     elo?: IntFilter<"Stat"> | number
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
-  }, "userId">
+  }, "username">
 
   export type StatOrderByWithAggregationInput = {
-    userId?: SortOrder
+    username?: SortOrder
     gamesPlayed?: SortOrder
     wins?: SortOrder
     losses?: SortOrder
@@ -9801,7 +9744,7 @@ export namespace Prisma {
     AND?: StatScalarWhereWithAggregatesInput | StatScalarWhereWithAggregatesInput[]
     OR?: StatScalarWhereWithAggregatesInput[]
     NOT?: StatScalarWhereWithAggregatesInput | StatScalarWhereWithAggregatesInput[]
-    userId?: IntWithAggregatesFilter<"Stat"> | number
+    username?: StringWithAggregatesFilter<"Stat"> | string
     gamesPlayed?: IntWithAggregatesFilter<"Stat"> | number
     wins?: IntWithAggregatesFilter<"Stat"> | number
     losses?: IntWithAggregatesFilter<"Stat"> | number
@@ -9864,7 +9807,7 @@ export namespace Prisma {
     AND?: UserAchievementWhereInput | UserAchievementWhereInput[]
     OR?: UserAchievementWhereInput[]
     NOT?: UserAchievementWhereInput | UserAchievementWhereInput[]
-    userusername?: StringFilter<"UserAchievement"> | string
+    username?: StringFilter<"UserAchievement"> | string
     achievementName_id?: StringFilter<"UserAchievement"> | string
     unlockedAt?: DateTimeFilter<"UserAchievement"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -9872,7 +9815,7 @@ export namespace Prisma {
   }
 
   export type UserAchievementOrderByWithRelationInput = {
-    userusername?: SortOrder
+    username?: SortOrder
     achievementName_id?: SortOrder
     unlockedAt?: SortOrder
     user?: UserOrderByWithRelationInput
@@ -9880,19 +9823,19 @@ export namespace Prisma {
   }
 
   export type UserAchievementWhereUniqueInput = Prisma.AtLeast<{
-    userusername_achievementName_id?: UserAchievementUserusernameAchievementName_idCompoundUniqueInput
+    username_achievementName_id?: UserAchievementUsernameAchievementName_idCompoundUniqueInput
     AND?: UserAchievementWhereInput | UserAchievementWhereInput[]
     OR?: UserAchievementWhereInput[]
     NOT?: UserAchievementWhereInput | UserAchievementWhereInput[]
-    userusername?: StringFilter<"UserAchievement"> | string
+    username?: StringFilter<"UserAchievement"> | string
     achievementName_id?: StringFilter<"UserAchievement"> | string
     unlockedAt?: DateTimeFilter<"UserAchievement"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     achievement?: XOR<AchievementScalarRelationFilter, AchievementWhereInput>
-  }, "userusername_achievementName_id">
+  }, "username_achievementName_id">
 
   export type UserAchievementOrderByWithAggregationInput = {
-    userusername?: SortOrder
+    username?: SortOrder
     achievementName_id?: SortOrder
     unlockedAt?: SortOrder
     _count?: UserAchievementCountOrderByAggregateInput
@@ -9904,7 +9847,7 @@ export namespace Prisma {
     AND?: UserAchievementScalarWhereWithAggregatesInput | UserAchievementScalarWhereWithAggregatesInput[]
     OR?: UserAchievementScalarWhereWithAggregatesInput[]
     NOT?: UserAchievementScalarWhereWithAggregatesInput | UserAchievementScalarWhereWithAggregatesInput[]
-    userusername?: StringWithAggregatesFilter<"UserAchievement"> | string
+    username?: StringWithAggregatesFilter<"UserAchievement"> | string
     achievementName_id?: StringWithAggregatesFilter<"UserAchievement"> | string
     unlockedAt?: DateTimeWithAggregatesFilter<"UserAchievement"> | Date | string
   }
@@ -9923,7 +9866,6 @@ export namespace Prisma {
   }
 
   export type UserUncheckedCreateInput = {
-    id?: number
     username: string
     email: string
     passwordHash?: string | null
@@ -9950,7 +9892,6 @@ export namespace Prisma {
   }
 
   export type UserUncheckedUpdateInput = {
-    id?: IntFieldUpdateOperationsInput | number
     username?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
@@ -9964,7 +9905,6 @@ export namespace Prisma {
   }
 
   export type UserCreateManyInput = {
-    id?: number
     username: string
     email: string
     passwordHash?: string | null
@@ -9981,7 +9921,6 @@ export namespace Prisma {
   }
 
   export type UserUncheckedUpdateManyInput = {
-    id?: IntFieldUpdateOperationsInput | number
     username?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
@@ -9996,8 +9935,8 @@ export namespace Prisma {
   }
 
   export type FriendshipUncheckedCreateInput = {
-    userId: number
-    friendId: number
+    userUsername: string
+    friendUsername: string
     createdAt?: Date | string
   }
 
@@ -10008,14 +9947,14 @@ export namespace Prisma {
   }
 
   export type FriendshipUncheckedUpdateInput = {
-    userId?: IntFieldUpdateOperationsInput | number
-    friendId?: IntFieldUpdateOperationsInput | number
+    userUsername?: StringFieldUpdateOperationsInput | string
+    friendUsername?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type FriendshipCreateManyInput = {
-    userId: number
-    friendId: number
+    userUsername: string
+    friendUsername: string
     createdAt?: Date | string
   }
 
@@ -10024,8 +9963,8 @@ export namespace Prisma {
   }
 
   export type FriendshipUncheckedUpdateManyInput = {
-    userId?: IntFieldUpdateOperationsInput | number
-    friendId?: IntFieldUpdateOperationsInput | number
+    userUsername?: StringFieldUpdateOperationsInput | string
+    friendUsername?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -10033,6 +9972,7 @@ export namespace Prisma {
     gameMode: string
     maxPlayers?: number
     status?: string
+    gameState?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     startedAt?: Date | string | null
     endedAt?: Date | string | null
@@ -10044,6 +9984,7 @@ export namespace Prisma {
     gameMode: string
     maxPlayers?: number
     status?: string
+    gameState?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     startedAt?: Date | string | null
     endedAt?: Date | string | null
@@ -10054,6 +9995,7 @@ export namespace Prisma {
     gameMode?: StringFieldUpdateOperationsInput | string
     maxPlayers?: IntFieldUpdateOperationsInput | number
     status?: StringFieldUpdateOperationsInput | string
+    gameState?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     endedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -10065,6 +10007,7 @@ export namespace Prisma {
     gameMode?: StringFieldUpdateOperationsInput | string
     maxPlayers?: IntFieldUpdateOperationsInput | number
     status?: StringFieldUpdateOperationsInput | string
+    gameState?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     endedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -10076,6 +10019,7 @@ export namespace Prisma {
     gameMode: string
     maxPlayers?: number
     status?: string
+    gameState?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     startedAt?: Date | string | null
     endedAt?: Date | string | null
@@ -10085,6 +10029,7 @@ export namespace Prisma {
     gameMode?: StringFieldUpdateOperationsInput | string
     maxPlayers?: IntFieldUpdateOperationsInput | number
     status?: StringFieldUpdateOperationsInput | string
+    gameState?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     endedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -10095,6 +10040,7 @@ export namespace Prisma {
     gameMode?: StringFieldUpdateOperationsInput | string
     maxPlayers?: IntFieldUpdateOperationsInput | number
     status?: StringFieldUpdateOperationsInput | string
+    gameState?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     endedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -10111,7 +10057,7 @@ export namespace Prisma {
   export type MatchPlayerUncheckedCreateInput = {
     id?: number
     matchId: number
-    userId: number
+    username: string
     score?: number
     position?: number | null
     joinedAt?: Date | string
@@ -10128,7 +10074,7 @@ export namespace Prisma {
   export type MatchPlayerUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
     matchId?: IntFieldUpdateOperationsInput | number
-    userId?: IntFieldUpdateOperationsInput | number
+    username?: StringFieldUpdateOperationsInput | string
     score?: IntFieldUpdateOperationsInput | number
     position?: NullableIntFieldUpdateOperationsInput | number | null
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -10137,7 +10083,7 @@ export namespace Prisma {
   export type MatchPlayerCreateManyInput = {
     id?: number
     matchId: number
-    userId: number
+    username: string
     score?: number
     position?: number | null
     joinedAt?: Date | string
@@ -10152,7 +10098,7 @@ export namespace Prisma {
   export type MatchPlayerUncheckedUpdateManyInput = {
     id?: IntFieldUpdateOperationsInput | number
     matchId?: IntFieldUpdateOperationsInput | number
-    userId?: IntFieldUpdateOperationsInput | number
+    username?: StringFieldUpdateOperationsInput | string
     score?: IntFieldUpdateOperationsInput | number
     position?: NullableIntFieldUpdateOperationsInput | number | null
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -10167,7 +10113,7 @@ export namespace Prisma {
   }
 
   export type StatUncheckedCreateInput = {
-    userId: number
+    username: string
     gamesPlayed?: number
     wins?: number
     losses?: number
@@ -10183,7 +10129,7 @@ export namespace Prisma {
   }
 
   export type StatUncheckedUpdateInput = {
-    userId?: IntFieldUpdateOperationsInput | number
+    username?: StringFieldUpdateOperationsInput | string
     gamesPlayed?: IntFieldUpdateOperationsInput | number
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
@@ -10191,7 +10137,7 @@ export namespace Prisma {
   }
 
   export type StatCreateManyInput = {
-    userId: number
+    username: string
     gamesPlayed?: number
     wins?: number
     losses?: number
@@ -10206,7 +10152,7 @@ export namespace Prisma {
   }
 
   export type StatUncheckedUpdateManyInput = {
-    userId?: IntFieldUpdateOperationsInput | number
+    username?: StringFieldUpdateOperationsInput | string
     gamesPlayed?: IntFieldUpdateOperationsInput | number
     wins?: IntFieldUpdateOperationsInput | number
     losses?: IntFieldUpdateOperationsInput | number
@@ -10270,7 +10216,7 @@ export namespace Prisma {
   }
 
   export type UserAchievementUncheckedCreateInput = {
-    userusername: string
+    username: string
     achievementName_id: string
     unlockedAt?: Date | string
   }
@@ -10282,13 +10228,13 @@ export namespace Prisma {
   }
 
   export type UserAchievementUncheckedUpdateInput = {
-    userusername?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
     achievementName_id?: StringFieldUpdateOperationsInput | string
     unlockedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type UserAchievementCreateManyInput = {
-    userusername: string
+    username: string
     achievementName_id: string
     unlockedAt?: Date | string
   }
@@ -10298,20 +10244,9 @@ export namespace Prisma {
   }
 
   export type UserAchievementUncheckedUpdateManyInput = {
-    userusername?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
     achievementName_id?: StringFieldUpdateOperationsInput | string
     unlockedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type IntFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntFilter<$PrismaModel> | number
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -10396,7 +10331,6 @@ export namespace Prisma {
   }
 
   export type UserCountOrderByAggregateInput = {
-    id?: SortOrder
     username?: SortOrder
     email?: SortOrder
     passwordHash?: SortOrder
@@ -10404,12 +10338,7 @@ export namespace Prisma {
     createdAt?: SortOrder
   }
 
-  export type UserAvgOrderByAggregateInput = {
-    id?: SortOrder
-  }
-
   export type UserMaxOrderByAggregateInput = {
-    id?: SortOrder
     username?: SortOrder
     email?: SortOrder
     passwordHash?: SortOrder
@@ -10418,32 +10347,11 @@ export namespace Prisma {
   }
 
   export type UserMinOrderByAggregateInput = {
-    id?: SortOrder
     username?: SortOrder
     email?: SortOrder
     passwordHash?: SortOrder
     avatarUrl?: SortOrder
     createdAt?: SortOrder
-  }
-
-  export type UserSumOrderByAggregateInput = {
-    id?: SortOrder
-  }
-
-  export type IntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
   }
 
   export type StringWithAggregatesFilter<$PrismaModel = never> = {
@@ -10501,37 +10409,61 @@ export namespace Prisma {
     isNot?: UserWhereInput
   }
 
-  export type FriendshipUserIdFriendIdCompoundUniqueInput = {
-    userId: number
-    friendId: number
+  export type FriendshipUserUsernameFriendUsernameCompoundUniqueInput = {
+    userUsername: string
+    friendUsername: string
   }
 
   export type FriendshipCountOrderByAggregateInput = {
-    userId?: SortOrder
-    friendId?: SortOrder
+    userUsername?: SortOrder
+    friendUsername?: SortOrder
     createdAt?: SortOrder
   }
 
-  export type FriendshipAvgOrderByAggregateInput = {
-    userId?: SortOrder
-    friendId?: SortOrder
-  }
-
   export type FriendshipMaxOrderByAggregateInput = {
-    userId?: SortOrder
-    friendId?: SortOrder
+    userUsername?: SortOrder
+    friendUsername?: SortOrder
     createdAt?: SortOrder
   }
 
   export type FriendshipMinOrderByAggregateInput = {
-    userId?: SortOrder
-    friendId?: SortOrder
+    userUsername?: SortOrder
+    friendUsername?: SortOrder
     createdAt?: SortOrder
   }
 
-  export type FriendshipSumOrderByAggregateInput = {
-    userId?: SortOrder
-    friendId?: SortOrder
+  export type IntFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntFilter<$PrismaModel> | number
+  }
+  export type JsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
   export type DateTimeNullableFilter<$PrismaModel = never> = {
@@ -10550,6 +10482,7 @@ export namespace Prisma {
     gameMode?: SortOrder
     maxPlayers?: SortOrder
     status?: SortOrder
+    gameState?: SortOrder
     createdAt?: SortOrder
     startedAt?: SortOrder
     endedAt?: SortOrder
@@ -10585,6 +10518,48 @@ export namespace Prisma {
     maxPlayers?: SortOrder
   }
 
+  export type IntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
+  }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
+  }
+
   export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
     in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
@@ -10615,15 +10590,15 @@ export namespace Prisma {
     isNot?: MatchWhereInput
   }
 
-  export type MatchPlayerMatchIdUserIdCompoundUniqueInput = {
+  export type MatchPlayerMatchIdUsernameCompoundUniqueInput = {
     matchId: number
-    userId: number
+    username: string
   }
 
   export type MatchPlayerCountOrderByAggregateInput = {
     id?: SortOrder
     matchId?: SortOrder
-    userId?: SortOrder
+    username?: SortOrder
     score?: SortOrder
     position?: SortOrder
     joinedAt?: SortOrder
@@ -10632,7 +10607,6 @@ export namespace Prisma {
   export type MatchPlayerAvgOrderByAggregateInput = {
     id?: SortOrder
     matchId?: SortOrder
-    userId?: SortOrder
     score?: SortOrder
     position?: SortOrder
   }
@@ -10640,7 +10614,7 @@ export namespace Prisma {
   export type MatchPlayerMaxOrderByAggregateInput = {
     id?: SortOrder
     matchId?: SortOrder
-    userId?: SortOrder
+    username?: SortOrder
     score?: SortOrder
     position?: SortOrder
     joinedAt?: SortOrder
@@ -10649,7 +10623,7 @@ export namespace Prisma {
   export type MatchPlayerMinOrderByAggregateInput = {
     id?: SortOrder
     matchId?: SortOrder
-    userId?: SortOrder
+    username?: SortOrder
     score?: SortOrder
     position?: SortOrder
     joinedAt?: SortOrder
@@ -10658,7 +10632,6 @@ export namespace Prisma {
   export type MatchPlayerSumOrderByAggregateInput = {
     id?: SortOrder
     matchId?: SortOrder
-    userId?: SortOrder
     score?: SortOrder
     position?: SortOrder
   }
@@ -10680,7 +10653,7 @@ export namespace Prisma {
   }
 
   export type StatCountOrderByAggregateInput = {
-    userId?: SortOrder
+    username?: SortOrder
     gamesPlayed?: SortOrder
     wins?: SortOrder
     losses?: SortOrder
@@ -10688,7 +10661,6 @@ export namespace Prisma {
   }
 
   export type StatAvgOrderByAggregateInput = {
-    userId?: SortOrder
     gamesPlayed?: SortOrder
     wins?: SortOrder
     losses?: SortOrder
@@ -10696,7 +10668,7 @@ export namespace Prisma {
   }
 
   export type StatMaxOrderByAggregateInput = {
-    userId?: SortOrder
+    username?: SortOrder
     gamesPlayed?: SortOrder
     wins?: SortOrder
     losses?: SortOrder
@@ -10704,7 +10676,7 @@ export namespace Prisma {
   }
 
   export type StatMinOrderByAggregateInput = {
-    userId?: SortOrder
+    username?: SortOrder
     gamesPlayed?: SortOrder
     wins?: SortOrder
     losses?: SortOrder
@@ -10712,7 +10684,6 @@ export namespace Prisma {
   }
 
   export type StatSumOrderByAggregateInput = {
-    userId?: SortOrder
     gamesPlayed?: SortOrder
     wins?: SortOrder
     losses?: SortOrder
@@ -10753,25 +10724,25 @@ export namespace Prisma {
     isNot?: AchievementWhereInput
   }
 
-  export type UserAchievementUserusernameAchievementName_idCompoundUniqueInput = {
-    userusername: string
+  export type UserAchievementUsernameAchievementName_idCompoundUniqueInput = {
+    username: string
     achievementName_id: string
   }
 
   export type UserAchievementCountOrderByAggregateInput = {
-    userusername?: SortOrder
+    username?: SortOrder
     achievementName_id?: SortOrder
     unlockedAt?: SortOrder
   }
 
   export type UserAchievementMaxOrderByAggregateInput = {
-    userusername?: SortOrder
+    username?: SortOrder
     achievementName_id?: SortOrder
     unlockedAt?: SortOrder
   }
 
   export type UserAchievementMinOrderByAggregateInput = {
-    userusername?: SortOrder
+    username?: SortOrder
     achievementName_id?: SortOrder
     unlockedAt?: SortOrder
   }
@@ -10922,14 +10893,6 @@ export namespace Prisma {
     deleteMany?: UserAchievementScalarWhereInput | UserAchievementScalarWhereInput[]
   }
 
-  export type IntFieldUpdateOperationsInput = {
-    set?: number
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
-  }
-
   export type FriendshipUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<FriendshipCreateWithoutUserInput, FriendshipUncheckedCreateWithoutUserInput> | FriendshipCreateWithoutUserInput[] | FriendshipUncheckedCreateWithoutUserInput[]
     connectOrCreate?: FriendshipCreateOrConnectWithoutUserInput | FriendshipCreateOrConnectWithoutUserInput[]
@@ -11036,6 +10999,14 @@ export namespace Prisma {
     connectOrCreate?: MatchPlayerCreateOrConnectWithoutMatchInput | MatchPlayerCreateOrConnectWithoutMatchInput[]
     createMany?: MatchPlayerCreateManyMatchInputEnvelope
     connect?: MatchPlayerWhereUniqueInput | MatchPlayerWhereUniqueInput[]
+  }
+
+  export type IntFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
   }
 
   export type NullableDateTimeFieldUpdateOperationsInput = {
@@ -11190,17 +11161,6 @@ export namespace Prisma {
     update?: XOR<XOR<AchievementUpdateToOneWithWhereWithoutUserAchievementsInput, AchievementUpdateWithoutUserAchievementsInput>, AchievementUncheckedUpdateWithoutUserAchievementsInput>
   }
 
-  export type NestedIntFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntFilter<$PrismaModel> | number
-  }
-
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -11240,33 +11200,6 @@ export namespace Prisma {
     not?: NestedDateTimeFilter<$PrismaModel> | Date | string
   }
 
-  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
-  }
-
-  export type NestedFloatFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatFilter<$PrismaModel> | number
-  }
-
   export type NestedStringWithAggregatesFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -11282,6 +11215,17 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedStringFilter<$PrismaModel>
     _max?: NestedStringFilter<$PrismaModel>
+  }
+
+  export type NestedIntFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntFilter<$PrismaModel> | number
   }
 
   export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -11337,6 +11281,56 @@ export namespace Prisma {
     not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
   }
 
+  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
+  }
+
+  export type NestedFloatFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatFilter<$PrismaModel> | number
+  }
+  export type NestedJsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
   export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel> | null
     in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel> | null
@@ -11384,7 +11378,7 @@ export namespace Prisma {
   }
 
   export type FriendshipUncheckedCreateWithoutUserInput = {
-    friendId: number
+    friendUsername: string
     createdAt?: Date | string
   }
 
@@ -11404,7 +11398,7 @@ export namespace Prisma {
   }
 
   export type FriendshipUncheckedCreateWithoutFriendInput = {
-    userId: number
+    userUsername: string
     createdAt?: Date | string
   }
 
@@ -11502,8 +11496,8 @@ export namespace Prisma {
     AND?: FriendshipScalarWhereInput | FriendshipScalarWhereInput[]
     OR?: FriendshipScalarWhereInput[]
     NOT?: FriendshipScalarWhereInput | FriendshipScalarWhereInput[]
-    userId?: IntFilter<"Friendship"> | number
-    friendId?: IntFilter<"Friendship"> | number
+    userUsername?: StringFilter<"Friendship"> | string
+    friendUsername?: StringFilter<"Friendship"> | string
     createdAt?: DateTimeFilter<"Friendship"> | Date | string
   }
 
@@ -11545,7 +11539,7 @@ export namespace Prisma {
     NOT?: MatchPlayerScalarWhereInput | MatchPlayerScalarWhereInput[]
     id?: IntFilter<"MatchPlayer"> | number
     matchId?: IntFilter<"MatchPlayer"> | number
-    userId?: IntFilter<"MatchPlayer"> | number
+    username?: StringFilter<"MatchPlayer"> | string
     score?: IntFilter<"MatchPlayer"> | number
     position?: IntNullableFilter<"MatchPlayer"> | number | null
     joinedAt?: DateTimeFilter<"MatchPlayer"> | Date | string
@@ -11596,7 +11590,7 @@ export namespace Prisma {
     AND?: UserAchievementScalarWhereInput | UserAchievementScalarWhereInput[]
     OR?: UserAchievementScalarWhereInput[]
     NOT?: UserAchievementScalarWhereInput | UserAchievementScalarWhereInput[]
-    userusername?: StringFilter<"UserAchievement"> | string
+    username?: StringFilter<"UserAchievement"> | string
     achievementName_id?: StringFilter<"UserAchievement"> | string
     unlockedAt?: DateTimeFilter<"UserAchievement"> | Date | string
   }
@@ -11614,7 +11608,6 @@ export namespace Prisma {
   }
 
   export type UserUncheckedCreateWithoutFriendshipsAsUserInput = {
-    id?: number
     username: string
     email: string
     passwordHash?: string | null
@@ -11644,7 +11637,6 @@ export namespace Prisma {
   }
 
   export type UserUncheckedCreateWithoutFriendshipsAsFriendInput = {
-    id?: number
     username: string
     email: string
     passwordHash?: string | null
@@ -11685,7 +11677,6 @@ export namespace Prisma {
   }
 
   export type UserUncheckedUpdateWithoutFriendshipsAsUserInput = {
-    id?: IntFieldUpdateOperationsInput | number
     username?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
@@ -11721,7 +11712,6 @@ export namespace Prisma {
   }
 
   export type UserUncheckedUpdateWithoutFriendshipsAsFriendInput = {
-    id?: IntFieldUpdateOperationsInput | number
     username?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
@@ -11742,7 +11732,7 @@ export namespace Prisma {
 
   export type MatchPlayerUncheckedCreateWithoutMatchInput = {
     id?: number
-    userId: number
+    username: string
     score?: number
     position?: number | null
     joinedAt?: Date | string
@@ -11778,6 +11768,7 @@ export namespace Prisma {
     gameMode: string
     maxPlayers?: number
     status?: string
+    gameState?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     startedAt?: Date | string | null
     endedAt?: Date | string | null
@@ -11788,6 +11779,7 @@ export namespace Prisma {
     gameMode: string
     maxPlayers?: number
     status?: string
+    gameState?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: Date | string
     startedAt?: Date | string | null
     endedAt?: Date | string | null
@@ -11811,7 +11803,6 @@ export namespace Prisma {
   }
 
   export type UserUncheckedCreateWithoutMatchPlayersInput = {
-    id?: number
     username: string
     email: string
     passwordHash?: string | null
@@ -11843,6 +11834,7 @@ export namespace Prisma {
     gameMode?: StringFieldUpdateOperationsInput | string
     maxPlayers?: IntFieldUpdateOperationsInput | number
     status?: StringFieldUpdateOperationsInput | string
+    gameState?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     endedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -11853,6 +11845,7 @@ export namespace Prisma {
     gameMode?: StringFieldUpdateOperationsInput | string
     maxPlayers?: IntFieldUpdateOperationsInput | number
     status?: StringFieldUpdateOperationsInput | string
+    gameState?: NullableJsonNullValueInput | InputJsonValue
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     endedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -11882,7 +11875,6 @@ export namespace Prisma {
   }
 
   export type UserUncheckedUpdateWithoutMatchPlayersInput = {
-    id?: IntFieldUpdateOperationsInput | number
     username?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
@@ -11907,7 +11899,6 @@ export namespace Prisma {
   }
 
   export type UserUncheckedCreateWithoutStatsInput = {
-    id?: number
     username: string
     email: string
     passwordHash?: string | null
@@ -11948,7 +11939,6 @@ export namespace Prisma {
   }
 
   export type UserUncheckedUpdateWithoutStatsInput = {
-    id?: IntFieldUpdateOperationsInput | number
     username?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
@@ -11966,7 +11956,7 @@ export namespace Prisma {
   }
 
   export type UserAchievementUncheckedCreateWithoutAchievementInput = {
-    userusername: string
+    username: string
     unlockedAt?: Date | string
   }
 
@@ -12009,7 +11999,6 @@ export namespace Prisma {
   }
 
   export type UserUncheckedCreateWithoutUserAchievementsInput = {
-    id?: number
     username: string
     email: string
     passwordHash?: string | null
@@ -12068,7 +12057,6 @@ export namespace Prisma {
   }
 
   export type UserUncheckedUpdateWithoutUserAchievementsInput = {
-    id?: IntFieldUpdateOperationsInput | number
     username?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
     passwordHash?: NullableStringFieldUpdateOperationsInput | string | null
@@ -12105,12 +12093,12 @@ export namespace Prisma {
   }
 
   export type FriendshipCreateManyUserInput = {
-    friendId: number
+    friendUsername: string
     createdAt?: Date | string
   }
 
   export type FriendshipCreateManyFriendInput = {
-    userId: number
+    userUsername: string
     createdAt?: Date | string
   }
 
@@ -12133,12 +12121,12 @@ export namespace Prisma {
   }
 
   export type FriendshipUncheckedUpdateWithoutUserInput = {
-    friendId?: IntFieldUpdateOperationsInput | number
+    friendUsername?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type FriendshipUncheckedUpdateManyWithoutUserInput = {
-    friendId?: IntFieldUpdateOperationsInput | number
+    friendUsername?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -12148,12 +12136,12 @@ export namespace Prisma {
   }
 
   export type FriendshipUncheckedUpdateWithoutFriendInput = {
-    userId?: IntFieldUpdateOperationsInput | number
+    userUsername?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type FriendshipUncheckedUpdateManyWithoutFriendInput = {
-    userId?: IntFieldUpdateOperationsInput | number
+    userUsername?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -12197,7 +12185,7 @@ export namespace Prisma {
 
   export type MatchPlayerCreateManyMatchInput = {
     id?: number
-    userId: number
+    username: string
     score?: number
     position?: number | null
     joinedAt?: Date | string
@@ -12212,7 +12200,7 @@ export namespace Prisma {
 
   export type MatchPlayerUncheckedUpdateWithoutMatchInput = {
     id?: IntFieldUpdateOperationsInput | number
-    userId?: IntFieldUpdateOperationsInput | number
+    username?: StringFieldUpdateOperationsInput | string
     score?: IntFieldUpdateOperationsInput | number
     position?: NullableIntFieldUpdateOperationsInput | number | null
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -12220,14 +12208,14 @@ export namespace Prisma {
 
   export type MatchPlayerUncheckedUpdateManyWithoutMatchInput = {
     id?: IntFieldUpdateOperationsInput | number
-    userId?: IntFieldUpdateOperationsInput | number
+    username?: StringFieldUpdateOperationsInput | string
     score?: IntFieldUpdateOperationsInput | number
     position?: NullableIntFieldUpdateOperationsInput | number | null
     joinedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type UserAchievementCreateManyAchievementInput = {
-    userusername: string
+    username: string
     unlockedAt?: Date | string
   }
 
@@ -12237,12 +12225,12 @@ export namespace Prisma {
   }
 
   export type UserAchievementUncheckedUpdateWithoutAchievementInput = {
-    userusername?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
     unlockedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type UserAchievementUncheckedUpdateManyWithoutAchievementInput = {
-    userusername?: StringFieldUpdateOperationsInput | string
+    username?: StringFieldUpdateOperationsInput | string
     unlockedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

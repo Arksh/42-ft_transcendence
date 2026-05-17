@@ -1,5 +1,5 @@
 import 'dotenv/config'
-import { Prisma, PrismaClient } from '../prisma/.prisma/client'
+import { PrismaClient } from '../prisma/.prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import express from 'express'
 
@@ -9,114 +9,7 @@ const prisma = new PrismaClient({ adapter: pool })
 const app = express()
 
 app.use(express.json())
-
-app.post(`/signup`, async (req, res) => {
-  const { name, email, posts } = req.body
-
-  const postData = posts?.map((post: Prisma.PostCreateInput) => {
-    return { title: post?.title, content: post?.content }
-  })
-
-  const result = await prisma.user.create({
-    data: {
-      name,
-      email,
-      posts: {
-        create: postData,
-      },
-    },
-  })
-  res.json(result)
-})
-
-app.post(`/post`, async (req, res) => {
-  const { title, content, authorEmail } = req.body
-  const result = await prisma.post.create({
-    data: {
-      title,
-      content,
-      author: { connect: { email: authorEmail } },
-    },
-  })
-  res.json(result)
-})
-
-app.put('/post/:id/views', async (req, res) => {
-  const { id } = req.params
-
-  try {
-    const post = await prisma.post.update({
-      where: { id: Number(id) },
-      data: {
-        viewCount: {
-          increment: 1,
-        },
-      },
-    })
-
-    res.json(post)
-  } catch (error) {
-    res.json({ error: `Post with ID ${id} does not exist in the database` })
-  }
-})
-
-app.put('/publish/:id', async (req, res) => {
-  const { id } = req.params
-
-  try {
-    const postData = await prisma.post.findUnique({
-      where: { id: Number(id) },
-      select: {
-        published: true,
-      },
-    })
-
-    const updatedPost = await prisma.post.update({
-      where: { id: Number(id) || undefined },
-      data: { published: !postData?.published },
-    })
-    res.json(updatedPost)
-  } catch (error) {
-    res.json({ error: `Post with ID ${id} does not exist in the database` })
-  }
-})
-
-app.delete(`/post/:id`, async (req, res) => {
-  const { id } = req.params
-  const post = await prisma.post.delete({
-    where: {
-      id: Number(id),
-    },
-  })
-  res.json(post)
-})
-
-app.get('/users', async (req, res) => {
-  const users = await prisma.user.findMany()
-  res.json(users)
-})
-
-app.get('/user/:id/drafts', async (req, res) => {
-  const { id } = req.params
-
-  const drafts = await prisma.post.findMany({
-    where: {
-      authorId: Number(id),
-      published: false,
-    },
-  })
-
-  res.json(drafts)
-})
-
-app.get(`/post/:id`, async (req, res) => {
-  const { id }: { id?: string } = req.params
-
-  const post = await prisma.post.findUnique({
-    where: { id: Number(id) },
-  })
-  res.json(post)
-})
+// ...existing code...
 
 app.get('/feed', async (req, res) => {
   const { searchString, skip, take, orderBy } = req.query
@@ -150,12 +43,12 @@ app.get('/feed', async (req, res) => {
 // TRANSCENDENCE ENDPOINTS - Users
 // ============================================================================
 
-// GET /users/:id - Obtener usuario específico con relaciones
-app.get('/users/:id', async (req, res) => {
-  const { id } = req.params
+// GET /users/:username - Obtener usuario específico con relaciones
+app.get('/users/:username', async (req, res) => {
+  const { username } = req.params
   try {
     const user = await prisma.user.findUnique({
-      where: { id: Number(id) },
+      where: { username },
       include: {
         stats: true,
         friendshipsAsUser: {
@@ -217,16 +110,15 @@ app.post('/users', async (req, res) => {
   }
 })
 
-// PUT /users/:id - Actualizar usuario
-app.put('/users/:id', async (req, res) => {
-  const { id } = req.params
-  const { username, email, avatarUrl } = req.body
+// PUT /users/:username - Actualizar usuario
+app.put('/users/:username', async (req, res) => {
+  const { username } = req.params
+  const { email, avatarUrl } = req.body
 
   try {
     const user = await prisma.user.update({
-      where: { id: Number(id) },
+      where: { username },
       data: {
-        ...(username && { username }),
         ...(email && { email }),
         ...(avatarUrl && { avatarUrl })
       },
@@ -245,12 +137,12 @@ app.put('/users/:id', async (req, res) => {
 // TRANSCENDENCE ENDPOINTS - Stats
 // ============================================================================
 
-// GET /users/:id/stats - Obtener estadísticas de usuario
-app.get('/users/:id/stats', async (req, res) => {
-  const { id } = req.params
+// GET /users/:username/stats - Obtener estadísticas de usuario
+app.get('/users/:username/stats', async (req, res) => {
+  const { username } = req.params
   try {
     const stats = await prisma.stat.findUnique({
-      where: { userId: Number(id) }
+      where: { username }
     })
     
     if (!stats) {
@@ -262,14 +154,14 @@ app.get('/users/:id/stats', async (req, res) => {
   }
 })
 
-// PUT /users/:id/stats - Actualizar estadísticas
-app.put('/users/:id/stats', async (req, res) => {
-  const { id } = req.params
+// PUT /users/:username/stats - Actualizar estadísticas
+app.put('/users/:username/stats', async (req, res) => {
+  const { username } = req.params
   const { gamesPlayed, wins, losses, elo } = req.body
 
   try {
     const stats = await prisma.stat.update({
-      where: { userId: Number(id) },
+      where: { username },
       data: {
         ...(gamesPlayed !== undefined && { gamesPlayed }),
         ...(wins !== undefined && { wins }),
@@ -290,17 +182,17 @@ app.put('/users/:id/stats', async (req, res) => {
 // TRANSCENDENCE ENDPOINTS - Friendships
 // ============================================================================
 
-// GET /users/:id/friends - Obtener amigos de usuario
-app.get('/users/:id/friends', async (req, res) => {
-  const { id } = req.params
+// GET /users/:username/friends - Obtener amigos de usuario
+app.get('/users/:username/friends', async (req, res) => {
+  const { username } = req.params
   try {
     const friendshipsAs = await prisma.friendship.findMany({
-      where: { userId: Number(id) },
+      where: { userUsername: username },
       include: { friend: true }
     })
 
     const friendshipsAsFriend = await prisma.friendship.findMany({
-      where: { friendId: Number(id) },
+      where: { friendUsername: username },
       include: { user: true }
     })
 
@@ -315,19 +207,19 @@ app.get('/users/:id/friends', async (req, res) => {
   }
 })
 
-// POST /users/:userId/friends/:friendId - Agregar amigo
-app.post('/users/:userId/friends/:friendId', async (req, res) => {
-  const { userId, friendId } = req.params
+// POST /users/:userUsername/friends/:friendUsername - Agregar amigo
+app.post('/users/:userUsername/friends/:friendUsername', async (req, res) => {
+  const { userUsername, friendUsername } = req.params
 
-  if (userId === friendId) {
+  if (userUsername === friendUsername) {
     return res.status(400).json({ error: 'No puedes ser amigo de ti mismo' })
   }
 
   try {
     // Verificar que ambos usuarios existan
     const [user, friend] = await Promise.all([
-      prisma.user.findUnique({ where: { id: Number(userId) } }),
-      prisma.user.findUnique({ where: { id: Number(friendId) } })
+      prisma.user.findUnique({ where: { username: userUsername } }),
+      prisma.user.findUnique({ where: { username: friendUsername } })
     ])
 
     if (!user || !friend) {
@@ -337,8 +229,8 @@ app.post('/users/:userId/friends/:friendId', async (req, res) => {
     // Crear amistad (solo una dirección)
     const friendship = await prisma.friendship.create({
       data: {
-        userId: Number(userId),
-        friendId: Number(friendId)
+        userUsername,
+        friendUsername
       }
     })
 
@@ -351,16 +243,16 @@ app.post('/users/:userId/friends/:friendId', async (req, res) => {
   }
 })
 
-// DELETE /users/:userId/friends/:friendId - Eliminar amigo
-app.delete('/users/:userId/friends/:friendId', async (req, res) => {
-  const { userId, friendId } = req.params
+// DELETE /users/:userUsername/friends/:friendUsername - Eliminar amigo
+app.delete('/users/:userUsername/friends/:friendUsername', async (req, res) => {
+  const { userUsername, friendUsername } = req.params
 
   try {
     const friendship = await prisma.friendship.delete({
       where: {
-        userId_friendId: {
-          userId: Number(userId),
-          friendId: Number(friendId)
+        userUsername_friendUsername: {
+          userUsername,
+          friendUsername
         }
       }
     })
@@ -429,7 +321,7 @@ app.get('/matches/:id', async (req, res) => {
 
 // POST /matches - Crear partida nueva
 app.post('/matches', async (req, res) => {
-  const { gameMode, maxPlayers = 4, status = 'waiting' } = req.body
+  const { gameMode, maxPlayers = 4, status = 'waiting', gameState } = req.body
 
   if (!gameMode) {
     return res.status(400).json({ error: 'gameMode es requerido' })
@@ -440,7 +332,8 @@ app.post('/matches', async (req, res) => {
       data: {
         gameMode,
         maxPlayers,
-        status
+        status,
+        ...(gameState && { gameState })
       }
     })
     res.status(201).json(match)
@@ -452,7 +345,7 @@ app.post('/matches', async (req, res) => {
 // PUT /matches/:id - Actualizar partida
 app.put('/matches/:id', async (req, res) => {
   const { id } = req.params
-  const { status, startedAt, endedAt } = req.body
+  const { status, startedAt, endedAt, gameState } = req.body
 
   try {
     const match = await prisma.match.update({
@@ -460,7 +353,8 @@ app.put('/matches/:id', async (req, res) => {
       data: {
         ...(status && { status }),
         ...(startedAt && { startedAt: new Date(startedAt) }),
-        ...(endedAt && { endedAt: new Date(endedAt) })
+        ...(endedAt && { endedAt: new Date(endedAt) }),
+        ...(gameState && { gameState })
       },
       include: { matchPlayers: true }
     })
@@ -473,16 +367,21 @@ app.put('/matches/:id', async (req, res) => {
   }
 })
 
-// POST /matches/:matchId/players/:userId - Agregar jugador a partida
-app.post('/matches/:matchId/players/:userId', async (req, res) => {
-  const { matchId, userId } = req.params
+// POST /matches/:matchId/players/:username - Agregar jugador a partida
+app.post('/matches/:matchId/players/:username', async (req, res) => {
+  const { matchId, username } = req.params
   const { score = 0, position } = req.body
 
   try {
+    // Verificar que el usuario existe
+    const user = await prisma.user.findUnique({ where: { username } })
+    if (!user) {
+      return res.status(404).json({ error: 'Usuario no encontrado' })
+    }
     const matchPlayer = await prisma.matchPlayer.create({
       data: {
         matchId: Number(matchId),
-        userId: Number(userId),
+        username,
         score,
         position: position ? Number(position) : null
       },
@@ -520,15 +419,15 @@ app.put('/match-players/:id', async (req, res) => {
   }
 })
 
-// DELETE /matches/:matchId/players/:userId - Eliminar jugador de partida
-app.delete('/matches/:matchId/players/:userId', async (req, res) => {
-  const { matchId, userId } = req.params
+// DELETE /matches/:matchId/players/:username - Eliminar jugador de partida
+app.delete('/matches/:matchId/players/:username', async (req, res) => {
+  const { matchId, username } = req.params
 
   try {
     const deleted = await prisma.matchPlayer.deleteMany({
       where: {
         matchId: Number(matchId),
-        userId: Number(userId)
+        username
       }
     })
 
@@ -539,6 +438,30 @@ app.delete('/matches/:matchId/players/:userId', async (req, res) => {
     res.json({ message: 'Jugador eliminado de partida' })
   } catch (error) {
     res.status(500).json({ error: 'Error al eliminar jugador' })
+  }
+})
+
+// PUT /matches/:id/gamestate - Actualizar estado de juego
+app.put('/matches/:id/gamestate', async (req, res) => {
+  const { id } = req.params
+  const { gameState } = req.body
+
+  if (!gameState) {
+    return res.status(400).json({ error: 'gameState es requerido' })
+  }
+
+  try {
+    const match = await prisma.match.update({
+      where: { id: Number(id) },
+      data: { gameState },
+      include: { matchPlayers: { include: { user: true } } }
+    })
+    res.json(match)
+  } catch (error: any) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: 'Partida no encontrada' })
+    }
+    res.status(500).json({ error: 'Error al actualizar estado de juego' })
   }
 })
 
@@ -597,15 +520,20 @@ app.post('/achievements', async (req, res) => {
   }
 })
 
-// POST /users/:userId/achievements/:achievementName_id - Desbloquear logro
-app.post('/users/:userId/achievements/:achievementName_id', async (req, res) => {
-  const { userId, achievementName_id } = req.params
+// POST /users/:username/achievements/:achievementName_id - Desbloquear logro
+app.post('/users/:username/achievements/:achievementName_id', async (req, res) => {
+  const { username, achievementName_id } = req.params
 
   try {
+    // Verificar que el usuario existe
+    const user = await prisma.user.findUnique({ where: { username } })
+    if (!user) {
+      return res.status(404).json({ error: 'Usuario no encontrado' })
+    }
     const userAchievement = await prisma.userAchievement.create({
       data: {
-        userId: Number(userId),
-        achievementName_id: achievementName_id
+        username,
+        achievementName_id
       },
       include: {
         user: true,
@@ -621,13 +549,13 @@ app.post('/users/:userId/achievements/:achievementName_id', async (req, res) => 
   }
 })
 
-// GET /users/:userId/achievements - Obtener logros de usuario
-app.get('/users/:userId/achievements', async (req, res) => {
-  const { userId } = req.params
+// GET /users/:username/achievements - Obtener logros de usuario
+app.get('/users/:username/achievements', async (req, res) => {
+  const { username } = req.params
 
   try {
     const achievements = await prisma.userAchievement.findMany({
-      where: { userId: Number(userId) },
+      where: { username },
       include: { achievement: true }
     })
     res.json(achievements)

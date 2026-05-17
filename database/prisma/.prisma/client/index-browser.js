@@ -121,7 +121,6 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
 });
 
 exports.Prisma.UserScalarFieldEnum = {
-  id: 'id',
   username: 'username',
   email: 'email',
   passwordHash: 'passwordHash',
@@ -130,8 +129,8 @@ exports.Prisma.UserScalarFieldEnum = {
 };
 
 exports.Prisma.FriendshipScalarFieldEnum = {
-  userId: 'userId',
-  friendId: 'friendId',
+  userUsername: 'userUsername',
+  friendUsername: 'friendUsername',
   createdAt: 'createdAt'
 };
 
@@ -140,6 +139,7 @@ exports.Prisma.MatchScalarFieldEnum = {
   gameMode: 'gameMode',
   maxPlayers: 'maxPlayers',
   status: 'status',
+  gameState: 'gameState',
   createdAt: 'createdAt',
   startedAt: 'startedAt',
   endedAt: 'endedAt'
@@ -148,14 +148,14 @@ exports.Prisma.MatchScalarFieldEnum = {
 exports.Prisma.MatchPlayerScalarFieldEnum = {
   id: 'id',
   matchId: 'matchId',
-  userId: 'userId',
+  username: 'username',
   score: 'score',
   position: 'position',
   joinedAt: 'joinedAt'
 };
 
 exports.Prisma.StatScalarFieldEnum = {
-  userId: 'userId',
+  username: 'username',
   gamesPlayed: 'gamesPlayed',
   wins: 'wins',
   losses: 'losses',
@@ -170,7 +170,7 @@ exports.Prisma.AchievementScalarFieldEnum = {
 };
 
 exports.Prisma.UserAchievementScalarFieldEnum = {
-  userusername: 'userusername',
+  username: 'username',
   achievementName_id: 'achievementName_id',
   unlockedAt: 'unlockedAt'
 };
@@ -178,6 +178,11 @@ exports.Prisma.UserAchievementScalarFieldEnum = {
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
+};
+
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
 };
 
 exports.Prisma.QueryMode = {
@@ -188,6 +193,12 @@ exports.Prisma.QueryMode = {
 exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
+};
+
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
 };
 
 

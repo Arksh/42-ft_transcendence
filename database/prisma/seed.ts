@@ -140,7 +140,7 @@ async function main() {
       })
       users.push(user)
       console.log(
-        `   ✓ Usuario creado: ${user.username} (ID: ${user.id}) - ELO: ${user.stats?.elo}`
+        `   ✓ Usuario creado: ${user.username} - ELO: ${user.stats?.elo}`
       )
     }
 
@@ -158,11 +158,11 @@ async function main() {
     // Crear amistades
     console.log('🤝 Creando amistades...')
     const friendships = [
-      { userId: users[0].id, friendId: users[1].id },
-      { userId: users[0].id, friendId: users[2].id },
-      { userId: users[1].id, friendId: users[2].id },
-      { userId: users[2].id, friendId: users[3].id },
-      { userId: users[3].id, friendId: users[4].id },
+      { userUsername: users[0].username, friendUsername: users[1].username },
+      { userUsername: users[0].username, friendUsername: users[2].username },
+      { userUsername: users[1].username, friendUsername: users[2].username },
+      { userUsername: users[2].username, friendUsername: users[3].username },
+      { userUsername: users[3].username, friendUsername: users[4].username },
     ]
 
     for (const friendship of friendships) {
@@ -170,7 +170,7 @@ async function main() {
         data: friendship,
       })
       console.log(
-        `   ✓ Amistad: usuario ${friendship.userId} <-> ${friendship.friendId}`
+        `   ✓ Amistad: ${friendship.userUsername} <-> ${friendship.friendUsername}`
       )
     }
 
@@ -218,45 +218,45 @@ async function main() {
     const matchPlayers = [
       {
         matchId: createdMatches[0].id,
-        userId: users[0].id,
+        username: users[0].username,
         score: 2500,
         position: 1,
       },
       {
         matchId: createdMatches[0].id,
-        userId: users[1].id,
+        username: users[1].username,
         score: 2100,
         position: 2,
       },
       {
         matchId: createdMatches[0].id,
-        userId: users[2].id,
+        username: users[2].username,
         score: 1800,
         position: 3,
       },
       {
         matchId: createdMatches[0].id,
-        userId: users[3].id,
+        username: users[3].username,
         score: 1500,
         position: 4,
       },
       {
         matchId: createdMatches[1].id,
-        userId: users[0].id,
+        username: users[0].username,
         score: 3200,
         position: 1,
       },
       {
         matchId: createdMatches[1].id,
-        userId: users[2].id,
+        username: users[2].username,
         score: 2100,
         position: 2,
       },
-      { matchId: createdMatches[2].id, userId: users[1].id, score: 1200 },
-      { matchId: createdMatches[2].id, userId: users[3].id, score: 950 },
-      { matchId: createdMatches[2].id, userId: users[4].id, score: 800 },
-      { matchId: createdMatches[3].id, userId: users[0].id, score: 0 },
-      { matchId: createdMatches[3].id, userId: users[1].id, score: 0 },
+      { matchId: createdMatches[2].id, username: users[1].username, score: 1200 },
+      { matchId: createdMatches[2].id, username: users[3].username, score: 950 },
+      { matchId: createdMatches[2].id, username: users[4].username, score: 800 },
+      { matchId: createdMatches[3].id, username: users[0].username, score: 0 },
+      { matchId: createdMatches[3].id, username: users[1].username, score: 0 },
     ]
 
     for (const mp of matchPlayers) {
@@ -269,12 +269,12 @@ async function main() {
     // Asignar logros a usuarios
     console.log('🎖️  Asignando logros a usuarios...')
     const userAchievements = [
-      { userusername: users[0].username, achievementName_id: achievements[0].name_id },
-      { userusername: users[0].username, achievementName_id: achievements[1].name_id },
-      { userusername: users[0].username, achievementName_id: achievements[2].name_id },
-      { userusername: users[1].username, achievementName_id: achievements[0].name_id },
-      { userusername: users[1].username, achievementName_id: achievements[1].name_id },
-      { userusername: users[2].username, achievementName_id: achievements[0].name_id },
+      { username: users[0].username, achievementName_id: achievements[0].name_id },
+      { username: users[0].username, achievementName_id: achievements[1].name_id },
+      { username: users[0].username, achievementName_id: achievements[2].name_id },
+      { username: users[1].username, achievementName_id: achievements[0].name_id },
+      { username: users[1].username, achievementName_id: achievements[1].name_id },
+      { username: users[2].username, achievementName_id: achievements[0].name_id },
     ]
 
     for (const ua of userAchievements) {

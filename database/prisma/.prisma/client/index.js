@@ -94,7 +94,6 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
 });
 
 exports.Prisma.UserScalarFieldEnum = {
-  id: 'id',
   username: 'username',
   email: 'email',
   passwordHash: 'passwordHash',
@@ -103,8 +102,8 @@ exports.Prisma.UserScalarFieldEnum = {
 };
 
 exports.Prisma.FriendshipScalarFieldEnum = {
-  userId: 'userId',
-  friendId: 'friendId',
+  userUsername: 'userUsername',
+  friendUsername: 'friendUsername',
   createdAt: 'createdAt'
 };
 
@@ -113,6 +112,7 @@ exports.Prisma.MatchScalarFieldEnum = {
   gameMode: 'gameMode',
   maxPlayers: 'maxPlayers',
   status: 'status',
+  gameState: 'gameState',
   createdAt: 'createdAt',
   startedAt: 'startedAt',
   endedAt: 'endedAt'
@@ -121,14 +121,14 @@ exports.Prisma.MatchScalarFieldEnum = {
 exports.Prisma.MatchPlayerScalarFieldEnum = {
   id: 'id',
   matchId: 'matchId',
-  userId: 'userId',
+  username: 'username',
   score: 'score',
   position: 'position',
   joinedAt: 'joinedAt'
 };
 
 exports.Prisma.StatScalarFieldEnum = {
-  userId: 'userId',
+  username: 'username',
   gamesPlayed: 'gamesPlayed',
   wins: 'wins',
   losses: 'losses',
@@ -143,7 +143,7 @@ exports.Prisma.AchievementScalarFieldEnum = {
 };
 
 exports.Prisma.UserAchievementScalarFieldEnum = {
-  userusername: 'userusername',
+  username: 'username',
   achievementName_id: 'achievementName_id',
   unlockedAt: 'unlockedAt'
 };
@@ -151,6 +151,11 @@ exports.Prisma.UserAchievementScalarFieldEnum = {
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
+};
+
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
 };
 
 exports.Prisma.QueryMode = {
@@ -161,6 +166,12 @@ exports.Prisma.QueryMode = {
 exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
+};
+
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
 };
 
 
@@ -181,10 +192,10 @@ const config = {
   "clientVersion": "7.0.0",
   "engineVersion": "0c19ccc313cf9911a90d99d2ac2eb0280c76c513",
   "activeProvider": "postgresql",
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \".prisma/client\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nmodel User {\n  id           Int      @id @default(autoincrement())\n  username     String   @unique @db.VarChar(50)\n  email        String   @unique @db.VarChar(100)\n  passwordHash String?  @db.Text\n  avatarUrl    String?  @db.Text\n  createdAt    DateTime @default(now()) @db.Timestamp(6)\n\n  // Relations\n  friendshipsAsUser   Friendship[]      @relation(\"FriendshipUser\")\n  friendshipsAsFriend Friendship[]      @relation(\"FriendshipFriend\")\n  matchPlayers        MatchPlayer[]\n  stats               Stat?\n  userAchievements    UserAchievement[]\n\n  @@map(\"users\")\n}\n\nmodel Friendship {\n  userId    Int\n  friendId  Int\n  createdAt DateTime @default(now()) @db.Timestamp(6)\n\n  // Relations\n  user   User @relation(\"FriendshipUser\", fields: [userId], references: [id], onDelete: Cascade)\n  friend User @relation(\"FriendshipFriend\", fields: [friendId], references: [id], onDelete: Cascade)\n\n  @@id([userId, friendId])\n  @@map(\"friendships\")\n}\n\nmodel Match {\n  id         Int       @id @default(autoincrement())\n  gameMode   String    @db.VarChar(50)\n  maxPlayers Int       @default(4)\n  status     String    @default(\"waiting\") @db.VarChar(20)\n  createdAt  DateTime  @default(now()) @db.Timestamp(6)\n  startedAt  DateTime? @db.Timestamp(6)\n  endedAt    DateTime? @db.Timestamp(6)\n\n  // Relations\n  matchPlayers MatchPlayer[]\n\n  @@map(\"matches\")\n}\n\nmodel MatchPlayer {\n  id       Int      @id @default(autoincrement())\n  matchId  Int\n  userId   Int\n  score    Int      @default(0)\n  position Int?\n  joinedAt DateTime @default(now()) @db.Timestamp(6)\n\n  // Relations\n  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)\n  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  @@unique([matchId, userId])\n  @@map(\"match_players\")\n}\n\nmodel Stat {\n  userId      Int @id\n  gamesPlayed Int @default(0)\n  wins        Int @default(0)\n  losses      Int @default(0)\n  elo         Int @default(1000)\n\n  // Relations\n  user User @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  @@map(\"stats\")\n}\n\nmodel Achievement {\n  id          Int    @id @default(autoincrement())\n  name_id     String @unique @db.VarChar(50)\n  name        String @db.VarChar(100)\n  description String @db.Text\n\n  // Relations\n  userAchievements UserAchievement[]\n\n  @@map(\"achievements\")\n}\n\nmodel UserAchievement {\n  userusername       String\n  achievementName_id String   @db.VarChar(50)\n  unlockedAt         DateTime @default(now()) @db.Timestamp(6)\n\n  // Relations\n  user        User        @relation(fields: [userusername], references: [username], onDelete: Cascade)\n  achievement Achievement @relation(fields: [achievementName_id], references: [name_id], onDelete: Cascade)\n\n  @@id([userusername, achievementName_id])\n  @@map(\"user_achievements\")\n}\n"
+  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \".prisma/client\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nmodel User {\n  username     String   @id @unique @db.VarChar(50)\n  email        String   @unique @db.VarChar(100)\n  passwordHash String?  @db.Text\n  avatarUrl    String?  @db.Text\n  createdAt    DateTime @default(now()) @db.Timestamp(6)\n\n  // Relations\n  friendshipsAsUser   Friendship[]      @relation(\"FriendshipUser\")\n  friendshipsAsFriend Friendship[]      @relation(\"FriendshipFriend\")\n  matchPlayers        MatchPlayer[]\n  stats               Stat?\n  userAchievements    UserAchievement[]\n\n  @@map(\"users\")\n}\n\nmodel Friendship {\n  userUsername   String\n  friendUsername String\n  createdAt      DateTime @default(now()) @db.Timestamp(6)\n\n  // Relations\n  user   User @relation(\"FriendshipUser\", fields: [userUsername], references: [username], onDelete: Cascade)\n  friend User @relation(\"FriendshipFriend\", fields: [friendUsername], references: [username], onDelete: Cascade)\n\n  @@id([userUsername, friendUsername])\n  @@map(\"friendships\")\n}\n\nmodel Match {\n  id         Int       @id @default(autoincrement())\n  gameMode   String    @db.VarChar(50)\n  maxPlayers Int       @default(4)\n  status     String    @default(\"waiting\") @db.VarChar(20)\n  gameState  Json? // Almacena estado de partida: territorios, turnos, acciones, etc.\n  createdAt  DateTime  @default(now()) @db.Timestamp(6)\n  startedAt  DateTime? @db.Timestamp(6)\n  endedAt    DateTime? @db.Timestamp(6)\n\n  // Relations\n  matchPlayers MatchPlayer[]\n\n  @@map(\"matches\")\n}\n\nmodel MatchPlayer {\n  id       Int      @id @default(autoincrement())\n  matchId  Int\n  username String   @db.VarChar(50)\n  score    Int      @default(0)\n  position Int?\n  joinedAt DateTime @default(now()) @db.Timestamp(6)\n\n  // Relations\n  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)\n  user  User  @relation(fields: [username], references: [username], onDelete: Cascade)\n\n  @@unique([matchId, username])\n  @@map(\"match_players\")\n}\n\nmodel Stat {\n  username    String @id @db.VarChar(50)\n  gamesPlayed Int    @default(0)\n  wins        Int    @default(0)\n  losses      Int    @default(0)\n  elo         Int    @default(1000)\n\n  // Relations\n  user User @relation(fields: [username], references: [username], onDelete: Cascade)\n\n  @@map(\"stats\")\n}\n\nmodel Achievement {\n  id          Int    @id @default(autoincrement())\n  name_id     String @unique @db.VarChar(50)\n  name        String @db.VarChar(100)\n  description String @db.Text\n\n  // Relations\n  userAchievements UserAchievement[]\n\n  @@map(\"achievements\")\n}\n\nmodel UserAchievement {\n  username           String   @db.VarChar(50)\n  achievementName_id String   @db.VarChar(50)\n  unlockedAt         DateTime @default(now()) @db.Timestamp(6)\n\n  // Relations\n  user        User        @relation(fields: [username], references: [username], onDelete: Cascade)\n  achievement Achievement @relation(fields: [achievementName_id], references: [name_id], onDelete: Cascade)\n\n  @@id([username, achievementName_id])\n  @@map(\"user_achievements\")\n}\n"
 }
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"username\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"passwordHash\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"avatarUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"friendshipsAsUser\",\"kind\":\"object\",\"type\":\"Friendship\",\"relationName\":\"FriendshipUser\"},{\"name\":\"friendshipsAsFriend\",\"kind\":\"object\",\"type\":\"Friendship\",\"relationName\":\"FriendshipFriend\"},{\"name\":\"matchPlayers\",\"kind\":\"object\",\"type\":\"MatchPlayer\",\"relationName\":\"MatchPlayerToUser\"},{\"name\":\"stats\",\"kind\":\"object\",\"type\":\"Stat\",\"relationName\":\"StatToUser\"},{\"name\":\"userAchievements\",\"kind\":\"object\",\"type\":\"UserAchievement\",\"relationName\":\"UserToUserAchievement\"}],\"dbName\":\"users\"},\"Friendship\":{\"fields\":[{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"friendId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"FriendshipUser\"},{\"name\":\"friend\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"FriendshipFriend\"}],\"dbName\":\"friendships\"},\"Match\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"gameMode\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"maxPlayers\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"status\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"startedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"endedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"matchPlayers\",\"kind\":\"object\",\"type\":\"MatchPlayer\",\"relationName\":\"MatchToMatchPlayer\"}],\"dbName\":\"matches\"},\"MatchPlayer\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"matchId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"score\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"position\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"joinedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"match\",\"kind\":\"object\",\"type\":\"Match\",\"relationName\":\"MatchToMatchPlayer\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"MatchPlayerToUser\"}],\"dbName\":\"match_players\"},\"Stat\":{\"fields\":[{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"gamesPlayed\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"wins\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"losses\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"elo\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"StatToUser\"}],\"dbName\":\"stats\"},\"Achievement\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name_id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userAchievements\",\"kind\":\"object\",\"type\":\"UserAchievement\",\"relationName\":\"AchievementToUserAchievement\"}],\"dbName\":\"achievements\"},\"UserAchievement\":{\"fields\":[{\"name\":\"userusername\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"achievementName_id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"unlockedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"UserToUserAchievement\"},{\"name\":\"achievement\",\"kind\":\"object\",\"type\":\"Achievement\",\"relationName\":\"AchievementToUserAchievement\"}],\"dbName\":\"user_achievements\"}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"User\":{\"fields\":[{\"name\":\"username\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"passwordHash\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"avatarUrl\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"friendshipsAsUser\",\"kind\":\"object\",\"type\":\"Friendship\",\"relationName\":\"FriendshipUser\"},{\"name\":\"friendshipsAsFriend\",\"kind\":\"object\",\"type\":\"Friendship\",\"relationName\":\"FriendshipFriend\"},{\"name\":\"matchPlayers\",\"kind\":\"object\",\"type\":\"MatchPlayer\",\"relationName\":\"MatchPlayerToUser\"},{\"name\":\"stats\",\"kind\":\"object\",\"type\":\"Stat\",\"relationName\":\"StatToUser\"},{\"name\":\"userAchievements\",\"kind\":\"object\",\"type\":\"UserAchievement\",\"relationName\":\"UserToUserAchievement\"}],\"dbName\":\"users\"},\"Friendship\":{\"fields\":[{\"name\":\"userUsername\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"friendUsername\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"FriendshipUser\"},{\"name\":\"friend\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"FriendshipFriend\"}],\"dbName\":\"friendships\"},\"Match\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"gameMode\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"maxPlayers\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"status\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"gameState\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"startedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"endedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"matchPlayers\",\"kind\":\"object\",\"type\":\"MatchPlayer\",\"relationName\":\"MatchToMatchPlayer\"}],\"dbName\":\"matches\"},\"MatchPlayer\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"matchId\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"username\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"score\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"position\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"joinedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"match\",\"kind\":\"object\",\"type\":\"Match\",\"relationName\":\"MatchToMatchPlayer\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"MatchPlayerToUser\"}],\"dbName\":\"match_players\"},\"Stat\":{\"fields\":[{\"name\":\"username\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"gamesPlayed\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"wins\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"losses\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"elo\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"StatToUser\"}],\"dbName\":\"stats\"},\"Achievement\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"name_id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"description\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userAchievements\",\"kind\":\"object\",\"type\":\"UserAchievement\",\"relationName\":\"AchievementToUserAchievement\"}],\"dbName\":\"achievements\"},\"UserAchievement\":{\"fields\":[{\"name\":\"username\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"achievementName_id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"unlockedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"UserToUserAchievement\"},{\"name\":\"achievement\",\"kind\":\"object\",\"type\":\"Achievement\",\"relationName\":\"AchievementToUserAchievement\"}],\"dbName\":\"user_achievements\"}},\"enums\":{},\"types\":{}}")
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
 config.compilerWasm = {
       getRuntime: async () => require('./query_compiler_bg.js'),
