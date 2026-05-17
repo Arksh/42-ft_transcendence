@@ -1,14 +1,9 @@
 import { Prisma, PrismaClient } from '../prisma/.prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
-import * as crypto from 'crypto'
+import { hashPassword } from '../src/auth'
 
 const pool = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
 const prisma = new PrismaClient({ adapter: pool })
-
-// Función simple para generar un hash (puedes usar bcryptjs si lo instalas)
-function hashPassword(password: string): string {
-  return crypto.createHash('sha256').update(password).digest('hex')
-}
 
 // Datos base de usuarios de prueba (sin passwordHash aún)
 const usersBase = [
@@ -130,7 +125,7 @@ async function main() {
         data: {
           username: u.username,
           email: u.email,
-          passwordHash: hashPassword(u.password),
+          passwordHash: await hashPassword(u.password),
           avatarUrl: u.avatarUrl,
           stats: {
             create: u.stats,

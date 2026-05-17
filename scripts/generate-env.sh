@@ -21,8 +21,10 @@ if [ ! -f "$ROOT_ENV" ]; then
     exit 1
 fi
 
-# Cargar variables del .env raíz
-export $(cat "$ROOT_ENV" | grep -v '^#' | xargs)
+# Cargar variables del .env raíz (soporta valores con espacios y caracteres especiales)
+set -a
+. "$ROOT_ENV"
+set +a
 
 # Valores por defecto si no existen
 POSTGRES_USER=${POSTGRES_USER:-transcendence}
