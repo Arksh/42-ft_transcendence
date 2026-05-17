@@ -2,6 +2,7 @@ import 'dotenv/config'
 import { PrismaClient } from '../prisma/.prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import express from 'express'
+import { hashPassword } from './auth'
 
 const pool = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
 const prisma = new PrismaClient({ adapter: pool })
@@ -9,35 +10,6 @@ const prisma = new PrismaClient({ adapter: pool })
 const app = express()
 
 app.use(express.json())
-// ...existing code...
-
-app.get('/feed', async (req, res) => {
-  const { searchString, skip, take, orderBy } = req.query
-
-  const or: Prisma.PostWhereInput = searchString
-    ? {
-      OR: [
-        { title: { contains: searchString as string } },
-        { content: { contains: searchString as string } },
-      ],
-    }
-    : {}
-
-  const posts = await prisma.post.findMany({
-    where: {
-      published: true,
-      ...or,
-    },
-    include: { author: true },
-    take: Number(take) || undefined,
-    skip: Number(skip) || undefined,
-    orderBy: {
-      updatedAt: orderBy as Prisma.SortOrder,
-    },
-  })
-
-  res.json(posts)
-})
 
 // ============================================================================
 // TRANSCENDENCE ENDPOINTS - Users
@@ -77,13 +49,14 @@ app.get('/users/:username', async (req, res) => {
 
 // POST /users - Crear usuario nuevo
 app.post('/users', async (req, res) => {
-  const { username, email, passwordHash, avatarUrl } = req.body
-  
-  if (!username || !email) {
-    return res.status(400).json({ error: 'username y email son requeridos' })
+  const { username, email, password, avatarUrl } = req.body
+
+  if (!username || !email || !password) {
+    return res.status(400).json({ error: 'username, email y password son requeridos' })
   }
 
   try {
+    const passwordHash = await hashPassword(password)
     const user = await prisma.user.create({
       data: {
         username,
