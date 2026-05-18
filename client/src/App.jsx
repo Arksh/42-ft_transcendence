@@ -7,6 +7,8 @@ import Login from './components/Login.jsx';
 export default function App() {
   const [gameInfo, setGameInfo] = useState(null);
   const [userName, setUserName] = useState(null);
+  const handleLogout = () => setUserName(null);
+
   if (!userName){
 	return <Login onLogin={setUserName} />
   }
@@ -14,5 +16,5 @@ export default function App() {
 	console.log('roomId tipo:', typeof gameInfo?.roomId, gameInfo?.roomId);
   return gameInfo
     ? <GameBoard roomId={gameInfo.roomId} playerId={gameInfo.playerId} />
-    : <Lobby onStart={setGameInfo} />;
+    : <Lobby onStart={setGameInfo} initialPlayerId={userName} onLogout={handleLogout} />;
 }

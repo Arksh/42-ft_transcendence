@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { FACTIONS } from '@trascendence/shared/Factions';
 import { api } from '../api.js';
 
-export default function Lobby({ onStart }) {
+export default function Lobby({ onStart, initialPlayerId, onLogout }) {
   const [screen, setScreen] = useState('home'); // home | create | join | faction
   const [roomId, setRoomId] = useState('');
   const [roomInput, setRoomInput] = useState('');
@@ -11,12 +11,7 @@ export default function Lobby({ onStart }) {
   const [roomData, setRoomData] = useState(null); // datos de la sala
   const [error, setError] = useState(null);
   const [isCreator, setIsCreator] = useState(false);
-  const [playerId, setPlayerId] = useState('');
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setPlayerId(`player-${Math.random().toString(36).slice(2, 7)}`);
-  }, []);
+  const [playerId] = useState(initialPlayerId);
 
 	// Polling para actualizar jugadores en sala
 	useEffect(() => {
@@ -47,8 +42,27 @@ export default function Lobby({ onStart }) {
 
   async function handleJoinRoom() {
     if (!roomInput.trim()) return;
+    //1. Obtenemos los datos de la sala (esto devuelve el array de jugadores)
     const res = await api.getRoom(roomInput.trim());
     if (!res.ok) { setError(res.error); return; }
+
+    //2. Comprobamos si el nombre ya esta en res.room.players
+    const playersInRoom = res.room.players;
+    let nameAlreadyExists = false;
+    for (let i = 0; i < playersInRoom.length; i++){
+      if (playersInRoom[i].id === initialPlayerId) {
+        nameAlreadyExists = true;
+        break;
+      }
+    }
+
+    if (nameAlreadyExists){
+      alert(`name "${initialPlayerId}" is in the room. Choose other login. `);
+      onLogout();
+      return;
+    }
+
+
     if (res.room.started) { setError('Game already started'); return; }
     setRoomId(roomInput.trim());
     setRoomData(res.room);
@@ -58,7 +72,7 @@ export default function Lobby({ onStart }) {
   }
 
   async function handleSelectFaction(factionId) {
-    const res = await api.joinRoom(roomId, playerId, FACTIONS[factionId].name, factionId);
+    const res = await api.joinRoom(roomId, initialPlayerId, FACTIONS[factionId].name, factionId);
     if (!res.ok) { setError(res.error); return; }
     setFaction(factionId);
     setRoomData(res.room);
@@ -68,7 +82,7 @@ export default function Lobby({ onStart }) {
   async function handleStart() {
     const res = await api.startRoom(roomId);
     if (!res.ok) { setError(res.error); return; }
-    onStart({ roomId, playerId, faction });
+    onStart({ roomId, playerId: initialPlayerId, faction });
   }
 
   const takenFactions = roomData?.players?.map(p => p.faction) ?? [];
