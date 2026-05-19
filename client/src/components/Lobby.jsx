@@ -55,13 +55,11 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
         break;
       }
     }
-
+    //3. lanzar error
     if (nameAlreadyExists){
-      alert(`name "${initialPlayerId}" is in the room. Choose other login. `);
-      onLogout();
+      setError(`Name "${initialPlayerId}" is already in the room. \nChoose other login. `);
       return;
     }
-
 
     if (res.room.started) { setError('Game already started'); return; }
     setRoomId(roomInput.trim());
@@ -108,8 +106,9 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
       </p>
 
       {error && (
-        <div style={{ backgroundColor: 'rgba(255,107,107,0.2)', border: '1px solid #FF6B6B', padding: '10px', borderRadius: '4px', marginBottom: '16px', fontSize: '12px', color: '#FF6B6B' }}>
-          {error}
+        <div style={{
+          backgroundColor: 'rgba(255,107,107,0.2)', border: '1px solid #FF6B6B', padding: '10px', borderRadius: '4px', marginBottom: '16px', fontSize: '12px', color: '#FF6B6B', whiteSpace: 'pre-wrap'}}>  
+            {error}
         </div>
       )}
 
@@ -159,8 +158,15 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
             placeholder="Enter room name"
             style={inputStyle}
           />
-          <button onClick={handleJoinRoom} style={{ ...btnStyle('#6496FF'), marginTop: '16px' }}>Join</button>
-          <button onClick={() => setScreen('home')} style={{ ...btnStyle('#333'), marginTop: '8px' }}>Back</button>
+          {error?.includes("Choose other login") ? (
+            <button onClick={onLogout} style={{ ...btnStyle('#FF6B6B'), marginTop: '16px' }}>
+              OK / Back to Login</button>
+          ) : (
+            <>
+              <button onClick={handleJoinRoom} style={{ ...btnStyle('#6496FF'), marginTop: '16px' }}>Join</button>
+              <button onClick={() => setScreen('home')} style={{ ...btnStyle('#333'), marginTop: '8px' }}>Back</button>
+            </>
+          )}  
         </div>
       )}
 
@@ -267,3 +273,5 @@ const inputStyle = {
   fontSize: '13px',
   boxSizing: 'border-box',
 };
+
+
