@@ -72,32 +72,32 @@ const usersBase = [
 // Datos de logros
 const achievementData: Prisma.AchievementCreateInput[] = [
   {
-    name_id: 'first_blood',
+    nameId: 'first_blood',
     name: 'First Blood',
     description: 'Win your first match',
   },
   {
-    name_id: 'conqueror',
+    nameId: 'conqueror',
     name: 'Conqueror',
     description: 'Win 10 matches',
   },
   {
-    name_id: 'legend',
+    nameId: 'legend',
     name: 'Legend',
     description: 'Reach ELO 1500',
   },
   {
-    name_id: 'dominator',
+    nameId: 'dominator',
     name: 'Dominator',
     description: 'Win 25 matches',
   },
   {
-    name_id: 'undefeated',
+    nameId: 'undefeated',
     name: 'Undefeated',
     description: 'Win 5 consecutive matches',
   },
   {
-    name_id: 'social_butterfly',
+    nameId: 'social_butterfly',
     name: 'Social Butterfly',
     description: 'Add 5 friends',
   },
@@ -263,13 +263,14 @@ async function main() {
 
     // Asignar logros a usuarios
     console.log('🎖️  Asignando logros a usuarios...')
+
     const userAchievements = [
-      { username: users[0].username, achievementName_id: achievements[0].name_id },
-      { username: users[0].username, achievementName_id: achievements[1].name_id },
-      { username: users[0].username, achievementName_id: achievements[2].name_id },
-      { username: users[1].username, achievementName_id: achievements[0].name_id },
-      { username: users[1].username, achievementName_id: achievements[1].name_id },
-      { username: users[2].username, achievementName_id: achievements[0].name_id },
+      { username: users[0].username, achievementNameId: achievements[0].nameId },
+      { username: users[0].username, achievementNameId: achievements[1].nameId },
+      { username: users[0].username, achievementNameId: achievements[2].nameId },
+      { username: users[1].username, achievementNameId: achievements[0].nameId },
+      { username: users[1].username, achievementNameId: achievements[1].nameId },
+      { username: users[2].username, achievementNameId: achievements[0].nameId },
     ]
 
     for (const ua of userAchievements) {
