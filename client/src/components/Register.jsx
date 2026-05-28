@@ -1,13 +1,23 @@
+import {api} from '../api';
 export default function Register({ onLogin, onBack }) {
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-	const user = {
-		//username, email y passworld son variables de nombre inventado en javascript
-    	username:	e.target.username.value,
-		email:		e.target.mail.value, //"mail" "username" y "password" viene del <input name="mail".
-		password:	e.target.password.value
-	};
-	onLogin(user);
+    const formData = new FormData(e.target);
+    const email = formData.get('mail');
+    const username = formData.get('username');
+    const password = formData.get('password');
+    const setError = (msg) => alert(msg);
+
+    try {
+      const data = await api.register(email, username, password);
+      if (data.ok) {
+        onLogin(data.user); // Usuario creado y logueado
+      } else {
+        setError(data.error || 'Error al registrar');
+      }
+    } catch (err) {
+      setError('Error de conexión');
+    }
   };
 
   return (

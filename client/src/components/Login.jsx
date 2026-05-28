@@ -1,15 +1,26 @@
-export default function Login({ onLogin, onGoToRegister }) {
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    //const name = e.target.mail.value;
-    const user = {
-		email: e.target.mail.value,
-		password: e.target.password.value,
-		username: e.target.mail.value // temporal para no preguntarselo. Lo sacamos del server
-    };
-	onLogin(user);
-  };
+import{api} from '../api';
 
+export default function Login({ onLogin, onGoToRegister }) {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const email = formData.get('mail');       // Coincide con name="mail" del input
+    const password = formData.get('password'); // Coincide con name="password"
+    const setError = (msg) => alert(msg);      // Usamos alert temporalmente para no romper la UI
+    setError(''); // Limpiamos errores previos
+    try {
+      const data = await api.login(email, password);
+      
+      if (data.ok) {
+        onLogin(data.user); // Si todo bien, entramos al juego
+      } else {
+        setError(data.error || 'Credenciales incorrectas');
+      }
+    } catch (err) {
+      setError('Error de conexión con el servidor');
+    }
+  }
+  
   return (
     <div style={containerStyle}>
       <h1 style={titleStyle}>GREAT RISK</h1>
