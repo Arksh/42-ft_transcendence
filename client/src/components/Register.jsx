@@ -1,22 +1,22 @@
-export default function Login({ onLogin, onGoToRegister }) {
+export default function Register({ onLogin, onBack }) {
   const handleSubmit = (e) => {
     e.preventDefault();
-    //const name = e.target.mail.value;
-    const user = {
-		email: e.target.mail.value,
-		password: e.target.password.value,
-		username: e.target.mail.value // temporal para no preguntarselo. Lo sacamos del server
-    };
+	const user = {
+		//username, email y passworld son variables de nombre inventado en javascript
+    	username:	e.target.username.value,
+		email:		e.target.mail.value, //"mail" "username" y "password" viene del <input name="mail".
+		password:	e.target.password.value
+	};
 	onLogin(user);
   };
 
   return (
     <div style={containerStyle}>
       <h1 style={titleStyle}>GREAT RISK</h1>
-      <p style={subtitleStyle}>Login for Battle</p>
+      <p style={subtitleStyle}>Please introduce your email, name and password</p>
       
       <form onSubmit={handleSubmit}>
-        <label style={labelStyle}>EMAIL</label>
+        <label style={labelStyle}>Email</label>
         <input 
           name="mail" 
           type="email" 
@@ -25,7 +25,16 @@ export default function Login({ onLogin, onGoToRegister }) {
           style={inputStyle}
         />
 
-        <label style={labelStyle}>PASSWORD</label>
+		<label style={labelStyle}>Username</label>
+        <input 
+          name="username" 
+          type="text" 
+          placeholder="..." 
+          required 
+          style={inputStyle}
+        />
+
+		<label style={labelStyle}>Password</label>
         <input 
           name="password" 
           type="password" 
@@ -33,10 +42,9 @@ export default function Login({ onLogin, onGoToRegister }) {
           required 
           style={inputStyle}
         />
-
-        <button type="submit" style={btnStyle}>LOGIN</button>
+        <button type="submit" style={btnStyle}>JOIN</button>
       </form>
-      <button onClick={onGoToRegister} style={btnSecondaryStyle}>REGISTER</button>
+	  <button onClick={onBack} style={btnSecondaryStyle}>BACK TO LOGIN</button>
     </div>
   );
 }
