@@ -18,6 +18,11 @@ export default function Chat({ messages, onSend, status, playerId }) {
 
   const disabled = status !== 'open';
 
+  // Buscar el último mensaje del servidor sobre el conteo de jugadores
+  const serverMessages = messages.filter(m => m.from === 'Server' && m.text.includes('Players connected'));
+  const playerCountMatch = serverMessages[serverMessages.length - 1]?.text.match(/\d+/);
+  const playerCount = playerCountMatch ? playerCountMatch[0] : null;
+
   if (minimized) {
     return (
       <div
@@ -38,7 +43,10 @@ export default function Chat({ messages, onSend, status, playerId }) {
           boxShadow: '0 -2px 10px rgba(0,0,0,0.5)'
         }}
       >
-        <span>CHAT {messages.length > 0 && `(${messages.length})`}</span>
+        <span>
+          CHAT {messages.length > 0 && `(${messages.length})`}
+          {playerCount && <span style={{ color: '#4CAF50', marginLeft: '8px' }}>• {playerCount} online</span>}
+        </span>
         <span>▲</span>
       </div>
     );
@@ -72,7 +80,10 @@ export default function Chat({ messages, onSend, status, playerId }) {
       }}
       onClick={() => setMinimized(true)}
       >
-        <span>Chat {disabled && <span style={{ color: '#FF6B6B' }}>({status})</span>}</span>
+        <span>
+          Chat {disabled && <span style={{ color: '#FF6B6B' }}>({status})</span>}
+          {playerCount && <span style={{ color: '#4CAF50', marginLeft: '8px', fontSize: '10px' }}>• {playerCount} online</span>}
+        </span>
         <span style={{ fontSize: '10px' }}>▼</span>
       </div>
       <div
@@ -91,9 +102,14 @@ export default function Chat({ messages, onSend, status, playerId }) {
         )}
         {messages.map((m, i) => (
           <div key={i} style={{ marginBottom: '2px' }}>
-            <span style={{ color: m.from === playerId ? '#FFD700' : '#6496FF' }}>{m.from}</span>
+            <span style={{ 
+              color: m.from === playerId ? '#FFD700' : (m.from === 'Server' ? '#4CAF50' : '#6496FF'),
+              fontWeight: m.from === 'Server' ? 'bold' : 'normal'
+            }}>
+              {m.from === 'Server' ? `[${m.from}]` : m.from}
+            </span>
             <span style={{ color: '#888' }}>: </span>
-            <span>{m.text}</span>
+            <span style={{ fontStyle: m.from === 'Server' ? 'italic' : 'normal' }}>{m.text}</span>
           </div>
         ))}
       </div>
