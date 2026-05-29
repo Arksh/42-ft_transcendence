@@ -6,7 +6,7 @@ export default function Login({ onLogin, onGoToRegister }) {
     const formData = new FormData(e.target);
     const email = formData.get('mail');       // Coincide con name="mail" del input
     const password = formData.get('password'); // Coincide con name="password"
-    const setError = (msg) => alert(msg);      // Usamos alert temporalmente para no romper la UI
+    const setError = (msg) => document.getElementById('error-box').innerText = msg;
     setError(''); // Limpiamos errores previos
     try {
       const data = await api.login(email, password);
@@ -30,7 +30,8 @@ export default function Login({ onLogin, onGoToRegister }) {
         <label style={labelStyle}>EMAIL</label>
         <input 
           name="mail" 
-          type="email" 
+          type="email"
+          autocomplete="off" 
           placeholder="...@..." 
           required 
           style={inputStyle}
@@ -39,12 +40,13 @@ export default function Login({ onLogin, onGoToRegister }) {
         <label style={labelStyle}>PASSWORD</label>
         <input 
           name="password" 
-          type="password" 
+          type="password"
+          autocomplete="off" 
           placeholder="..." 
           required 
           style={inputStyle}
         />
-
+        <div id="error-box" style={{ color: '#ff4444', fontSize: '12px', marginBottom: '10px', textAlign: 'center', minHeight: '18px' }}></div>
         <button type="submit" style={btnStyle}>LOGIN</button>
       </form>
       <button onClick={onGoToRegister} style={btnSecondaryStyle}>REGISTER</button>

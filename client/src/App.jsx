@@ -68,5 +68,12 @@ export default function App() {
   	}
 
 	//4. Si hay sesión y partida
-	return <GameBoard roomId={gameInfo.roomId} playerId={gameInfo.playerId} />;
+	return (
+    <GameBoard 
+      roomId={gameInfo.roomId} 
+      playerId={gameInfo.playerId} 
+      onLogout={() => setUser(null)}
+      onExitGame={() => setGameInfo(null)}
+    />
+  );
 }

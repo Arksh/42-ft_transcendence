@@ -29,7 +29,8 @@ export default function Register({ onLogin, onBack }) {
         <label style={labelStyle}>Email</label>
         <input 
           name="mail" 
-          type="email" 
+          type="email"
+          autocomplete="off" 
           placeholder="...@..." 
           required 
           style={inputStyle}
@@ -39,6 +40,7 @@ export default function Register({ onLogin, onBack }) {
         <input 
           name="username" 
           type="text" 
+          autocomplete="Username"
           placeholder="..." 
           required 
           style={inputStyle}
@@ -47,7 +49,8 @@ export default function Register({ onLogin, onBack }) {
 		<label style={labelStyle}>Password</label>
         <input 
           name="password" 
-          type="password" 
+          type="password"
+          autocomplete="Password" 
           placeholder="..." 
           required 
           style={inputStyle}

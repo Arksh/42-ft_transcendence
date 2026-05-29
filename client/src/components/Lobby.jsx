@@ -46,27 +46,34 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
     const res = await api.getRoom(roomInput.trim());
     if (!res.ok) { setError(res.error); return; }
 
-    //2. Comprobamos si el nombre ya esta en res.room.players
+    //2. Comprobamos si el usuario ya es parte de la sala (Re-entry)
     const playersInRoom = res.room.players;
-    let nameAlreadyExists = false;
-    for (let i = 0; i < playersInRoom.length; i++){
-      if (playersInRoom[i].id === initialPlayerId) {
-        nameAlreadyExists = true;
-        break;
-      }
-    }
-    //3. lanzar error
-    if (nameAlreadyExists){
-      setError(`Name "${initialPlayerId}" is already in the room. \nChoose other login. `);
-      return;
+    const existingPlayer = playersInRoom.find(p => p.id === initialPlayerId);
+    
+    // Si la partida ya empezó y NO somos parte de ella, error.
+    if (res.room.started && !existingPlayer) { 
+      setError('Game already started and you are not in the player list.'); 
+      return; 
     }
 
-    if (res.room.started) { setError('Game already started'); return; }
     setRoomId(roomInput.trim());
     setRoomData(res.room);
-    setIsCreator(false);
+    
+    // Si somos el primer jugador de la lista, somos el creador/host
+    if (playersInRoom[0]?.id === initialPlayerId) {
+      setIsCreator(true);
+    } else {
+      setIsCreator(false);
+    }
+
     setScreen('faction');
     setError(null);
+
+    // Si ya teníamos facción elegida, la recuperamos.
+    // Esto hará que el useEffect de reconexión nos meta al juego automáticamente.
+    if (existingPlayer?.faction) {
+      setFaction(existingPlayer.faction);
+    }
   }
 
   async function handleSelectFaction(factionId) {
@@ -97,7 +104,26 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
       borderRadius: '12px',
       border: '2px solid #FF6B6B',
       boxShadow: '0 0 30px rgba(255, 107, 107, 0.3)',
+      position: 'relative',
     }}>
+      <button 
+        onClick={onLogout}
+        style={{
+          position: 'absolute',
+          top: '15px',
+          right: '15px',
+          background: 'none',
+          border: '1px solid #FF6B6B',
+          color: '#FF6B6B',
+          padding: '4px 8px',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          fontSize: '11px',
+          fontWeight: 'bold'
+        }}
+      >
+        Logout
+      </button>
       <h1 style={{ textAlign: 'center', color: '#FF6B6B', marginBottom: '4px', letterSpacing: '2px' }}>
         GREAT RISK
       </h1>
