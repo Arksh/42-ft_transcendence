@@ -2,12 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 
 export default function Chat({ messages, onSend, status, playerId }) {
   const [draft, setDraft] = useState('');
+  const [minimized, setMinimized] = useState(false);
   const listRef = useRef(null);
 
   useEffect(() => {
     const el = listRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [messages]);
+    if (el && !minimized) el.scrollTop = el.scrollHeight;
+  }, [messages, minimized]);
 
   function submit(e) {
     e.preventDefault();
@@ -16,6 +17,32 @@ export default function Chat({ messages, onSend, status, playerId }) {
   }
 
   const disabled = status !== 'open';
+
+  if (minimized) {
+    return (
+      <div
+        onClick={() => setMinimized(false)}
+        style={{
+          backgroundColor: '#0f0f0f',
+          border: '2px solid #6496FF',
+          borderRadius: '6px 6px 0 0',
+          padding: '6px 12px',
+          fontFamily: 'monospace',
+          fontSize: '11px',
+          color: '#6496FF',
+          cursor: 'pointer',
+          fontWeight: 'bold',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          boxShadow: '0 -2px 10px rgba(0,0,0,0.5)'
+        }}
+      >
+        <span>CHAT {messages.length > 0 && `(${messages.length})`}</span>
+        <span>▲</span>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -31,10 +58,22 @@ export default function Chat({ messages, onSend, status, playerId }) {
         color: '#E0E0E0',
         minHeight: '160px',
         maxHeight: '220px',
+        boxShadow: '0 0 20px rgba(0,0,0,0.5)'
       }}
     >
-      <div style={{ color: '#6496FF', fontWeight: 'bold', marginBottom: '4px' }}>
-        Chat {disabled && <span style={{ color: '#FF6B6B' }}>({status})</span>}
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        color: '#6496FF', 
+        fontWeight: 'bold', 
+        marginBottom: '4px',
+        cursor: 'pointer' 
+      }}
+      onClick={() => setMinimized(true)}
+      >
+        <span>Chat {disabled && <span style={{ color: '#FF6B6B' }}>({status})</span>}</span>
+        <span style={{ fontSize: '10px' }}>▼</span>
       </div>
       <div
         ref={listRef}
