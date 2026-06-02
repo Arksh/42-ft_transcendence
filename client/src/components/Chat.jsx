@@ -95,6 +95,7 @@ export default function Chat({ messages, onSend, status, playerId }) {
           padding: '6px',
           borderRadius: '4px',
           marginBottom: '6px',
+          textAlign: 'left',
         }}
       >
         {messages.length === 0 && (

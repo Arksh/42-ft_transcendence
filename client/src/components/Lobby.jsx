@@ -11,7 +11,7 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
   const [roomData, setRoomData] = useState(null); // datos de la sala
   const [error, setError] = useState(null);
   const [isCreator, setIsCreator] = useState(false);
-  const [playerId] = useState(initialPlayerId);
+  const playerId = initialPlayerId;
 
 	// Polling para actualizar jugadores en sala
 	useEffect(() => {
