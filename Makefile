@@ -22,7 +22,7 @@ up: generate-env
 	docker compose -f ./docker-compose.yml up --build -d
 
 down:
-	docker compose -f ./docker-compose.yml down -v
+	docker compose -f ./docker-compose.yml down
 
 ps:
 	docker compose -f ./docker-compose.yml ps
