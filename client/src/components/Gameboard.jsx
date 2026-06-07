@@ -561,7 +561,6 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 				playerId={playerId}
 			/>
 
-
 			<h1
 				style={{
 					textAlign: 'center',

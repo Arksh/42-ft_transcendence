@@ -12,7 +12,6 @@ function loadPosFromSession() {
       return parsed;
     }
   } catch {
-    // ignore malformed value
   }
   return null;
 }
@@ -47,7 +46,7 @@ export default function Chat({ messages, onSend, status, playerId }) {
     const x = window.innerWidth - el.offsetWidth - EDGE_MARGIN;
     const y = window.innerHeight - el.offsetHeight - EDGE_MARGIN;
     setPos(clampToViewport(x, y, el));
-  }, [pos]);
+  }, [pos, minimized]);
 
   useEffect(() => {
     if (pos) sessionStorage.setItem(POS_STORAGE_KEY, JSON.stringify(pos));
@@ -59,9 +58,8 @@ export default function Chat({ messages, onSend, status, playerId }) {
       const { dx, dy } = dragOffsetRef.current;
       setPos(clampToViewport(e.clientX - dx, e.clientY - dy, boxRef.current));
     }
-    function onUp() {
-      setDragging(false);
-    }
+    function onUp() { setDragging(false); }
+
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
     return () => {
@@ -79,7 +77,7 @@ export default function Chat({ messages, onSend, status, playerId }) {
   }, []);
 
   function onMouseDown(e) {
-    if (e.target.closest('form')) return;
+    if (e.target.closest('form') || e.target.closest('button')) return;
     if (!pos) return;
     e.preventDefault();
     dragOffsetRef.current = { dx: e.clientX - pos.x, dy: e.clientY - pos.y };
@@ -93,124 +91,52 @@ export default function Chat({ messages, onSend, status, playerId }) {
   }
 
   const disabled = status !== 'open';
-
-  // Buscar el último mensaje del servidor sobre el conteo de jugadores
   const serverMessages = messages.filter(m => m.from === 'Server' && m.text.includes('Players connected'));
   const playerCountMatch = serverMessages[serverMessages.length - 1]?.text.match(/\d+/);
   const playerCount = playerCountMatch ? playerCountMatch[0] : null;
 
-  const activateOnKey = (handler) => (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handler();
-    }
+  const containerStyle = {
+    position: 'fixed',
+    top: pos?.y ?? 0,
+    left: pos?.x ?? 0,
+    width: '280px',
+    zIndex: 20,
+    visibility: pos ? 'visible' : 'hidden',
+    cursor: dragging ? 'grabbing' : 'grab',
+    userSelect: 'none',
+    display: 'flex',
+    flexDirection: 'column',
+    backgroundColor: '#0f0f0f',
+    border: '2px solid #6496FF',
+    borderRadius: '6px',
+    padding: '8px',
+    fontFamily: 'monospace',
+    color: '#E0E0E0',
+    boxShadow: '0 0 20px rgba(0,0,0,0.5)',
   };
 
   if (minimized) {
     return (
-      <div
-        role="button"
-        tabIndex={0}
-        aria-expanded={false}
-        aria-label="Expand chat"
-        onClick={() => setMinimized(false)}
-        onKeyDown={activateOnKey(() => setMinimized(false))}
-        style={{
-          backgroundColor: '#0f0f0f',
-          border: '2px solid #6496FF',
-          borderRadius: '6px 6px 0 0',
-          padding: '6px 12px',
-          fontFamily: 'monospace',
-          fontSize: '11px',
-          color: '#6496FF',
-          cursor: 'pointer',
-          fontWeight: 'bold',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          boxShadow: '0 -2px 10px rgba(0,0,0,0.5)'
-        }}
-      >
-        <span>
-          CHAT {messages.length > 0 && `(${messages.length})`}
-          {playerCount && <span style={{ color: '#4CAF50', marginLeft: '8px' }}>• {playerCount} online</span>}
-        </span>
-        <span>▲</span>
+      <div ref={boxRef} onMouseDown={onMouseDown} style={{ ...containerStyle, minHeight: 'auto' }}>
+        <div onClick={() => setMinimized(false)} style={{ cursor: 'pointer', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: '#6496FF' }}>
+          <span>CHAT {messages.length > 0 && `(${messages.length})`} {playerCount && `• ${playerCount} online`}</span>
+          <span>▲</span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div
-      ref={boxRef}
-      onMouseDown={onMouseDown}
-      style={{
-        position: 'fixed',
-        top: pos?.y ?? 0,
-        left: pos?.x ?? 0,
-        width: '280px',
-        zIndex: 20,
-        visibility: pos ? 'visible' : 'hidden',
-        cursor: dragging ? 'grabbing' : 'grab',
-        userSelect: 'none',
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: '#0f0f0f',
-        border: '2px solid #6496FF',
-        borderRadius: '6px',
-        padding: '8px',
-        fontFamily: 'monospace',
-        fontSize: '12px',
-        color: '#E0E0E0',
-        minHeight: '160px',
-        maxHeight: '220px',
-        boxShadow: '0 0 20px rgba(0,0,0,0.5)'
-      }}
-    >
-      <div
-        role="button"
-        tabIndex={0}
-        aria-expanded={true}
-        aria-label="Minimize chat"
-        onClick={() => setMinimized(true)}
-        onKeyDown={activateOnKey(() => setMinimized(true))}
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          color: '#6496FF',
-          fontWeight: 'bold',
-          marginBottom: '4px',
-          cursor: 'pointer'
-        }}
-      >
-        <span>
-          Chat {disabled && <span style={{ color: '#FF6B6B' }}>({status})</span>}
-          {playerCount && <span style={{ color: '#4CAF50', marginLeft: '8px', fontSize: '10px' }}>• {playerCount} online</span>}
-        </span>
+    <div ref={boxRef} onMouseDown={onMouseDown} style={{ ...containerStyle, minHeight: '160px', maxHeight: '220px' }}>
+      <div onClick={() => setMinimized(true)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#6496FF', fontWeight: 'bold', marginBottom: '4px', cursor: 'pointer', fontSize: '12px' }}>
+        <span>Chat {disabled && `(${status})`} {playerCount && `• ${playerCount} online`}</span>
         <span style={{ fontSize: '10px' }}>▼</span>
       </div>
-      <div
-        ref={listRef}
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          backgroundColor: 'rgba(0,0,0,0.4)',
-          padding: '6px',
-          borderRadius: '4px',
-          marginBottom: '6px',
-          textAlign: 'left',
-        }}
-      >
-        {messages.length === 0 && (
-          <div style={{ color: '#666', fontStyle: 'italic' }}>No messages yet</div>
-        )}
+      <div ref={listRef} style={{ flex: 1, overflowY: 'auto', backgroundColor: 'rgba(0,0,0,0.4)', padding: '6px', borderRadius: '4px', marginBottom: '6px', textAlign: 'left', userSelect: 'text', fontSize: '12px' }} onMouseDown={(e) => e.stopPropagation()}>
+        {messages.length === 0 && <div style={{ color: '#666', fontStyle: 'italic' }}>No messages yet</div>}
         {messages.map((m, i) => (
           <div key={i} style={{ marginBottom: '2px' }}>
-            <span style={{ 
-              color: m.from === playerId ? '#FFD700' : (m.from === 'Server' ? '#4CAF50' : '#6496FF'),
-              fontWeight: m.from === 'Server' ? 'bold' : 'normal'
-            }}>
+            <span style={{ color: m.from === playerId ? '#FFD700' : (m.from === 'Server' ? '#4CAF50' : '#6496FF'), fontWeight: m.from === 'Server' ? 'bold' : 'normal' }}>
               {m.from === 'Server' ? `[${m.from}]` : m.from}
             </span>
             <span style={{ color: '#888' }}>: </span>
@@ -218,44 +144,9 @@ export default function Chat({ messages, onSend, status, playerId }) {
           </div>
         ))}
       </div>
-      <form onSubmit={submit} style={{ display: 'flex', gap: '4px' }}>
-        <input
-          type="text"
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          maxLength={1000}
-          disabled={disabled}
-          placeholder={disabled ? 'Connecting…' : 'Type a message'}
-          style={{
-            flex: 1,
-            padding: '4px 6px',
-            fontSize: '12px',
-            fontFamily: 'monospace',
-            backgroundColor: '#1a1a1a',
-            color: '#E0E0E0',
-            border: '1px solid #333',
-            borderRadius: '3px',
-            outline: 'none',
-            cursor: 'text',
-          }}
-        />
-        <button
-          type="submit"
-          disabled={disabled || !draft.trim()}
-          style={{
-            padding: '4px 10px',
-            fontSize: '12px',
-            backgroundColor: '#6496FF',
-            color: 'white',
-            border: 'none',
-            borderRadius: '3px',
-            cursor: disabled ? 'not-allowed' : 'pointer',
-            fontWeight: 'bold',
-            opacity: disabled || !draft.trim() ? 0.5 : 1,
-          }}
-        >
-          Send
-        </button>
+      <form onSubmit={submit} style={{ display: 'flex', gap: '4px' }} onMouseDown={(e) => e.stopPropagation()}>
+        <input type="text" value={draft} onChange={(e) => setDraft(e.target.value)} maxLength={1000} disabled={disabled} placeholder={disabled ? 'Connecting…' : 'Type a message'} style={{ flex: 1, padding: '4px 6px', fontSize: '12px', fontFamily: 'monospace', backgroundColor: '#1a1a1a', color: '#E0E0E0', border: '1px solid #333', borderRadius: '3px', outline: 'none' }} />
+        <button type="submit" disabled={disabled || !draft.trim()} style={{ padding: '4px 10px', fontSize: '12px', backgroundColor: '#6496FF', color: 'white', border: 'none', borderRadius: '3px', cursor: disabled ? 'not-allowed' : 'pointer', fontWeight: 'bold', opacity: disabled || !draft.trim() ? 0.5 : 1 }}>Send</button>
       </form>
     </div>
   );
