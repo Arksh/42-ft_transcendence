@@ -564,7 +564,8 @@ app.post('/auth/register', async (req, res) => {
         stats: { create: {} }
       }
     })
-    res.status(201).json({ ok: true, user })
+    const { passwordHash: _, ...safeUser } = user
+    res.status(201).json({ ok: true, user: safeUser })
   } catch (error: any) {
     if (error.code === 'P2002') return res.status(400).json({ error: 'Username o email ya existe' })
     res.status(500).json({ error: 'Error al registrar' })
@@ -573,14 +574,18 @@ app.post('/auth/register', async (req, res) => {
 
 app.post('/auth/login', async (req, res) => {
   const { email, password } = req.body
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Faltan campos requeridos' })
+  }
   try {
     const user = await prisma.user.findUnique({ where: { email } })
     if (!user) return res.status(401).json({ error: 'Usuario no encontrado' })
-    
+
     const valid = await verifyPassword(password, user.passwordHash)
     if (!valid) return res.status(401).json({ error: 'Password incorrecto' })
-    
-    res.json({ ok: true, user })
+
+    const { passwordHash: _, ...safeUser } = user
+    res.json({ ok: true, user: safeUser })
   } catch (error) {
     res.status(500).json({ error: 'Error login' })
   }
