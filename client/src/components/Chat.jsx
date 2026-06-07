@@ -29,6 +29,7 @@ function clampToViewport(x, y, el) {
 
 export default function Chat({ messages, onSend, status, playerId }) {
   const [draft, setDraft] = useState('');
+  const [minimized, setMinimized] = useState(false);
   const [pos, setPos] = useState(() => loadPosFromSession());
   const [dragging, setDragging] = useState(false);
   const dragOffsetRef = useRef({ dx: 0, dy: 0 });
@@ -37,8 +38,8 @@ export default function Chat({ messages, onSend, status, playerId }) {
 
   useEffect(() => {
     const el = listRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [messages]);
+    if (el && !minimized) el.scrollTop = el.scrollHeight;
+  }, [messages, minimized]);
 
   useEffect(() => {
     if (pos !== null || !boxRef.current) return;
@@ -93,6 +94,52 @@ export default function Chat({ messages, onSend, status, playerId }) {
 
   const disabled = status !== 'open';
 
+  // Buscar el último mensaje del servidor sobre el conteo de jugadores
+  const serverMessages = messages.filter(m => m.from === 'Server' && m.text.includes('Players connected'));
+  const playerCountMatch = serverMessages[serverMessages.length - 1]?.text.match(/\d+/);
+  const playerCount = playerCountMatch ? playerCountMatch[0] : null;
+
+  const activateOnKey = (handler) => (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handler();
+    }
+  };
+
+  if (minimized) {
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        aria-expanded={false}
+        aria-label="Expand chat"
+        onClick={() => setMinimized(false)}
+        onKeyDown={activateOnKey(() => setMinimized(false))}
+        style={{
+          backgroundColor: '#0f0f0f',
+          border: '2px solid #6496FF',
+          borderRadius: '6px 6px 0 0',
+          padding: '6px 12px',
+          fontFamily: 'monospace',
+          fontSize: '11px',
+          color: '#6496FF',
+          cursor: 'pointer',
+          fontWeight: 'bold',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          boxShadow: '0 -2px 10px rgba(0,0,0,0.5)'
+        }}
+      >
+        <span>
+          CHAT {messages.length > 0 && `(${messages.length})`}
+          {playerCount && <span style={{ color: '#4CAF50', marginLeft: '8px' }}>• {playerCount} online</span>}
+        </span>
+        <span>▲</span>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={boxRef}
@@ -117,10 +164,31 @@ export default function Chat({ messages, onSend, status, playerId }) {
         color: '#E0E0E0',
         minHeight: '160px',
         maxHeight: '220px',
+        boxShadow: '0 0 20px rgba(0,0,0,0.5)'
       }}
     >
-      <div style={{ color: '#6496FF', fontWeight: 'bold', marginBottom: '4px' }}>
-        Chat {disabled && <span style={{ color: '#FF6B6B' }}>({status})</span>}
+      <div
+        role="button"
+        tabIndex={0}
+        aria-expanded={true}
+        aria-label="Minimize chat"
+        onClick={() => setMinimized(true)}
+        onKeyDown={activateOnKey(() => setMinimized(true))}
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          color: '#6496FF',
+          fontWeight: 'bold',
+          marginBottom: '4px',
+          cursor: 'pointer'
+        }}
+      >
+        <span>
+          Chat {disabled && <span style={{ color: '#FF6B6B' }}>({status})</span>}
+          {playerCount && <span style={{ color: '#4CAF50', marginLeft: '8px', fontSize: '10px' }}>• {playerCount} online</span>}
+        </span>
+        <span style={{ fontSize: '10px' }}>▼</span>
       </div>
       <div
         ref={listRef}
@@ -131,6 +199,7 @@ export default function Chat({ messages, onSend, status, playerId }) {
           padding: '6px',
           borderRadius: '4px',
           marginBottom: '6px',
+          textAlign: 'left',
         }}
       >
         {messages.length === 0 && (
@@ -138,9 +207,14 @@ export default function Chat({ messages, onSend, status, playerId }) {
         )}
         {messages.map((m, i) => (
           <div key={i} style={{ marginBottom: '2px' }}>
-            <span style={{ color: m.from === playerId ? '#FFD700' : '#6496FF' }}>{m.from}</span>
+            <span style={{ 
+              color: m.from === playerId ? '#FFD700' : (m.from === 'Server' ? '#4CAF50' : '#6496FF'),
+              fontWeight: m.from === 'Server' ? 'bold' : 'normal'
+            }}>
+              {m.from === 'Server' ? `[${m.from}]` : m.from}
+            </span>
             <span style={{ color: '#888' }}>: </span>
-            <span>{m.text}</span>
+            <span style={{ fontStyle: m.from === 'Server' ? 'italic' : 'normal' }}>{m.text}</span>
           </div>
         ))}
       </div>

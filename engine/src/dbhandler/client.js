@@ -9,36 +9,10 @@
 // serializes over the wire will need to rehydrate Gamestate (e.g. via a
 // `Gamestate.fromSerialized()` factory) before returning the room.
 
-const SEED_PLAYERS = {
-  'player-1': {
-    id: 'player-1',
-    name: 'Player 1',
-    achievements: [],
-    stats: { gamesPlayed: 0, gamesWon: 0, territoriesConquered: 0, totalTurns: 0 },
-    matchHistory: [],
-  },
-  'player-2': {
-    id: 'player-2',
-    name: 'Player 2',
-    achievements: [],
-    stats: { gamesPlayed: 0, gamesWon: 0, territoriesConquered: 0, totalTurns: 0 },
-    matchHistory: [],
-  },
-  'player-3': {
-    id: 'player-3',
-    name: 'Player 3',
-    achievements: [],
-    stats: { gamesPlayed: 0, gamesWon: 0, territoriesConquered: 0, totalTurns: 0 },
-    matchHistory: [],
-  },
-};
-
 export class InMemoryDBHandler {
   constructor() {
     this.rooms = new Map();
-    this.players = new Map(
-      Object.entries(SEED_PLAYERS).map(([id, p]) => [id, structuredClone(p)])
-    );
+    this.players = new Map();
     this.matches = [];
   }
 
@@ -58,8 +32,8 @@ export class InMemoryDBHandler {
     this.rooms.delete(roomId);
   }
 
-  async getPlayer(playerId) {
-    return this.players.get(playerId) ?? null;
+  async getPlayer(username) {
+    return this.players.get(username) ?? null;
   }
 
   async saveMatchResult(matchData) {
@@ -67,12 +41,12 @@ export class InMemoryDBHandler {
     console.log('Match result (in-memory):', matchData);
   }
 
-  async unlockAchievement(playerId, achievementId) {
-    const player = this.players.get(playerId);
+  async unlockAchievement(username, achievementId) {
+    const player = this.players.get(username);
     if (!player) return;
     if (!player.achievements.includes(achievementId)) {
       player.achievements.push(achievementId);
-      console.log(`Achievement unlocked (in-memory): ${achievementId} for ${playerId}`);
+      console.log(`Achievement unlocked (in-memory): ${achievementId} for ${username}`);
     }
   }
 }

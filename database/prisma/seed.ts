@@ -107,17 +107,13 @@ async function main() {
   console.log(`🚀 Iniciando seeding de la base de datos...`)
 
   try {
-    // Limpiar datos existentes (en orden inverso por relaciones)
-    console.log('🗑️  Limpiando datos previos...')
-    await prisma.userAchievement.deleteMany()
-    await prisma.achievement.deleteMany()
-    await prisma.matchPlayer.deleteMany()
-    await prisma.match.deleteMany()
-    await prisma.friendship.deleteMany()
-    await prisma.stat.deleteMany()
-    await prisma.user.deleteMany()
+    // Solo sembrar si la base de datos está vacía (evita pisar datos reales).
+    const userCount = await prisma.user.count()
+    if (userCount > 0) {
+      console.log('✨ La base de datos ya tiene datos, saltando seeding base.')
+      return
+    }
 
-    // Crear usuarios
     console.log('👥 Creando usuarios...')
     const users: any[] = []
     for (const u of usersBase) {

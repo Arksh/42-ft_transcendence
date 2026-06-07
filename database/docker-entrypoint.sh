@@ -24,6 +24,10 @@ if [ $RETRIES -eq $MAX_RETRIES ]; then
   exit 1
 fi
 
+# Sincronizar esquema
+echo "🔄 Sincronizando esquema con la base de datos..."
+npx prisma db push --accept-data-loss
+
 # Ejecutar migraciones
 echo "📦 Ejecutando migraciones..."
 # TODO: `prisma migrate deploy` ya es idempotente y devuelve 0 si no hay nada

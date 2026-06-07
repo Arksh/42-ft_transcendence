@@ -2,13 +2,15 @@ import 'dotenv/config'
 import { PrismaClient } from '../prisma/.prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import express from 'express'
-import { hashPassword } from './auth'
+import cors from 'cors'
+import { hashPassword, verifyPassword } from './auth'
 
 const pool = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
 const prisma = new PrismaClient({ adapter: pool })
 
 const app = express()
 
+app.use(cors())
 app.use(express.json())
 
 // ============================================================================
@@ -540,6 +542,53 @@ app.get('/users/:username/achievements', async (req, res) => {
 // Health check endpoint para Docker
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' })
+})
+
+// ============================================================================
+// AUTH ENDPOINTS (For frontend compatibility)
+// ============================================================================
+
+app.post('/auth/register', async (req, res) => {
+  const { username, email, password, avatarUrl } = req.body
+  if (!username || !email || !password) {
+    return res.status(400).json({ error: 'Faltan campos requeridos' })
+  }
+  try {
+    const passwordHash = await hashPassword(password)
+    const user = await prisma.user.create({
+      data: {
+        username,
+        email,
+        passwordHash,
+        avatarUrl,
+        stats: { create: {} }
+      }
+    })
+    const { passwordHash: _, ...safeUser } = user
+    res.status(201).json({ ok: true, user: safeUser })
+  } catch (error: any) {
+    if (error.code === 'P2002') return res.status(400).json({ error: 'Username o email ya existe' })
+    res.status(500).json({ error: 'Error al registrar' })
+  }
+})
+
+app.post('/auth/login', async (req, res) => {
+  const { email, password } = req.body
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Faltan campos requeridos' })
+  }
+  try {
+    const user = await prisma.user.findUnique({ where: { email } })
+    if (!user) return res.status(401).json({ error: 'Usuario no encontrado' })
+
+    const valid = await verifyPassword(password, user.passwordHash)
+    if (!valid) return res.status(401).json({ error: 'Password incorrecto' })
+
+    const { passwordHash: _, ...safeUser } = user
+    res.json({ ok: true, user: safeUser })
+  } catch (error) {
+    res.status(500).json({ error: 'Error login' })
+  }
 })
 
 const PORT = parseInt(process.env.PORT || '4000')
