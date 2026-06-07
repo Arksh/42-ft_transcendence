@@ -107,16 +107,13 @@ async function main() {
   console.log(`🚀 Iniciando seeding de la base de datos...`)
 
   try {
-    // Solo limpiar si no hay usuarios (o si queremos forzarlo)
+    // Solo sembrar si la base de datos está vacía (evita pisar datos reales).
     const userCount = await prisma.user.count()
     if (userCount > 0) {
-      console.log('✨ La base de datos ya tiene datos, saltando limpieza y seeding base.')
+      console.log('✨ La base de datos ya tiene datos, saltando seeding base.')
       return
     }
 
-    // Limpiar datos existentes (en orden inverso por relaciones)
-    console.log('🗑️  Limpiando datos previos...')
-    // Crear usuarios
     console.log('👥 Creando usuarios...')
     const users: any[] = []
     for (const u of usersBase) {
