@@ -553,23 +553,13 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 				/>
 			))}
 
-			{/* Chat panel (fixed bottom-right) */}
-			<div
-				style={{
-					position: 'fixed',
-					bottom: '20px',
-					right: '20px',
-					width: '280px',
-					zIndex: 20,
-				}}
-			>
-				<Chat
-					messages={chatMessages}
-					onSend={sendChat}
-					status={wsStatus}
-					playerId={playerId}
-				/>
-			</div>
+			{/* Chat panel (draggable; defaults to bottom-right) */}
+			<Chat
+				messages={chatMessages}
+				onSend={sendChat}
+				status={wsStatus}
+				playerId={playerId}
+			/>
 
 
 			<h1

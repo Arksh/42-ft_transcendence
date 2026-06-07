@@ -1,14 +1,90 @@
 import { useEffect, useRef, useState } from 'react';
 
+const POS_STORAGE_KEY = 'chat:pos';
+const EDGE_MARGIN = 20;
+
+function loadPosFromSession() {
+  try {
+    const raw = sessionStorage.getItem(POS_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (typeof parsed?.x === 'number' && typeof parsed?.y === 'number') {
+      return parsed;
+    }
+  } catch {
+    // ignore malformed value
+  }
+  return null;
+}
+
+function clampToViewport(x, y, el) {
+  if (!el) return { x, y };
+  const maxX = Math.max(0, window.innerWidth - el.offsetWidth);
+  const maxY = Math.max(0, window.innerHeight - el.offsetHeight);
+  return {
+    x: Math.max(0, Math.min(maxX, x)),
+    y: Math.max(0, Math.min(maxY, y)),
+  };
+}
+
 export default function Chat({ messages, onSend, status, playerId }) {
   const [draft, setDraft] = useState('');
   const [minimized, setMinimized] = useState(false);
+  const [pos, setPos] = useState(() => loadPosFromSession());
+  const [dragging, setDragging] = useState(false);
+  const dragOffsetRef = useRef({ dx: 0, dy: 0 });
+  const boxRef = useRef(null);
   const listRef = useRef(null);
 
   useEffect(() => {
     const el = listRef.current;
     if (el && !minimized) el.scrollTop = el.scrollHeight;
   }, [messages, minimized]);
+
+  useEffect(() => {
+    if (pos !== null || !boxRef.current) return;
+    const el = boxRef.current;
+    const x = window.innerWidth - el.offsetWidth - EDGE_MARGIN;
+    const y = window.innerHeight - el.offsetHeight - EDGE_MARGIN;
+    setPos(clampToViewport(x, y, el));
+  }, [pos]);
+
+  useEffect(() => {
+    if (pos) sessionStorage.setItem(POS_STORAGE_KEY, JSON.stringify(pos));
+  }, [pos]);
+
+  useEffect(() => {
+    if (!dragging) return;
+    function onMove(e) {
+      const { dx, dy } = dragOffsetRef.current;
+      setPos(clampToViewport(e.clientX - dx, e.clientY - dy, boxRef.current));
+    }
+    function onUp() {
+      setDragging(false);
+    }
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+  }, [dragging]);
+
+  useEffect(() => {
+    function onResize() {
+      setPos((prev) => (prev ? clampToViewport(prev.x, prev.y, boxRef.current) : prev));
+    }
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  function onMouseDown(e) {
+    if (e.target.closest('form')) return;
+    if (!pos) return;
+    e.preventDefault();
+    dragOffsetRef.current = { dx: e.clientX - pos.x, dy: e.clientY - pos.y };
+    setDragging(true);
+  }
 
   function submit(e) {
     e.preventDefault();
@@ -66,7 +142,17 @@ export default function Chat({ messages, onSend, status, playerId }) {
 
   return (
     <div
+      ref={boxRef}
+      onMouseDown={onMouseDown}
       style={{
+        position: 'fixed',
+        top: pos?.y ?? 0,
+        left: pos?.x ?? 0,
+        width: '280px',
+        zIndex: 20,
+        visibility: pos ? 'visible' : 'hidden',
+        cursor: dragging ? 'grabbing' : 'grab',
+        userSelect: 'none',
         display: 'flex',
         flexDirection: 'column',
         backgroundColor: '#0f0f0f',
@@ -150,6 +236,7 @@ export default function Chat({ messages, onSend, status, playerId }) {
             border: '1px solid #333',
             borderRadius: '3px',
             outline: 'none',
+            cursor: 'text',
           }}
         />
         <button
