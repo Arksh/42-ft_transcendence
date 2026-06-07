@@ -28,57 +28,64 @@ export default function App() {
  	console.log('gameInfo:', gameInfo);
 	console.log('roomId tipo:', typeof gameInfo?.roomId, gameInfo?.roomId);
 
-	// 1. Pantallas Legales (Tienen prioridad de dibujado)
-    if (view === 'privacy') return <Privacy onBack={() => setView('login')} />;
-    if (view === 'terms') return <Terms onBack={() => setView('login')} />;
-
-    // 2. Si no hay sesión iniciada (Login o Registro)
-	// con el <> devuelve dos a la vez el register/login y el Footer de terminos
-    if (!user) {
-        return (
-            <> 
-                {view === 'register' ? (
-                    <Register 
-                        onLogin={setUser} 
-                        onBack={() => setView('login')} 
-                    />
-                ) : (
-                    <Login 
-                        onLogin={setUser} 
-                        onGoToRegister={() => setView('register')} 
-                    />
-                )}
-                <Footer 
-                    onPrivacy={() => setView('privacy')} 
-                    onTerms={() => setView('terms')} 
-                />
-            </>
-        );
-    }
-
 	const handleLogout = () => {
 		setUser(null);
 		setGameInfo(null);
 	};
 
-	//3. Si hay sesión pero no ha empezado la partida(lobby)
-	if (!gameInfo){
-		return (
-      			<Lobby
-				onStart={setGameInfo}
-				initialPlayerId={user.username}
-				onLogout={handleLogout}
-				/>
-    	);
-  	}
+	const footer = (
+		<Footer
+			onPrivacy={() => setView('privacy')}
+			onTerms={() => setView('terms')}
+		/>
+	);
 
-	//4. Si hay sesión y partida
+	const renderView = () => {
+		// 1. Pantallas Legales (Tienen prioridad de dibujado)
+		if (view === 'privacy') return <Privacy onBack={() => setView('login')} />;
+		if (view === 'terms') return <Terms onBack={() => setView('login')} />;
+
+		// 2. Si no hay sesión iniciada (Login o Registro)
+		if (!user) {
+			return view === 'register' ? (
+				<Register
+					onLogin={setUser}
+					onBack={() => setView('login')}
+				/>
+			) : (
+				<Login
+					onLogin={setUser}
+					onGoToRegister={() => setView('register')}
+				/>
+			);
+		}
+
+		// 3. Si hay sesión pero no ha empezado la partida (lobby)
+		if (!gameInfo) {
+			return (
+				<Lobby
+					onStart={setGameInfo}
+					initialPlayerId={user.username}
+					onLogout={handleLogout}
+				/>
+			);
+		}
+
+		// 4. Si hay sesión y partida
+		return (
+			<GameBoard
+				roomId={gameInfo.roomId}
+				playerId={gameInfo.playerId}
+				onLogout={handleLogout}
+				onExitGame={() => setGameInfo(null)}
+			/>
+		);
+	};
+
 	return (
-    <GameBoard
-      roomId={gameInfo.roomId}
-      playerId={gameInfo.playerId}
-      onLogout={handleLogout}
-      onExitGame={() => setGameInfo(null)}
-    />
-  );
+		<>
+			{renderView()}
+			{footer}
+		</>
+	);
 }
