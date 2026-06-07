@@ -41,8 +41,9 @@ export default function Register({ onLogin, onBack }) {
           name="username"
           type="text"
           autoComplete="username"
-          placeholder="..."
+          placeholder="Min 3 characters"
           required
+          minLength={3}
           style={inputStyle}
         />
 
@@ -51,8 +52,9 @@ export default function Register({ onLogin, onBack }) {
           name="password"
           type="password"
           autoComplete="new-password"
-          placeholder="..."
+          placeholder="Min 6 characters"
           required
+          minLength={6}
           style={inputStyle}
         />
         <button type="submit" style={btnStyle}>JOIN</button>
