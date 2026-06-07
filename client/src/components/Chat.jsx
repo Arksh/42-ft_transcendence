@@ -23,10 +23,22 @@ export default function Chat({ messages, onSend, status, playerId }) {
   const playerCountMatch = serverMessages[serverMessages.length - 1]?.text.match(/\d+/);
   const playerCount = playerCountMatch ? playerCountMatch[0] : null;
 
+  const activateOnKey = (handler) => (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handler();
+    }
+  };
+
   if (minimized) {
     return (
       <div
+        role="button"
+        tabIndex={0}
+        aria-expanded={false}
+        aria-label="Expand chat"
         onClick={() => setMinimized(false)}
+        onKeyDown={activateOnKey(() => setMinimized(false))}
         style={{
           backgroundColor: '#0f0f0f',
           border: '2px solid #6496FF',
@@ -69,16 +81,22 @@ export default function Chat({ messages, onSend, status, playerId }) {
         boxShadow: '0 0 20px rgba(0,0,0,0.5)'
       }}
     >
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        color: '#6496FF', 
-        fontWeight: 'bold', 
-        marginBottom: '4px',
-        cursor: 'pointer' 
-      }}
-      onClick={() => setMinimized(true)}
+      <div
+        role="button"
+        tabIndex={0}
+        aria-expanded={true}
+        aria-label="Minimize chat"
+        onClick={() => setMinimized(true)}
+        onKeyDown={activateOnKey(() => setMinimized(true))}
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          color: '#6496FF',
+          fontWeight: 'bold',
+          marginBottom: '4px',
+          cursor: 'pointer'
+        }}
       >
         <span>
           Chat {disabled && <span style={{ color: '#FF6B6B' }}>({status})</span>}
