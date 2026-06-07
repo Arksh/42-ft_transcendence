@@ -54,7 +54,19 @@ app.post('/users', async (req, res) => {
   const { username, email, password, avatarUrl } = req.body
 
   if (!username || !email || !password) {
-    return res.status(400).json({ error: 'username, email y password son requeridos' })
+    return res.status(400).json({ error: 'Username, email and password are required' })
+  }
+
+  // Validación básica del lado del servidor
+  if (username.length < 3) {
+    return res.status(400).json({ error: 'Username must have 3 characters' })
+  }
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'Pwd must have at least 6 chars' })
+  }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: 'invalid Email' })
   }
 
   try {
@@ -79,9 +91,9 @@ app.post('/users', async (req, res) => {
     res.status(201).json(user)
   } catch (error: any) {
     if (error.code === 'P2002') {
-      return res.status(400).json({ error: 'Username o email ya existe' })
+      return res.status(400).json({ error: 'Username or email already exist' })
     }
-    res.status(500).json({ error: 'Error al crear usuario' })
+    res.status(500).json({ error: 'Error creating user' })
   }
 })
 
@@ -102,9 +114,9 @@ app.put('/users/:username', async (req, res) => {
     res.json(user)
   } catch (error: any) {
     if (error.code === 'P2025') {
-      return res.status(404).json({ error: 'Usuario no encontrado' })
+      return res.status(404).json({ error: 'User not found' })
     }
-    res.status(500).json({ error: 'Error al actualizar usuario' })
+    res.status(500).json({ error: 'Error updating user' })
   }
 })
 
@@ -121,11 +133,11 @@ app.get('/users/:username/stats', async (req, res) => {
     })
     
     if (!stats) {
-      return res.status(404).json({ error: 'Estadísticas no encontradas' })
+      return res.status(404).json({ error: 'Stadistics not found' })
     }
     res.json(stats)
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener estadísticas' })
+    res.status(500).json({ error: 'Error loading stadistics' })
   }
 })
 
@@ -147,9 +159,9 @@ app.put('/users/:username/stats', async (req, res) => {
     res.json(stats)
   } catch (error: any) {
     if (error.code === 'P2025') {
-      return res.status(404).json({ error: 'Usuario o estadísticas no encontradas' })
+      return res.status(404).json({ error: 'Usuario or stats not found' })
     }
-    res.status(500).json({ error: 'Error al actualizar estadísticas' })
+    res.status(500).json({ error: 'Error updating stats' })
   }
 })
 
@@ -178,7 +190,7 @@ app.get('/users/:username/friends', async (req, res) => {
 
     res.json(friends)
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener amigos' })
+    res.status(500).json({ error: 'Error finding friends' })
   }
 })
 
@@ -187,7 +199,7 @@ app.post('/users/:userUsername/friends/:friendUsername', async (req, res) => {
   const { userUsername, friendUsername } = req.params
 
   if (userUsername === friendUsername) {
-    return res.status(400).json({ error: 'No puedes ser amigo de ti mismo' })
+    return res.status(400).json({ error: 'You cannot be your own friend' })
   }
 
   try {
@@ -198,7 +210,7 @@ app.post('/users/:userUsername/friends/:friendUsername', async (req, res) => {
     ])
 
     if (!user || !friend) {
-      return res.status(404).json({ error: 'Uno o ambos usuarios no existen' })
+      return res.status(404).json({ error: 'One of both users dont exists' })
     }
 
     // Crear amistad (solo una dirección)
@@ -212,9 +224,9 @@ app.post('/users/:userUsername/friends/:friendUsername', async (req, res) => {
     res.status(201).json(friendship)
   } catch (error: any) {
     if (error.code === 'P2002') {
-      return res.status(400).json({ error: 'Ya son amigos' })
+      return res.status(400).json({ error: 'already friends' })
     }
-    res.status(500).json({ error: 'Error al agregar amigo' })
+    res.status(500).json({ error: 'Error adding friend' })
   }
 })
 
@@ -234,9 +246,9 @@ app.delete('/users/:userUsername/friends/:friendUsername', async (req, res) => {
     res.json({ message: 'Amistad eliminada', friendship })
   } catch (error: any) {
     if (error.code === 'P2025') {
-      return res.status(404).json({ error: 'Amistad no encontrada' })
+      return res.status(404).json({ error: 'friend not found' })
     }
-    res.status(500).json({ error: 'Error al eliminar amistad' })
+    res.status(500).json({ error: 'Error removing friend' })
   }
 })
 
@@ -266,7 +278,7 @@ app.get('/matches', async (req, res) => {
 
     res.json(matches)
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener partidas' })
+    res.status(500).json({ error: 'Error loading game' })
   }
 })
 
@@ -286,11 +298,11 @@ app.get('/matches/:id', async (req, res) => {
     })
 
     if (!match) {
-      return res.status(404).json({ error: 'Partida no encontrada' })
+      return res.status(404).json({ error: 'Game not found' })
     }
     res.json(match)
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener partida' })
+    res.status(500).json({ error: 'Error loading game' })
   }
 })
 
@@ -299,7 +311,7 @@ app.post('/matches', async (req, res) => {
   const { gameMode, maxPlayers = 4, status = 'waiting', gameState } = req.body
 
   if (!gameMode) {
-    return res.status(400).json({ error: 'gameMode es requerido' })
+    return res.status(400).json({ error: 'gameMode is required' })
   }
 
   try {
@@ -313,7 +325,7 @@ app.post('/matches', async (req, res) => {
     })
     res.status(201).json(match)
   } catch (error) {
-    res.status(500).json({ error: 'Error al crear partida' })
+    res.status(500).json({ error: 'Error creating match' })
   }
 })
 
@@ -336,9 +348,9 @@ app.put('/matches/:id', async (req, res) => {
     res.json(match)
   } catch (error: any) {
     if (error.code === 'P2025') {
-      return res.status(404).json({ error: 'Partida no encontrada' })
+      return res.status(404).json({ error: 'Match not found' })
     }
-    res.status(500).json({ error: 'Error al actualizar partida' })
+    res.status(500).json({ error: 'Error updating match' })
   }
 })
 
@@ -351,7 +363,7 @@ app.post('/matches/:matchId/players/:username', async (req, res) => {
     // Verificar que el usuario existe
     const user = await prisma.user.findUnique({ where: { username } })
     if (!user) {
-      return res.status(404).json({ error: 'Usuario no encontrado' })
+      return res.status(404).json({ error: 'User not found' })
     }
     const matchPlayer = await prisma.matchPlayer.create({
       data: {
@@ -365,9 +377,9 @@ app.post('/matches/:matchId/players/:username', async (req, res) => {
     res.status(201).json(matchPlayer)
   } catch (error: any) {
     if (error.code === 'P2002') {
-      return res.status(400).json({ error: 'El usuario ya está en esta partida' })
+      return res.status(400).json({ error: 'User is already in match' })
     }
-    res.status(500).json({ error: 'Error al agregar jugador a partida' })
+    res.status(500).json({ error: 'Error adding user to match' })
   }
 })
 
@@ -388,9 +400,9 @@ app.put('/match-players/:id', async (req, res) => {
     res.json(matchPlayer)
   } catch (error: any) {
     if (error.code === 'P2025') {
-      return res.status(404).json({ error: 'Jugador en partida no encontrado' })
+      return res.status(404).json({ error: 'Player not found in match' })
     }
-    res.status(500).json({ error: 'Error al actualizar jugador' })
+    res.status(500).json({ error: 'Error updating player' })
   }
 })
 
@@ -407,12 +419,12 @@ app.delete('/matches/:matchId/players/:username', async (req, res) => {
     })
 
     if (deleted.count === 0) {
-      return res.status(404).json({ error: 'Jugador no encontrado en partida' })
+      return res.status(404).json({ error: 'Player not found in match' })
     }
 
     res.json({ message: 'Jugador eliminado de partida' })
   } catch (error) {
-    res.status(500).json({ error: 'Error al eliminar jugador' })
+    res.status(500).json({ error: 'Error removing player' })
   }
 })
 
@@ -422,7 +434,7 @@ app.put('/matches/:id/gamestate', async (req, res) => {
   const { gameState } = req.body
 
   if (!gameState) {
-    return res.status(400).json({ error: 'gameState es requerido' })
+    return res.status(400).json({ error: 'gameState is required' })
   }
 
   try {
@@ -434,9 +446,9 @@ app.put('/matches/:id/gamestate', async (req, res) => {
     res.json(match)
   } catch (error: any) {
     if (error.code === 'P2025') {
-      return res.status(404).json({ error: 'Partida no encontrada' })
+      return res.status(404).json({ error: 'Match not found' })
     }
-    res.status(500).json({ error: 'Error al actualizar estado de juego' })
+    res.status(500).json({ error: 'Error updating game' })
   }
 })
 
@@ -450,7 +462,7 @@ app.get('/achievements', async (req, res) => {
     const achievements = await prisma.achievement.findMany()
     res.json(achievements)
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener logros' })
+    res.status(500).json({ error: 'Error loading achievements' })
   }
 })
 
@@ -469,11 +481,11 @@ app.get('/achievements/:id', async (req, res) => {
     })
 
     if (!achievement) {
-      return res.status(404).json({ error: 'Logro no encontrado' })
+      return res.status(404).json({ error: 'Achievement not found' })
     }
     res.json(achievement)
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener logro' })
+    res.status(500).json({ error: 'Error loading achievement' })
   }
 })
 
@@ -482,7 +494,7 @@ app.post('/achievements', async (req, res) => {
   const { name, description } = req.body
 
   if (!name || !description) {
-    return res.status(400).json({ error: 'name y description son requeridos' })
+    return res.status(400).json({ error: 'name and description are necesary' })
   }
 
   try {
@@ -491,7 +503,7 @@ app.post('/achievements', async (req, res) => {
     })
     res.status(201).json(achievement)
   } catch (error) {
-    res.status(500).json({ error: 'Error al crear logro' })
+    res.status(500).json({ error: 'Error creating achievement' })
   }
 })
 
@@ -503,7 +515,7 @@ app.post('/users/:username/achievements/:achievementName_id', async (req, res) =
     // Verificar que el usuario existe
     const user = await prisma.user.findUnique({ where: { username } })
     if (!user) {
-      return res.status(404).json({ error: 'Usuario no encontrado' })
+      return res.status(404).json({ error: 'User not found' })
     }
     const userAchievement = await prisma.userAchievement.create({
       data: {
@@ -518,9 +530,9 @@ app.post('/users/:username/achievements/:achievementName_id', async (req, res) =
     res.status(201).json(userAchievement)
   } catch (error: any) {
     if (error.code === 'P2002') {
-      return res.status(400).json({ error: 'El usuario ya tiene este logro' })
+      return res.status(400).json({ error: 'User has this achievement' })
     }
-    res.status(500).json({ error: 'Error al desbloquear logro' })
+    res.status(500).json({ error: 'Error unlock achievement' })
   }
 })
 
@@ -535,7 +547,7 @@ app.get('/users/:username/achievements', async (req, res) => {
     })
     res.json(achievements)
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener logros' })
+    res.status(500).json({ error: 'Error loading achievements' })
   }
 })
 
@@ -551,7 +563,7 @@ app.get('/health', (req, res) => {
 app.post('/auth/register', async (req, res) => {
   const { username, email, password, avatarUrl } = req.body
   if (!username || !email || !password) {
-    return res.status(400).json({ error: 'Faltan campos requeridos' })
+    return res.status(400).json({ error: 'Missing required fields' })
   }
   try {
     const passwordHash = await hashPassword(password)
@@ -567,22 +579,22 @@ app.post('/auth/register', async (req, res) => {
     const { passwordHash: _, ...safeUser } = user
     res.status(201).json({ ok: true, user: safeUser })
   } catch (error: any) {
-    if (error.code === 'P2002') return res.status(400).json({ error: 'Username o email ya existe' })
-    res.status(500).json({ error: 'Error al registrar' })
+    if (error.code === 'P2002') return res.status(400).json({ error: 'Username or email already exist' })
+    res.status(500).json({ error: 'Error registering' })
   }
 })
 
 app.post('/auth/login', async (req, res) => {
   const { email, password } = req.body
   if (!email || !password) {
-    return res.status(400).json({ error: 'Faltan campos requeridos' })
+    return res.status(400).json({ error: 'Missing required fiedls' })
   }
   try {
     const user = await prisma.user.findUnique({ where: { email } })
-    if (!user) return res.status(401).json({ error: 'Usuario no encontrado' })
+    if (!user) return res.status(401).json({ error: 'User not found' })
 
     const valid = await verifyPassword(password, user.passwordHash)
-    if (!valid) return res.status(401).json({ error: 'Password incorrecto' })
+    if (!valid) return res.status(401).json({ error: 'Incomplete password' })
 
     const { passwordHash: _, ...safeUser } = user
     res.json({ ok: true, user: safeUser })
