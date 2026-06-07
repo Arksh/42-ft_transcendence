@@ -553,7 +553,7 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 				/>
 			))}
 
-			{/* Chat panel */}
+			{/* Chat panel (draggable; defaults to bottom-right) */}
 			<Chat
 				messages={chatMessages}
 				onSend={sendChat}

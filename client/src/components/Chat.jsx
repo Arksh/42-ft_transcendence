@@ -12,7 +12,6 @@ function loadPosFromSession() {
       return parsed;
     }
   } catch {
-    // ignore
   }
   return null;
 }
@@ -60,6 +59,7 @@ export default function Chat({ messages, onSend, status, playerId }) {
       setPos(clampToViewport(e.clientX - dx, e.clientY - dy, boxRef.current));
     }
     function onUp() { setDragging(false); }
+
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
     return () => {

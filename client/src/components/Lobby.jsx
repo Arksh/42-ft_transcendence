@@ -156,8 +156,9 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
           <label style={{ display: 'block', marginBottom: '8px', color: '#FFD700' }}>Room Name</label>
           <input
             value={roomInput}
-            onChange={e => setRoomInput(e.target.value)}
+            onChange={e => setRoomInput(e.target.value.toLowerCase().replace(/[^a-z0-0-]/g, ''))}
             placeholder="e.g. waterloo-1815"
+            maxLength={15}
             style={inputStyle}
           />
           <label style={{ display: 'block', margin: '16px 0 8px', color: '#FFD700' }}>Players</label>
@@ -180,8 +181,9 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
           <label style={{ display: 'block', marginBottom: '8px', color: '#FFD700' }}>Room Name</label>
           <input
             value={roomInput}
-            onChange={e => setRoomInput(e.target.value)}
+            onChange={e => setRoomInput(e.target.value.toLowerCase().replace(/[^a-z0-0-]/g, ''))}
             placeholder="Enter room name"
+            maxLength={15}
             style={inputStyle}
           />
           {error?.includes("Choose other login") ? (
