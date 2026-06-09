@@ -21,10 +21,11 @@ export const api = {
   register: (email, username, password) => request('POST', '/auth/register', { email, username, password }, true),
 
   // Rooms
-  createRoom:   (roomId, maxPlayers) => request('POST', '/rooms', { roomId, maxPlayers }),
-  joinRoom:     (roomId, playerId, playerName, faction) => 
+  createRoom:   (roomId, maxPlayers, maxTurns) => request('POST', '/rooms', { roomId, maxPlayers, maxTurns }),
+  joinRoom:     (roomId, playerId, playerName, faction) =>
     request('POST', `/rooms/${roomId}/join`, { playerId, playerName, faction }),
   getRoom:      (roomId) => request('GET', `/rooms/${roomId}`),
+  listRooms:    () => request('GET', '/rooms'),
   startRoom:    (roomId) => request('POST', `/rooms/${roomId}/start`),
 
   // Game
@@ -35,10 +36,21 @@ export const api = {
   fortify:      (roomId, fortifyFrom, fortifyTo, troops) => 
     request('POST', `/rooms/${roomId}/game/fortify`, { fortifyFrom, fortifyTo, troops }),
   nextTurn:     (roomId) => request('POST', `/rooms/${roomId}/game/next-turn`),
+  surrender:    (roomId, playerId) =>
+    request('POST', `/rooms/${roomId}/game/surrender`, { playerId }),
 
   // Players
   getPlayer: (username) => request('GET', `/users/${username}`, null, true),
+  updateUser: (username, data) => request('PUT', `/users/${username}`, data, true),
   saveMatch: (data) => request('POST', '/matches', data, true),
-  unlockAchievement: (username, achievementId) => 
+  unlockAchievement: (username, achievementId) =>
     request('POST', `/users/${username}/achievements/${achievementId}`, null, true),
+
+  // Achievements
+  getAchievements: () => request('GET', '/achievements', null, true),
+
+  // Friends
+  getFriends: (username) => request('GET', `/users/${username}/friends`, null, true),
+  addFriend: (me, them) => request('POST', `/users/${me}/friends/${them}`, null, true),
+  removeFriend: (me, them) => request('DELETE', `/users/${me}/friends/${them}`, null, true),
 };

@@ -6,15 +6,25 @@ import Gamestate from '../gameState.js';
 export function createRoomsRouter({ db, publisher }) {
   const router = Router();
 
+  router.get('/rooms', async (_req, res) => {
+    const rooms = await db.listRooms();
+    res.json({ ok: true, rooms });
+  });
+
   router.post('/rooms', async (req, res) => {
-    const { roomId, maxPlayers } = req.body;
+    const { roomId, maxPlayers, maxTurns } = req.body;
     if (!roomId || roomId.trim() === '')
       return res.status(400).json({ ok: false, error: 'Invalid room name' });
     if (await db.hasRoom(roomId))
       return res.status(409).json({ ok: false, error: 'Room already exists' });
 
+    const turns = Number.isInteger(maxTurns) ? maxTurns : 100;
+    if (turns < 10 || turns > 500)
+      return res.status(400).json({ ok: false, error: 'maxTurns must be between 10 and 500' });
+
     await db.saveRoom(roomId, {
       maxPlayers,
+      maxTurns: turns,
       players: [],
       gameState: null,
       started: false,
@@ -61,7 +71,7 @@ export function createRoomsRouter({ db, publisher }) {
       return res.status(400).json({ ok: false, error: 'Not enough players' });
     if (room.started) return res.status(400).json({ ok: false, error: 'Already started' });
 
-    room.gameState = new Gamestate(room.players);
+    room.gameState = new Gamestate(room.players, room.maxTurns ?? 100);
     room.started = true;
     await db.saveRoom(req.params.roomId, room);
     publisher.publishState(req.params.roomId, room.gameState);

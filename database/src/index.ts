@@ -4,6 +4,8 @@ import { PrismaPg } from '@prisma/adapter-pg'
 import express from 'express'
 import cors from 'cors'
 import { hashPassword, verifyPassword } from './auth'
+// @ts-ignore - plain JS module without type declarations
+import { ACHIEVEMENTS } from '../shared/Achievements.js'
 
 const pool = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
 const prisma = new PrismaClient({ adapter: pool })
@@ -141,6 +143,40 @@ app.get('/users/:username/stats', async (req, res) => {
   }
 })
 
+// POST /users/:username/stats/record-game - Atomic increment after a finished game
+app.post('/users/:username/stats/record-game', async (req, res) => {
+  const { username } = req.params
+  const { won, territoriesConquered = 0, totalTurns = 0 } = req.body
+
+  if (typeof won !== 'boolean') {
+    return res.status(400).json({ error: 'won (boolean) is required' })
+  }
+  if (!Number.isInteger(territoriesConquered) || territoriesConquered < 0) {
+    return res.status(400).json({ error: 'territoriesConquered must be a non-negative integer' })
+  }
+  if (!Number.isInteger(totalTurns) || totalTurns < 0) {
+    return res.status(400).json({ error: 'totalTurns must be a non-negative integer' })
+  }
+
+  try {
+    const stats = await prisma.stat.update({
+      where: { username },
+      data: {
+        gamesPlayed: { increment: 1 },
+        ...(won ? { wins: { increment: 1 } } : { losses: { increment: 1 } }),
+        ...(territoriesConquered > 0 && { territoriesConquered: { increment: territoriesConquered } }),
+        ...(totalTurns > 0 && { totalTurns: { increment: totalTurns } }),
+      },
+    })
+    res.json(stats)
+  } catch (error: any) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: 'User or stats not found' })
+    }
+    res.status(500).json({ error: 'Error recording game result' })
+  }
+})
+
 // PUT /users/:username/stats - Actualizar estadísticas
 app.put('/users/:username/stats', async (req, res) => {
   const { username } = req.params
@@ -213,7 +249,18 @@ app.post('/users/:userUsername/friends/:friendUsername', async (req, res) => {
       return res.status(404).json({ error: 'One of both users dont exists' })
     }
 
-    // Crear amistad (solo una dirección)
+    const reverse = await prisma.friendship.findUnique({
+      where: {
+        userUsername_friendUsername: {
+          userUsername: friendUsername,
+          friendUsername: userUsername
+        }
+      }
+    })
+    if (reverse) {
+      return res.status(200).json(reverse)
+    }
+
     const friendship = await prisma.friendship.create({
       data: {
         userUsername,
@@ -235,19 +282,19 @@ app.delete('/users/:userUsername/friends/:friendUsername', async (req, res) => {
   const { userUsername, friendUsername } = req.params
 
   try {
-    const friendship = await prisma.friendship.delete({
+    const result = await prisma.friendship.deleteMany({
       where: {
-        userUsername_friendUsername: {
-          userUsername,
-          friendUsername
-        }
+        OR: [
+          { userUsername, friendUsername },
+          { userUsername: friendUsername, friendUsername: userUsername }
+        ]
       }
     })
-    res.json({ message: 'Amistad eliminada', friendship })
-  } catch (error: any) {
-    if (error.code === 'P2025') {
+    if (result.count === 0) {
       return res.status(404).json({ error: 'friend not found' })
     }
+    res.json({ message: 'Amistad eliminada', removed: result.count })
+  } catch (error: any) {
     res.status(500).json({ error: 'Error removing friend' })
   }
 })
@@ -507,9 +554,9 @@ app.post('/achievements', async (req, res) => {
   }
 })
 
-// POST /users/:username/achievements/:achievementName_id - Desbloquear logro
-app.post('/users/:username/achievements/:achievementName_id', async (req, res) => {
-  const { username, achievementName_id } = req.params
+// POST /users/:username/achievements/:achievementNameId - Desbloquear logro
+app.post('/users/:username/achievements/:achievementNameId', async (req, res) => {
+  const { username, achievementNameId } = req.params
 
   try {
     // Verificar que el usuario existe
@@ -520,7 +567,7 @@ app.post('/users/:username/achievements/:achievementName_id', async (req, res) =
     const userAchievement = await prisma.userAchievement.create({
       data: {
         username,
-        achievementName_id
+        achievementNameId
       },
       include: {
         user: true,
@@ -548,6 +595,78 @@ app.get('/users/:username/achievements', async (req, res) => {
     res.json(achievements)
   } catch (error) {
     res.status(500).json({ error: 'Error loading achievements' })
+  }
+})
+
+// ============================================================================
+// TRANSCENDENCE ENDPOINTS - Rooms (persistencia de partidas en curso)
+// ============================================================================
+
+// GET /rooms - Listar todas las salas (usado por engine al arrancar)
+app.get('/rooms', async (_req, res) => {
+  try {
+    const rooms = await prisma.room.findMany()
+    res.json(rooms)
+  } catch (error) {
+    res.status(500).json({ error: 'Error loading rooms' })
+  }
+})
+
+// GET /rooms/:roomId - Obtener una sala
+app.get('/rooms/:roomId', async (req, res) => {
+  const { roomId } = req.params
+  try {
+    const room = await prisma.room.findUnique({ where: { roomId } })
+    if (!room) return res.status(404).json({ error: 'Room not found' })
+    res.json(room)
+  } catch (error) {
+    res.status(500).json({ error: 'Error loading room' })
+  }
+})
+
+// PUT /rooms/:roomId - Upsert (create + lifecycle updates usan este endpoint)
+app.put('/rooms/:roomId', async (req, res) => {
+  const { roomId } = req.params
+  const { maxPlayers, maxTurns, started, players, gameState } = req.body
+
+  const data = {
+    ...(maxPlayers !== undefined && { maxPlayers }),
+    ...(maxTurns !== undefined && { maxTurns }),
+    ...(started !== undefined && { started }),
+    ...(players !== undefined && { players }),
+    ...(gameState !== undefined && { gameState }),
+  }
+
+  try {
+    const room = await prisma.room.upsert({
+      where: { roomId },
+      create: {
+        roomId,
+        maxPlayers: maxPlayers ?? 4,
+        maxTurns: maxTurns ?? 100,
+        started: started ?? false,
+        players: players ?? [],
+        gameState: gameState ?? null,
+      },
+      update: data,
+    })
+    res.json(room)
+  } catch (error) {
+    res.status(500).json({ error: 'Error saving room' })
+  }
+})
+
+// DELETE /rooms/:roomId - Eliminar sala (al finalizar la partida)
+app.delete('/rooms/:roomId', async (req, res) => {
+  const { roomId } = req.params
+  try {
+    await prisma.room.delete({ where: { roomId } })
+    res.json({ message: 'Room deleted' })
+  } catch (error: any) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: 'Room not found' })
+    }
+    res.status(500).json({ error: 'Error deleting room' })
   }
 })
 
@@ -602,6 +721,32 @@ app.post('/auth/login', async (req, res) => {
     res.status(500).json({ error: 'Error login' })
   }
 })
+
+// Upsert the achievement definitions from shared/Achievements.js so the
+// `achievements` table is always in sync with the gameplay source of truth.
+// Runs once on boot; safe to re-run because upsert is idempotent.
+async function seedAchievements() {
+  const entries: any[] = Object.values(ACHIEVEMENTS as any)
+  for (const a of entries) {
+    await prisma.achievement.upsert({
+      where: { nameId: a.id },
+      create: { nameId: a.id, name: a.name, description: a.description },
+      update: { name: a.name, description: a.description },
+    })
+  }
+  console.log(`[database] seeded ${entries.length} achievements from shared/Achievements.js`)
+}
+
+// IIFE because this file is transpiled to CJS by tsx (no "type": "module" in
+// package.json), so top-level await would fail to compile. The server still
+// starts synchronously below; the seed runs in the background.
+;(async () => {
+  try {
+    await seedAchievements()
+  } catch (err: any) {
+    console.error('[database] failed to seed achievements:', err?.message ?? err)
+  }
+})()
 
 const PORT = parseInt(process.env.PORT || '4000')
 const server = app.listen(PORT, () =>

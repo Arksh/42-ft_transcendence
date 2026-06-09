@@ -113,11 +113,38 @@ model Stat {
   losses       Int    @default(0)
   /// ELO actual
   elo          Int    @default(1000)
+  /// Territorios conquistados acumulados
+  territoriesConquered Int @default(0)
+  /// Turnos jugados acumulados
+  totalTurns   Int    @default(0)
 
   // Relaciones
   user User @relation(fields: [username], references: [username], onDelete: Cascade)
 
   @@map("stats")
+}
+
+/// Sala de juego persistida para restaurar el estado tras un reinicio del engine.
+/// Solo se escribe en eventos de ciclo de vida (create/join/start/turn-end).
+model Room {
+  /// Nombre semántico de la sala (PK)
+  roomId      String   @id @db.VarChar(50)
+  /// Máximo de jugadores permitidos en la sala
+  maxPlayers  Int      @default(4)
+  /// Número máximo de turnos antes de victoria por puntuación
+  maxTurns    Int      @default(100)
+  /// Indica si la partida ya comenzó
+  started     Boolean  @default(false)
+  /// Lista de jugadores en la sala (JSON: [{id, name, faction, color}, ...])
+  players     Json     @default("[]")
+  /// Snapshot serializado del Gamestate (null mientras started=false)
+  gameState   Json?
+  /// Fecha de creación de la sala
+  createdAt   DateTime @default(now()) @db.Timestamp(6)
+  /// Última actualización
+  updatedAt   DateTime @updatedAt @db.Timestamp(6)
+
+  @@map("rooms")
 }
 
 /// Logro disponible en el sistema.
