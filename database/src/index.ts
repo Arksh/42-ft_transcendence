@@ -4,6 +4,8 @@ import { PrismaPg } from '@prisma/adapter-pg'
 import express from 'express'
 import cors from 'cors'
 import { hashPassword, verifyPassword } from './auth'
+// @ts-ignore - plain JS module without type declarations
+import { ACHIEVEMENTS } from '../shared/Achievements.js'
 
 const pool = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
 const prisma = new PrismaClient({ adapter: pool })
@@ -672,6 +674,32 @@ app.post('/auth/login', async (req, res) => {
     res.status(500).json({ error: 'Error login' })
   }
 })
+
+// Upsert the achievement definitions from shared/Achievements.js so the
+// `achievements` table is always in sync with the gameplay source of truth.
+// Runs once on boot; safe to re-run because upsert is idempotent.
+async function seedAchievements() {
+  const entries: any[] = Object.values(ACHIEVEMENTS as any)
+  for (const a of entries) {
+    await prisma.achievement.upsert({
+      where: { nameId: a.id },
+      create: { nameId: a.id, name: a.name, description: a.description },
+      update: { name: a.name, description: a.description },
+    })
+  }
+  console.log(`[database] seeded ${entries.length} achievements from shared/Achievements.js`)
+}
+
+// IIFE because this file is transpiled to CJS by tsx (no "type": "module" in
+// package.json), so top-level await would fail to compile. The server still
+// starts synchronously below; the seed runs in the background.
+;(async () => {
+  try {
+    await seedAchievements()
+  } catch (err: any) {
+    console.error('[database] failed to seed achievements:', err?.message ?? err)
+  }
+})()
 
 const PORT = parseInt(process.env.PORT || '4000')
 const server = app.listen(PORT, () =>
