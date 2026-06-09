@@ -30,8 +30,6 @@ services:
     build:
       context: .
       dockerfile: client/Dockerfile
-    ports:
-      - '80:80'
     depends_on:
       - engine
       - realtime
@@ -79,6 +77,18 @@ services:
       retries: 3
       start_period: 30s
 
+  nginx:
+    build: ./nginx
+    container_name: transcendence_nginx
+    ports:
+      - "0.0.0.0:80:80"
+      - "0.0.0.0:443:443"
+    depends_on:
+      - client
+      - engine
+      - database
+      - realtime
+    restart: unless-stopped
+
 volumes:
   postgres_data:
-

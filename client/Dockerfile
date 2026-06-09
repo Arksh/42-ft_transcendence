@@ -1,8 +1,10 @@
 # ============ PHASE 1: BUILD ============
 FROM node:20-alpine AS builder
 
-ARG VITE_API_URL
+ARG VITE_API_URL=https://localhost/api/engine
+ARG VITE_WS_URL=wss://localhost/ws
 ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_WS_URL=$VITE_WS_URL
 
 WORKDIR /app
 
