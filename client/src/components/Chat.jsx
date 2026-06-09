@@ -26,7 +26,7 @@ function clampToViewport(x, y, el) {
   };
 }
 
-export default function Chat({ messages, onSend, status, playerId }) {
+export default function Chat({ messages, onSend, status, playerId, onOpenProfile }) {
   const [draft, setDraft] = useState('');
   const [minimized, setMinimized] = useState(false);
   const [pos, setPos] = useState(() => loadPosFromSession());
@@ -141,20 +141,30 @@ export default function Chat({ messages, onSend, status, playerId }) {
         onPointerDown={(e) => e.stopPropagation()}
       >
         {messages.length === 0 && <div className="italic text-[#666]">No messages yet</div>}
-        {messages.map((m, i) => (
-          <div key={i} className="mb-0.5">
-            <span
-              style={{
-                color: m.from === playerId ? '#FFD700' : (m.from === 'Server' ? '#4CAF50' : '#6496FF'),
-                fontWeight: m.from === 'Server' ? 'bold' : 'normal',
-              }}
-            >
-              {m.from === 'Server' ? `[${m.from}]` : m.from}
-            </span>
-            <span className="text-[#888]">: </span>
-            <span style={{ fontStyle: m.from === 'Server' ? 'italic' : 'normal' }}>{m.text}</span>
-          </div>
-        ))}
+        {messages.map((m, i) => {
+          const isServer = m.from === 'Server';
+          const color = m.from === playerId ? '#FFD700' : (isServer ? '#4CAF50' : '#6496FF');
+          const clickable = !isServer && onOpenProfile;
+          return (
+            <div key={i} className="mb-0.5">
+              {clickable ? (
+                <button
+                  onClick={() => onOpenProfile(m.from)}
+                  className="cursor-pointer border-0 bg-transparent p-0 font-mono text-xs hover:underline"
+                  style={{ color }}
+                >
+                  {m.from}
+                </button>
+              ) : (
+                <span style={{ color, fontWeight: isServer ? 'bold' : 'normal' }}>
+                  {isServer ? `[${m.from}]` : m.from}
+                </span>
+              )}
+              <span className="text-[#888]">: </span>
+              <span style={{ fontStyle: isServer ? 'italic' : 'normal' }}>{m.text}</span>
+            </div>
+          );
+        })}
       </div>
       <form onSubmit={submit} className="flex gap-1" onPointerDown={(e) => e.stopPropagation()}>
         <input

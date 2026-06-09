@@ -7,6 +7,7 @@ import { calculateScore } from '@trascendence/shared/Victory';
 import { api } from '../api.js';
 import AchievementNotification from './AchievementNotification.jsx';
 import Chat from './Chat.jsx';
+import Profile from './Profile.jsx';
 import useGameSocket from '../hooks/useGameSocket.js';
 import { checkAchievements } from '@trascendence/shared/Achievements';
 
@@ -75,6 +76,7 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 
 	const [chatMessages, setChatMessages] = useState([]);
 	const [showControls, setShowControls] = useState(false);
+	const [profileUsername, setProfileUsername] = useState(null);
 
 	const applyState = useCallback((state) => {
 		setCurrentPlayer(state.currentPlayer);
@@ -498,7 +500,18 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 				onSend={sendChat}
 				status={wsStatus}
 				playerId={playerId}
+				onOpenProfile={setProfileUsername}
 			/>
+
+			{profileUsername && (
+				<div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-2 sm:p-4">
+					<Profile
+						username={profileUsername}
+						currentUser={playerId}
+						onBack={() => setProfileUsername(null)}
+					/>
+				</div>
+			)}
 
 			<header className="relative flex-none py-1 sm:py-2">
 				<h1 className="m-0 text-center font-mono text-base tracking-[2px] text-[#FF6B6B] [text-shadow:0_0_10px_rgba(255,107,107,0.3)] sm:text-2xl lg:text-[32px]">
@@ -588,9 +601,19 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 							<div className={`mt-1 text-[10px] sm:mt-1.5 sm:text-[11px] ${isMyTurn ? 'text-[#4CAF50]' : 'text-[#888]'}`}>
 								Turno:{' '}
 								<span className={isMyTurn ? 'text-[#4CAF50]' : 'text-[#bbb]'}>
-									{isMyTurn
-										? 'Tu turno'
-										: `${currentPlayer.name} — ${FACTIONS[currentPlayer.faction]?.name || '?'}`}
+									{isMyTurn ? (
+										'Tu turno'
+									) : (
+										<>
+											<button
+												onClick={() => setProfileUsername(currentPlayer.id)}
+												className="cursor-pointer border-0 bg-transparent p-0 font-mono text-[10px] font-bold text-[#6496FF] hover:underline sm:text-[11px]"
+											>
+												{currentPlayer.id}
+											</button>
+											{' — '}{FACTIONS[currentPlayer.faction]?.name || '?'}
+										</>
+									)}
 								</span>
 							</div>
 						)}

@@ -215,7 +215,18 @@ app.post('/users/:userUsername/friends/:friendUsername', async (req, res) => {
       return res.status(404).json({ error: 'One of both users dont exists' })
     }
 
-    // Crear amistad (solo una dirección)
+    const reverse = await prisma.friendship.findUnique({
+      where: {
+        userUsername_friendUsername: {
+          userUsername: friendUsername,
+          friendUsername: userUsername
+        }
+      }
+    })
+    if (reverse) {
+      return res.status(200).json(reverse)
+    }
+
     const friendship = await prisma.friendship.create({
       data: {
         userUsername,
@@ -237,19 +248,19 @@ app.delete('/users/:userUsername/friends/:friendUsername', async (req, res) => {
   const { userUsername, friendUsername } = req.params
 
   try {
-    const friendship = await prisma.friendship.delete({
+    const result = await prisma.friendship.deleteMany({
       where: {
-        userUsername_friendUsername: {
-          userUsername,
-          friendUsername
-        }
+        OR: [
+          { userUsername, friendUsername },
+          { userUsername: friendUsername, friendUsername: userUsername }
+        ]
       }
     })
-    res.json({ message: 'Amistad eliminada', friendship })
-  } catch (error: any) {
-    if (error.code === 'P2025') {
+    if (result.count === 0) {
       return res.status(404).json({ error: 'friend not found' })
     }
+    res.json({ message: 'Amistad eliminada', removed: result.count })
+  } catch (error: any) {
     res.status(500).json({ error: 'Error removing friend' })
   }
 })

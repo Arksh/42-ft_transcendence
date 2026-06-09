@@ -25,7 +25,13 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
   const [error, setError] = useState(null);
   const [isCreator, setIsCreator] = useState(false);
   const [availableRooms, setAvailableRooms] = useState([]);
+  const [profileUsername, setProfileUsername] = useState(null);
   const playerId = initialPlayerId;
+
+  function openProfile(username) {
+    setProfileUsername(username || playerId);
+    setScreen('profile');
+  }
 
   useEffect(() => {
     if (screen !== 'faction' || !roomId) return;
@@ -120,7 +126,13 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
   const allPlayersJoined = roomData && roomData.players.length === roomData.maxPlayers;
 
   if (screen === 'profile') {
-    return <Profile username={playerId} onBack={() => setScreen('home')} />;
+    return (
+      <Profile
+        username={profileUsername ?? playerId}
+        currentUser={playerId}
+        onBack={() => setScreen('home')}
+      />
+    );
   }
 
   return (
@@ -151,7 +163,7 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
             </button>
           </div>
           <button
-            onClick={() => setScreen('profile')}
+            onClick={() => openProfile(playerId)}
             className={`${baseBtn} ${BG_CLASSES['#333']} mt-3`}
           >
             Profile
@@ -272,7 +284,14 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
               <div className="mb-2 text-[11px] text-[#aaa]">IN ROOM:</div>
               {roomData.players.map(p => (
                 <div key={p.id} className="mb-1 text-xs text-[#E0E0E0]">
-                  • {p.name} —{' '}
+                  •{' '}
+                  <button
+                    onClick={() => openProfile(p.id)}
+                    className="cursor-pointer border-0 bg-transparent p-0 font-mono text-xs font-bold text-[#6496FF] hover:underline"
+                  >
+                    {p.id}
+                  </button>{' '}
+                  —{' '}
                   <span style={{ color: FACTIONS[p.faction]?.color }}>
                     {FACTIONS[p.faction]?.name}
                   </span>

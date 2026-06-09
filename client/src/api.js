@@ -46,4 +46,9 @@ export const api = {
 
   // Achievements
   getAchievements: () => request('GET', '/achievements', null, true),
+
+  // Friends
+  getFriends: (username) => request('GET', `/users/${username}/friends`, null, true),
+  addFriend: (me, them) => request('POST', `/users/${me}/friends/${them}`, null, true),
+  removeFriend: (me, them) => request('DELETE', `/users/${me}/friends/${them}`, null, true),
 };

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { api } from '../api.js';
 
 const cardClass =
@@ -40,9 +40,42 @@ function Avatar({ url, username }) {
   );
 }
 
-export default function Profile({ username, onBack }) {
+export default function Profile({ username, currentUser, onBack }) {
+  // Internal nav stack so clicking a friend drills into their profile.
+  const [stack, setStack] = useState([username]);
+  useEffect(() => { setStack([username]); }, [username]);
+
+  const viewing = stack[stack.length - 1];
+  const me = currentUser ?? username;
+  const isSelf = viewing === me;
+
+  const pushUser = useCallback((u) => {
+    if (!u || u === viewing) return;
+    setStack(s => [...s, u]);
+  }, [viewing]);
+
+  const handleBack = useCallback(() => {
+    if (stack.length > 1) setStack(s => s.slice(0, -1));
+    else onBack?.();
+  }, [stack.length, onBack]);
+
+  return (
+    <ProfileView
+      key={viewing}
+      username={viewing}
+      isSelf={isSelf}
+      me={me}
+      onBack={handleBack}
+      onSelectUser={pushUser}
+    />
+  );
+}
+
+function ProfileView({ username, isSelf, me, onBack, onSelectUser }) {
   const [user, setUser] = useState(null);
   const [allAchievements, setAllAchievements] = useState([]);
+  const [friends, setFriends] = useState([]);
+  const [myFriends, setMyFriends] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -50,14 +83,26 @@ export default function Profile({ username, onBack }) {
   const [editAvatar, setEditAvatar] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [saving, setSaving] = useState(false);
+  const [friendBusy, setFriendBusy] = useState(false);
 
-  async function load() {
+  const loadMyFriends = useCallback(async () => {
+    if (!me) return;
+    try {
+      const list = await api.getFriends(me);
+      setMyFriends(Array.isArray(list) ? list : []);
+    } catch {
+      // Non-fatal: friend button just falls back to "Add"
+    }
+  }, [me]);
+
+  const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [u, achievements] = await Promise.all([
+      const [u, achievements, fr] = await Promise.all([
         api.getPlayer(username),
         api.getAchievements(),
+        api.getFriends(username),
       ]);
       if (u?.error) {
         setError(u.error);
@@ -67,16 +112,16 @@ export default function Profile({ username, onBack }) {
         setEditEmail(u.email ?? '');
       }
       setAllAchievements(Array.isArray(achievements) ? achievements : []);
+      setFriends(Array.isArray(fr) ? fr : []);
     } catch {
       setError('Connection error');
     } finally {
       setLoading(false);
     }
-  }
-
-  useEffect(() => {
-    load();
   }, [username]);
+
+  useEffect(() => { load(); }, [load]);
+  useEffect(() => { loadMyFriends(); }, [loadMyFriends]);
 
   async function handleSave() {
     setSaving(true);
@@ -109,6 +154,28 @@ export default function Profile({ username, onBack }) {
     setEditEmail(user.email ?? '');
     setEditing(false);
     setError(null);
+  }
+
+  const isFriend = myFriends.some(f => f.username === username);
+
+  async function toggleFriend() {
+    if (friendBusy || isSelf) return;
+    setFriendBusy(true);
+    setError(null);
+    try {
+      const res = isFriend
+        ? await api.removeFriend(me, username)
+        : await api.addFriend(me, username);
+      if (res?.error) {
+        setError(res.error);
+      } else {
+        await Promise.all([loadMyFriends(), load()]);
+      }
+    } catch {
+      setError('Connection error');
+    } finally {
+      setFriendBusy(false);
+    }
   }
 
   if (loading) {
@@ -170,16 +237,28 @@ export default function Profile({ username, onBack }) {
           <div className="text-xl font-bold text-[#FFD700]">{user.username}</div>
           {!editing ? (
             <>
-              <div className="mt-1 text-xs text-[#E0E0E0]">{user.email}</div>
+              {isSelf && (
+                <div className="mt-1 text-xs text-[#E0E0E0]">{user.email}</div>
+              )}
               <div className="mt-1 text-[11px] text-[#888]">
                 Enlisted: {formatDate(user.createdAt)}
               </div>
-              <button
-                onClick={() => setEditing(true)}
-                className={`${baseBtn} mt-3 bg-[#6496FF]`}
-              >
-                Edit
-              </button>
+              {isSelf ? (
+                <button
+                  onClick={() => setEditing(true)}
+                  className={`${baseBtn} mt-3 bg-[#6496FF]`}
+                >
+                  Edit
+                </button>
+              ) : (
+                <button
+                  onClick={toggleFriend}
+                  disabled={friendBusy}
+                  className={`${baseBtn} mt-3 ${isFriend ? 'bg-[#333] border-2 border-[#FF6B6B] text-[#FF6B6B]' : 'bg-[#4CAF50]'} disabled:opacity-50`}
+                >
+                  {friendBusy ? '...' : isFriend ? 'Unfriend' : 'Add Friend'}
+                </button>
+              )}
             </>
           ) : (
             <div className="mt-2 space-y-2 text-left">
@@ -233,6 +312,34 @@ export default function Profile({ username, onBack }) {
           <Stat label="Win Rate" value={`${winRate}%`} />
           <Stat label="ELO" value={stats.elo} color="#FFD700" />
         </div>
+      </div>
+
+      {/* Friends */}
+      <div className={`${cardClass} mb-4`}>
+        <div className={sectionTitle}>Friends ({friends.length})</div>
+        {friends.length === 0 ? (
+          <div className="text-xs text-[#888]">No friends yet.</div>
+        ) : (
+          <ul className="flex flex-wrap gap-1.5">
+            {friends.map(f => (
+              <li key={f.username}>
+                <button
+                  onClick={() => onSelectUser(f.username)}
+                  className="flex cursor-pointer items-center gap-1.5 rounded-full border border-[#6496FF] bg-[#1a1a1a] px-2.5 py-1 text-[11px] font-bold text-[#6496FF] hover:bg-[#6496FF]/10"
+                >
+                  {f.avatarUrl ? (
+                    <img src={f.avatarUrl} alt="" className="h-4 w-4 rounded-full object-cover" />
+                  ) : (
+                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#333] text-[9px] text-[#FFD700]">
+                      {(f.username?.[0] ?? '?').toUpperCase()}
+                    </span>
+                  )}
+                  {f.username}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* Achievements */}
