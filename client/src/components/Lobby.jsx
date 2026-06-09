@@ -57,7 +57,7 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
       const res = await api.listRooms();
       if (cancelled || !res?.ok) return;
       const joinable = (res.rooms ?? []).filter(
-        r => !r.started && (r.players?.length ?? 0) < r.maxPlayers
+        r => (r.players?.length ?? 0) < r.maxPlayers
       );
       setAvailableRooms(joinable);
     }
@@ -214,7 +214,8 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
                     className="flex w-full cursor-pointer items-center justify-between gap-2 rounded border-2 border-[#555] bg-[#333] px-3 py-2 text-left font-mono text-xs text-white hover:border-[#6496FF] hover:bg-[#3a3a4a]"
                   >
                     <span className="truncate font-bold text-[#FFD700]">{r.roomId}</span>
-                    <span className="shrink-0 text-[11px] text-[#aaa]">
+                    <span className="flex shrink-0 items-center gap-2 text-[11px] text-[#aaa]">
+                      {r.started && <span className="text-[#FF6B6B]">in progress</span>}
                       {(r.players?.length ?? 0)}/{r.maxPlayers}
                     </span>
                   </button>

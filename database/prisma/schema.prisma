@@ -56,7 +56,7 @@ model Match {
   /// Identificador único de la partida
   id         Int      @id @default(autoincrement())
   /// Modo de juego (ej: "Battle Royale")
-  gameMode   String   @unique @db.VarChar(50)
+  gameMode   String   @db.VarChar(50)
   /// Máximo de jugadores
   maxPlayers Int      @default(4)
   /// Estado de la partida (waiting, active, completed)
@@ -81,7 +81,7 @@ model MatchPlayer {
   /// Identificador único de la relación
   id         Int      @id @default(autoincrement())
   /// ID de la partida
-  matchgameMode String @db.VarChar(50)
+  matchId    Int
   /// Username del jugador
   username   String   @db.VarChar(50)
   /// Puntuación del jugador
@@ -92,11 +92,11 @@ model MatchPlayer {
   joinedAt   DateTime @default(now()) @db.Timestamp(6)
 
   // Relaciones
-  match Match @relation(fields: [matchgameMode], references: [gameMode], onDelete: Cascade)
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
   user  User  @relation(fields: [username], references: [username], onDelete: Cascade)
 
-  @@unique([matchgameMode, username])
-  @@index([matchgameMode])
+  @@unique([matchId, username])
+  @@index([matchId])
   @@index([username])
   @@map("match_players")
 }
@@ -113,6 +113,10 @@ model Stat {
   losses       Int    @default(0)
   /// ELO actual
   elo          Int    @default(1000)
+  /// Territorios conquistados acumulados
+  territoriesConquered Int @default(0)
+  /// Turnos jugados acumulados
+  totalTurns   Int    @default(0)
 
   // Relaciones
   user User @relation(fields: [username], references: [username], onDelete: Cascade)

@@ -195,7 +195,7 @@ function ProfileView({ username, isSelf, me, onBack, onSelectUser }) {
     );
   }
 
-  const stats = user.stats ?? { gamesPlayed: 0, wins: 0, losses: 0, elo: 1000 };
+  const stats = user.stats ?? { gamesPlayed: 0, wins: 0, losses: 0, elo: 1000, territoriesConquered: 0, totalTurns: 0 };
   const winRate = stats.gamesPlayed > 0
     ? Math.round((stats.wins / stats.gamesPlayed) * 100)
     : 0;
@@ -305,12 +305,14 @@ function ProfileView({ username, isSelf, me, onBack, onSelectUser }) {
       {/* Stats */}
       <div className={`${cardClass} mb-4`}>
         <div className={sectionTitle}>Battle Stats</div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
           <Stat label="Games" value={stats.gamesPlayed} />
           <Stat label="Wins" value={stats.wins} color="#4CAF50" />
           <Stat label="Losses" value={stats.losses} color="#FF6B6B" />
           <Stat label="Win Rate" value={`${winRate}%`} />
           <Stat label="ELO" value={stats.elo} color="#FFD700" />
+          <Stat label="Territories" value={stats.territoriesConquered ?? 0} color="#6496FF" />
+          <Stat label="Turns" value={stats.totalTurns ?? 0} color="#FFA94D" />
         </div>
       </div>
 

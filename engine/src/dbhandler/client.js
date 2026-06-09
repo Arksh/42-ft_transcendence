@@ -13,6 +13,32 @@
 // Pick implementation by setting DBHANDLER_URL in the engine environment.
 
 import Gamestate from '../gameState.js';
+import { calculateScore } from '@trascendence/shared/Victory';
+
+// Build the per-player records the DB needs from a finished Gamestate.
+// Position 1 is the winner; remaining players are ranked by score descending.
+function buildMatchPayload(gameState) {
+  const { winner, players, territoryOwners, playerStats = {} } = gameState;
+  const winnerFaction = winner?.factionId ?? null;
+  const ranked = players
+    .map((p) => {
+      const stats = playerStats[p.id] ?? {};
+      return {
+        username: p.id,
+        faction: p.faction,
+        score: calculateScore(p.faction, territoryOwners),
+        won: p.faction === winnerFaction,
+        territoriesConquered: stats.territoriesConquered ?? 0,
+        totalTurns: stats.totalTurns ?? 0,
+      };
+    })
+    .sort((a, b) => {
+      if (a.won !== b.won) return a.won ? -1 : 1;
+      return b.score - a.score;
+    })
+    .map((entry, idx) => ({ ...entry, position: idx + 1 }));
+  return ranked;
+}
 
 export class InMemoryDBHandler {
   constructor() {
@@ -56,6 +82,11 @@ export class InMemoryDBHandler {
 
   async saveMatchResult(matchData) {
     this.matches.push(matchData);
+  }
+
+  async persistMatchEnd(gameState) {
+    // In-memory: just keep the record locally so tests/dev runs can inspect it.
+    this.matches.push(buildMatchPayload(gameState));
   }
 
   async unlockAchievement(username, achievementId) {
@@ -151,6 +182,73 @@ export class HttpDBHandler {
 
   async saveMatchResult(matchData) {
     this.matches.push(matchData);
+  }
+
+  async persistMatchEnd(gameState) {
+    const ranked = buildMatchPayload(gameState);
+    let matchId = null;
+    try {
+      const matchRes = await fetch(`${this.baseUrl}/matches`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          gameMode: 'great-risk',
+          maxPlayers: ranked.length,
+          status: 'completed',
+          gameState: gameState.serialize(),
+        }),
+      });
+      if (!matchRes.ok) {
+        console.error(`[engine] failed to create match record: HTTP ${matchRes.status}`);
+      } else {
+        const match = await matchRes.json();
+        matchId = match.id;
+      }
+    } catch (err) {
+      console.error('[engine] error creating match record:', err.message);
+    }
+
+    await Promise.all(
+      ranked.map(async (entry) => {
+        if (matchId != null) {
+          try {
+            const res = await fetch(
+              `${this.baseUrl}/matches/${matchId}/players/${encodeURIComponent(entry.username)}`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ score: entry.score, position: entry.position }),
+              }
+            );
+            if (!res.ok && res.status !== 400) {
+              console.error(`[engine] failed to record match-player ${entry.username}: HTTP ${res.status}`);
+            }
+          } catch (err) {
+            console.error(`[engine] error recording match-player ${entry.username}:`, err.message);
+          }
+        }
+
+        try {
+          const res = await fetch(
+            `${this.baseUrl}/users/${encodeURIComponent(entry.username)}/stats/record-game`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                won: entry.won,
+                territoriesConquered: entry.territoriesConquered,
+                totalTurns: entry.totalTurns,
+              }),
+            }
+          );
+          if (!res.ok) {
+            console.error(`[engine] failed to record stats for ${entry.username}: HTTP ${res.status}`);
+          }
+        } catch (err) {
+          console.error(`[engine] error recording stats for ${entry.username}:`, err.message);
+        }
+      })
+    );
   }
 
   async unlockAchievement(username, achievementId) {

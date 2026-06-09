@@ -36,6 +36,8 @@ export const api = {
   fortify:      (roomId, fortifyFrom, fortifyTo, troops) => 
     request('POST', `/rooms/${roomId}/game/fortify`, { fortifyFrom, fortifyTo, troops }),
   nextTurn:     (roomId) => request('POST', `/rooms/${roomId}/game/next-turn`),
+  surrender:    (roomId, playerId) =>
+    request('POST', `/rooms/${roomId}/game/surrender`, { playerId }),
 
   // Players
   getPlayer: (username) => request('GET', `/users/${username}`, null, true),

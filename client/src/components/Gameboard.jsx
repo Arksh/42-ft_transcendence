@@ -73,6 +73,7 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 	const [fortifyTroops, setFortifyTroops] = useState(1);
 
 	const [playerStats, setPlayerStats] = useState({});
+	const [activeFactions, setActiveFactions] = useState([]);
 
 	const [chatMessages, setChatMessages] = useState([]);
 	const [showControls, setShowControls] = useState(false);
@@ -88,6 +89,9 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 		setReinforcementsLeft(state.reinforcementsLeft);
 		if (state.playerStats) {
 			setPlayerStats(state.playerStats);
+		}
+		if (state.activeFactions) {
+			setActiveFactions(state.activeFactions);
 		}
 	}, []);
 
@@ -112,8 +116,8 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 	useEffect(() => {
 		if (!playerStats || Object.keys(playerStats).length === 0) return;
 
-		Object.entries(playerStats).forEach(([playerId, playerStat]) => {
-			const playerUnlockedSet = playerUnlockedAchievements[playerId] || new Set();
+		Object.entries(playerStats).forEach(([pid, playerStat]) => {
+			const playerUnlockedSet = playerUnlockedAchievements[pid] || new Set();
 			const newAchievements = checkAchievements(
 				playerStat,
 				territoryOwners,
@@ -121,11 +125,14 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 			);
 
 			newAchievements.forEach((achievementId) => {
-				setVisibleAchievements((prev) => [...prev, { id: achievementId, playerId }]);
+				setVisibleAchievements((prev) => [...prev, { id: achievementId, playerId: pid }]);
 				setPlayerUnlockedAchievements((prev) => ({
 					...prev,
-					[playerId]: new Set([...playerUnlockedSet, achievementId]),
+					[pid]: new Set([...playerUnlockedSet, achievementId]),
 				}));
+				if (pid === playerId) {
+					api.unlockAchievement(playerId, achievementId).catch(() => {});
+				}
 			});
 		});
 	}, [territoryOwners, playerStats, playerUnlockedAchievements]);
@@ -315,6 +322,13 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 		});
 	}, [territoryOwners, troopCount, attackFrom, attackTo, fortifyFrom, fortifyTo, hoveredTerritory, mapReady]);
 
+	async function handleSurrender() {
+		if (winner) return;
+		if (!window.confirm('Are you sure you want to surrender? You will be eliminated from the game.')) return;
+		const res = await api.surrender(roomId, playerId);
+		if (res.ok) applyState(res.state);
+	}
+
 	async function handleNextTurn() {
 		if (winner) return;
 		if (!currentPlayer || currentPlayer.id !== playerId) return;
@@ -484,6 +498,7 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 
 	const isMyTurn = currentPlayer?.id === playerId;
 	const myFaction = playerStats?.[playerId]?.faction;
+	const isAlive = !myFaction || activeFactions.length === 0 || activeFactions.includes(myFaction);
 
 	return (
 		<div className="relative flex h-screen w-full flex-col overflow-hidden bg-[#0d0d0d]">
@@ -637,6 +652,13 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 							className="min-w-[100px] rounded border-0 bg-[#FF6B6B] px-2 py-1.5 text-[11px] font-bold text-white shadow-[0_0_10px_rgba(255,107,107,0.3)] transition-all duration-200 enabled:cursor-pointer enabled:hover:bg-[#FF5252] enabled:hover:shadow-[0_0_20px_rgba(255,107,107,0.6)] disabled:cursor-not-allowed disabled:opacity-40 sm:min-w-[140px] sm:px-4 sm:py-2 sm:text-xs"
 						>
 							Siguiente turno
+						</button>
+						<button
+							onClick={handleSurrender}
+							disabled={!isAlive || !!winner}
+							className="min-w-[100px] rounded border border-[#FF6B6B] bg-transparent px-2 py-1 text-[10px] font-bold text-[#FF6B6B] transition-all duration-200 enabled:cursor-pointer enabled:hover:bg-[#FF6B6B] enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-40 sm:min-w-[140px] sm:px-3 sm:py-1.5 sm:text-[11px]"
+						>
+							Rendirse
 						</button>
 					</div>
 

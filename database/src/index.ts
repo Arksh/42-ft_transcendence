@@ -143,6 +143,40 @@ app.get('/users/:username/stats', async (req, res) => {
   }
 })
 
+// POST /users/:username/stats/record-game - Atomic increment after a finished game
+app.post('/users/:username/stats/record-game', async (req, res) => {
+  const { username } = req.params
+  const { won, territoriesConquered = 0, totalTurns = 0 } = req.body
+
+  if (typeof won !== 'boolean') {
+    return res.status(400).json({ error: 'won (boolean) is required' })
+  }
+  if (!Number.isInteger(territoriesConquered) || territoriesConquered < 0) {
+    return res.status(400).json({ error: 'territoriesConquered must be a non-negative integer' })
+  }
+  if (!Number.isInteger(totalTurns) || totalTurns < 0) {
+    return res.status(400).json({ error: 'totalTurns must be a non-negative integer' })
+  }
+
+  try {
+    const stats = await prisma.stat.update({
+      where: { username },
+      data: {
+        gamesPlayed: { increment: 1 },
+        ...(won ? { wins: { increment: 1 } } : { losses: { increment: 1 } }),
+        ...(territoriesConquered > 0 && { territoriesConquered: { increment: territoriesConquered } }),
+        ...(totalTurns > 0 && { totalTurns: { increment: totalTurns } }),
+      },
+    })
+    res.json(stats)
+  } catch (error: any) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: 'User or stats not found' })
+    }
+    res.status(500).json({ error: 'Error recording game result' })
+  }
+})
+
 // PUT /users/:username/stats - Actualizar estadísticas
 app.put('/users/:username/stats', async (req, res) => {
   const { username } = req.params
@@ -520,9 +554,9 @@ app.post('/achievements', async (req, res) => {
   }
 })
 
-// POST /users/:username/achievements/:achievementName_id - Desbloquear logro
-app.post('/users/:username/achievements/:achievementName_id', async (req, res) => {
-  const { username, achievementName_id } = req.params
+// POST /users/:username/achievements/:achievementNameId - Desbloquear logro
+app.post('/users/:username/achievements/:achievementNameId', async (req, res) => {
+  const { username, achievementNameId } = req.params
 
   try {
     // Verificar que el usuario existe
@@ -533,7 +567,7 @@ app.post('/users/:username/achievements/:achievementName_id', async (req, res) =
     const userAchievement = await prisma.userAchievement.create({
       data: {
         username,
-        achievementName_id
+        achievementNameId
       },
       include: {
         user: true,

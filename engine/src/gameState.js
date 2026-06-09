@@ -16,6 +16,7 @@ export default class Gamestate {
 	this.phase = this.tm.phase ?? TurnManager.PHASES.REINFORCE;
 	this.winner = null;
 	this.activeFactions = players.map((p) => p.faction);
+	this.statsPersisted = false;
 	this.territoryOwners = this._initTerritoryOwners();
 	this.troopCount = this._initTroopCount();
 	this.currentPlayer = this.tm.getCurrentPlayer();
@@ -78,6 +79,7 @@ export default class Gamestate {
 	  troopCount: this.troopCount,
 	  reinforcementsLeft: this.reinforcementsLeft,
 	  activeFactions: this.activeFactions,
+	  statsPersisted: this.statsPersisted,
 		playerStats: this.playerStats,
 	  // Persistence-only fields (clients ignore unknown fields):
 	  players: this.players,
@@ -96,6 +98,7 @@ export default class Gamestate {
 	gs.phase = data.phase ?? TurnManager.PHASES.REINFORCE;
 	gs.winner = data.winner ?? null;
 	gs.activeFactions = data.activeFactions ?? gs.players.map((p) => p.faction);
+	gs.statsPersisted = data.statsPersisted ?? false;
 	gs.territoryOwners = data.territoryOwners ?? {};
 	gs.troopCount = data.troopCount ?? {};
 	gs.reinforcementsLeft = data.reinforcementsLeft ?? 0;
@@ -159,6 +162,8 @@ export default class Gamestate {
 		if (!this.playerStats[attackerId].territoriesConquered_ids.includes(attackTo)) {
 			this.playerStats[attackerId].territoriesConquered_ids.push(attackTo);
 		}
+
+		this._handleEliminations();
 	}
 
 	this.territoriesAttackedThisTurn.add(attackFrom);
@@ -199,10 +204,65 @@ export default class Gamestate {
 	return { ok: true, state: this.serialize() };
   }
 
+  _handleEliminations() {
+	const eliminated = this.activeFactions.filter(
+	  (fId) => this.territoryOwners[FACTIONS[fId].capital] !== fId
+	);
+	if (eliminated.length > 0) {
+	  this.activeFactions = this.activeFactions.filter((f) => !eliminated.includes(f));
+	}
+
+	if (this.winner) return;
+	const capitalWinner = this.activeFactions.find((fId) =>
+	  checkCapitalVictory(fId, this.territoryOwners, this.activeFactions)
+	);
+	if (capitalWinner) {
+	  this.winner = { factionId: capitalWinner, reason: 'capitals' };
+	  const winnerId = this.players.find((p) => p.faction === capitalWinner)?.id;
+	  if (winnerId) {
+		this.playerStats[winnerId].gamesWon++;
+		this.playerStats[winnerId].wonByCapitals = true;
+	  }
+	}
+  }
+
+  async surrender(playerId) {
+	if (this.winner) return { ok: false, error: 'Game already ended' };
+	const player = this.players.find((p) => p.id === playerId);
+	if (!player) return { ok: false, error: 'Player not found' };
+	if (!this.activeFactions.includes(player.faction)) {
+	  return { ok: false, error: 'Player already eliminated' };
+	}
+
+	this.activeFactions = this.activeFactions.filter((f) => f !== player.faction);
+	this._handleEliminations();
+
+	if (!this.winner && this.currentPlayer?.id === playerId) {
+	  let guard = 0;
+	  while (!this.winner && this.currentPlayer?.id === playerId && guard++ < 12) {
+		const result = await this.nextTurn();
+		if (!result.ok) break;
+	  }
+	}
+
+	return { ok: true, state: this.serialize() };
+  }
+
   async nextTurn() {
 	if (this.winner) return { ok: false, error: 'Game already ended' };
 
 	await this.tm.nextTurn();
+
+	while (
+	  this.tm.phase === TurnManager.PHASES.REINFORCE &&
+	  this.activeFactions.length > 0 &&
+	  !this.activeFactions.includes(this.tm.getCurrentPlayer().faction)
+	) {
+	  await this.tm.nextTurn(); // REINFORCE -> ATTACK
+	  await this.tm.nextTurn(); // ATTACK -> FORTIFY
+	  await this.tm.nextTurn(); // FORTIFY -> next player's REINFORCE
+	}
+
 	this.currentPlayer = this.tm.getCurrentPlayer();
 	this.phase = this.tm.phase;
 	this.territoriesAttackedThisTurn = new Set();
