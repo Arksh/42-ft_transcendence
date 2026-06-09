@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { api } from '../api';
 
+const inputClass =
+  'mb-3 box-border w-full rounded border-2 border-[#555] bg-[#333] p-2 text-center font-mono text-[13px] text-white sm:mb-5 sm:p-2.5';
+const labelClass = 'mb-1 block text-sm text-[#FFD700] sm:mb-2 sm:text-base';
+
 export default function Login({ onLogin, onGoToRegister }) {
   const [error, setError] = useState('');
 
@@ -21,105 +25,47 @@ export default function Login({ onLogin, onGoToRegister }) {
     } catch (err) {
       setError('Error de conexión con el servidor');
     }
-  }
+  };
 
   return (
-    <div style={containerStyle}>
-      <h1 style={titleStyle}>GREAT RISK</h1>
-      <p style={subtitleStyle}>Login for Battle</p>
+    <div className="mx-auto my-4 max-w-[600px] rounded-xl border-2 border-[#FF6B6B] bg-[#1a1a2e] p-5 font-mono text-white shadow-[0_0_30px_rgba(255,107,107,0.3)] sm:my-[60px] sm:p-10">
+      <h1 className="mt-0 mb-1 text-center text-2xl tracking-[2px] text-[#FF6B6B] sm:text-4xl">GREAT RISK</h1>
+      <p className="mb-4 pt-2 text-center text-sm text-[#aaa] sm:mb-8 sm:pt-4 sm:text-base">Login for Battle</p>
 
       <form onSubmit={handleSubmit}>
-        <label style={labelStyle}>EMAIL</label>
+        <label className={labelClass}>EMAIL</label>
         <input
           name="mail"
           type="email"
           autoComplete="email"
           placeholder="...@..."
           required
-          style={inputStyle}
+          className={inputClass}
         />
 
-        <label style={labelStyle}>PASSWORD</label>
+        <label className={labelClass}>PASSWORD</label>
         <input
           name="password"
           type="password"
           autoComplete="current-password"
           placeholder="..."
           required
-          style={inputStyle}
+          className={inputClass}
         />
-        <div style={{ color: '#ff4444', fontSize: '12px', marginBottom: '10px', textAlign: 'center', minHeight: '18px' }}>{error}</div>
-        <button type="submit" style={btnStyle}>LOGIN</button>
+        <div className="mb-2.5 min-h-[18px] text-center text-xs text-[#ff4444]">{error}</div>
+        <button
+          type="submit"
+          className="mt-2.5 w-full cursor-pointer rounded border-0 bg-[#FF6B6B] p-3 font-mono text-sm font-bold text-white"
+        >
+          LOGIN
+        </button>
       </form>
-      <button onClick={onGoToRegister} style={btnSecondaryStyle}>REGISTER</button>
+      <button
+        onClick={onGoToRegister}
+        className="mt-5 w-full cursor-pointer rounded border-0 bg-[#444] p-3 font-mono text-sm font-bold text-white"
+      >
+        REGISTER
+      </button>
     </div>
   );
 }
-
-// ESTILOS COPIADOS DEL LOBBY PARA QUE SEA IDÉNTICO
-const containerStyle = {
-  maxWidth: '600px',
-  margin: '60px auto',
-  fontFamily: 'monospace',
-  color: 'white',
-  backgroundColor: '#1a1a2e',
-  padding: '40px',
-  borderRadius: '12px',
-  border: '2px solid #FF6B6B',
-  boxShadow: '0 0 30px rgba(255, 107, 107, 0.3)',
-};
-
-const titleStyle = { 
-  textAlign: 'center', 
-  color: '#FF6B6B',
-  marginTop: '0px',
-  marginBottom: '4px', 
-  letterSpacing: '2px' 
-};
-
-const subtitleStyle = { 
-  textAlign: 'center', 
-  color: '#aaa', 
-  paddingTop: '15px',
-  marginBottom: '32px', 
-};
-
-const labelStyle = { 
-  display: 'block', 
-  marginBottom: '8px', 
-  color: '#FFD700' 
-};
-
-const inputStyle = {
-  width: '100%',
-  padding: '10px',
-  backgroundColor: '#333',
-  color: 'white',
-  border: '2px solid #555',
-  borderRadius: '4px',
-  fontFamily: 'monospace',
-  fontSize: '13px',
-  boxSizing: 'border-box',
-  marginBottom: '20px',
-  textAlign: 'center',
-};
-
-const btnStyle = {
-  width: '100%',
-  padding: '12px',
-  backgroundColor: '#FF6B6B',
-  color: 'white',
-  border: 'none',
-  borderRadius: '4px',
-  fontFamily: 'monospace',
-  fontSize: '14px',
-  fontWeight: 'bold',
-  cursor: 'pointer',
-  marginTop: '10px'
-};
-
-const btnSecondaryStyle = {
-  ...btnStyle, // Esto copia todo lo de btnStyle
-  backgroundColor: '#444', // Pero cambia el color a gris
-  marginTop: '20px'
-};
