@@ -126,11 +126,9 @@ All AI-generated output was reviewed, tested, and adapted by the team before bei
 
 | Member       | Role(s)                                  | Responsibilities                                        |
 | ------------ | ---------------------------------------- | ------------------------------------------------------- |
-| **cagonzal** | Product Owner, game developer            | Designer and developer of the main game Great Risk      |
-|              |                                          | using NodeJS/React                                      |
+| **cagonzal** | Product Owner, game developer            | Designer and developer of the main game Great Risk. Using NodeJS/React |
 | **fraalmei** | Developer                                | Database configuration, ORM, database conection tool    |
-| **jrollon-** | Developer                                | Login and registry front-end, authorization database    |
-|              |                                          | management, Privacy Policy & Terms of Service, QA       |
+| **jrollon-** | Developer                                | Login and registry front-end, authorization database management, Privacy Policy & Terms of Service, QA |
 | **samartin** | Scrum Master, developer                  | https with NginX management, QA, documentation          |
 | **dyunta**   | Tech Lead                                | Backend realtime, API, global design                    |
 
