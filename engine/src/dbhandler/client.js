@@ -38,7 +38,6 @@ export class InMemoryDBHandler {
 
   async saveMatchResult(matchData) {
     this.matches.push(matchData);
-    console.log('Match result (in-memory):', matchData);
   }
 
   async unlockAchievement(username, achievementId) {
@@ -46,7 +45,6 @@ export class InMemoryDBHandler {
     if (!player) return;
     if (!player.achievements.includes(achievementId)) {
       player.achievements.push(achievementId);
-      console.log(`Achievement unlocked (in-memory): ${achievementId} for ${username}`);
     }
   }
 }

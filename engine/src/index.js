@@ -19,5 +19,4 @@ app.use(createPlayersRouter({ db }));
 
 const PORT = Number(process.env.PORT) || 3000;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Engine (Core Game API) running on http://localhost:${PORT}`);
 });

@@ -104,17 +104,14 @@ const achievementData: Prisma.AchievementCreateInput[] = [
 ]
 
 async function main() {
-  console.log(`🚀 Iniciando seeding de la base de datos...`)
 
   try {
     // Solo sembrar si la base de datos está vacía (evita pisar datos reales).
     const userCount = await prisma.user.count()
     if (userCount > 0) {
-      console.log('✨ La base de datos ya tiene datos, saltando seeding base.')
       return
     }
 
-    console.log('👥 Creando usuarios...')
     const users: any[] = []
     for (const u of usersBase) {
       const user = await prisma.user.create({
@@ -130,24 +127,18 @@ async function main() {
         include: { stats: true },
       })
       users.push(user)
-      console.log(
-        `   ✓ Usuario creado: ${user.username} - ELO: ${user.stats?.elo}`
-      )
     }
 
     // Crear logros
-    console.log('🏆 Creando logros...')
     const achievements: any[] = []
     for (const achievement of achievementData) {
       const created = await prisma.achievement.create({
         data: achievement,
       })
       achievements.push(created)
-      console.log(`   ✓ Logro creado: ${created.name}`)
     }
 
     // Crear amistades
-    console.log('🤝 Creando amistades...')
     const friendships = [
       { userUsername: users[0].username, friendUsername: users[1].username },
       { userUsername: users[0].username, friendUsername: users[2].username },
@@ -160,13 +151,9 @@ async function main() {
       await prisma.friendship.create({
         data: friendship,
       })
-      console.log(
-        `   ✓ Amistad: ${friendship.userUsername} <-> ${friendship.friendUsername}`
-      )
     }
 
     // Crear partidas
-    console.log('🎮 Creando partidas...')
     const matches = [
       {
         gameMode: 'Battle Royale',
@@ -201,11 +188,9 @@ async function main() {
         data: match as any,
       })
       createdMatches.push(created)
-      console.log(`   ✓ Partida creada: ${created.gameMode} (ID: ${created.id})`)
     }
 
     // Crear jugadores en partidas
-    console.log('🏅 Asignando jugadores a partidas...')
     const matchPlayers = [
       {
         matchId: createdMatches[0].id,
@@ -255,10 +240,8 @@ async function main() {
         data: mp as any,
       })
     }
-    console.log(`   ✓ ${matchPlayers.length} jugadores asignados a partidas`)
 
     // Asignar logros a usuarios
-    console.log('🎖️  Asignando logros a usuarios...')
 
     const userAchievements = [
       { username: users[0].username, achievementNameId: achievements[0].nameId },
@@ -274,17 +257,7 @@ async function main() {
         data: ua as any,
       })
     }
-    console.log(`   ✓ ${userAchievements.length} logros asignados`)
-
-    console.log('\n✅ Seeding completado exitosamente!')
-    console.log(`\n📊 Resumen:`)
-    console.log(`   - ${users.length} usuarios creados`)
-    console.log(`   - ${achievements.length} logros creados`)
-    console.log(`   - ${friendships.length} amistades creadas`)
-    console.log(`   - ${createdMatches.length} partidas creadas`)
-    console.log(`   - ${matchPlayers.length} jugadores en partidas`)
   } catch (error) {
-    console.error('❌ Error durante el seeding:', error)
     throw error
   }
 }
@@ -294,7 +267,6 @@ main()
     await prisma.$disconnect()
   })
   .catch(async (e) => {
-    console.error(e)
     await prisma.$disconnect()
     process.exit(1)
   })

@@ -40,7 +40,6 @@ function initializeTroopCount() {
 
 // export default function GameBoard({ players }) {
 export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
-	console.log('GameBoard props:', { roomId, playerId });
 	// ========== GAME SETUP ==========
 	const MAX_TURNS = 100;
 
@@ -458,45 +457,35 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 			// 1er clic en fase ATTACK: selecciona el territorio de origen
 			if (!attackFrom) {
 				if (territoryOwners[clickedId] !== currentPlayer.faction) {
-					console.log('No puedes atacar desde un territorio que no posees:', clickedTerritory.name);
 					return;
 				}
 				if (troopCount[clickedId] <= 1) {
-					console.log(
-						'No puedes atacar desde un territorio con 1 tropa o menos:',
-						clickedTerritory.name
-					);
 					return;
 				}
 				setAttackFrom(clickedId);
-				console.log('Seleccionado para atacar desde:', clickedTerritory.name);
 				return;
 			}
 
 			// 2do clic en fase ATTACK: selecciona el territorio de destino
 			if (clickedId === attackFrom) {
-				console.log('Deseleccionando origen de ataque:', clickedTerritory.name);
 				setAttackFrom(null);
 				setAttackTo(null);
 				return;
 			}
 			if (clickedId === attackTo) {
-				console.log('Deseleccionando destino de ataque:', clickedTerritory.name);
 				setAttackTo(null);
 				return;
 			}
 
 			if (territoryOwners[clickedId] === currentPlayer.faction) {
-				console.log('No puedes atacar a un territorio que ya posees:', clickedTerritory.name);
 				return;
 			}
+
 			if (!TERRITORIES[attackFrom].neighbors.includes(clickedId)) {
-				console.log('Solo puedes atacar territorios vecinos:', clickedTerritory.name);
 				return;
 			}
 
 			setAttackTo(clickedId);
-			console.log('Seleccionado para atacar a:', clickedTerritory.name);
 			setAttackTroops(1); // Reset slider to minimum on new target selection
 			return;
 		}
@@ -508,7 +497,6 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 				if (territoryOwners[clickedId] !== currentPlayer.faction) return;
 				if (troopCount[clickedId] <= 1) return;
 				setFortifyFrom(clickedId);
-				console.log('Fortificación: origen seleccionado -', clickedTerritory.name);
 				return;
 			}
 
@@ -516,12 +504,10 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 			if (clickedId === fortifyFrom) {
 				setFortifyFrom(null);
 				setFortifyTo(null);
-				console.log('Fortificación: origen deseleccionado');
 				return;
 			}
 			if (clickedId === fortifyTo) {
 				setFortifyTo(null);
-				console.log('Fortificación: destino deseleccionado');
 				return;
 			}
 			if (territoryOwners[clickedId] !== currentPlayer.faction) return;
@@ -529,7 +515,6 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 
 			// Solo establecer el destino, dejar que el botón "Mover" haga el cambio
 			setFortifyTo(clickedId);
-			console.log('Fortificación: destino seleccionado -', clickedTerritory.name);
 		}
 	}
 
