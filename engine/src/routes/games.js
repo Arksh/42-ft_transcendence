@@ -46,7 +46,7 @@ export function createGamesRouter({ db, publisher }) {
     const { territoryId } = req.body;
     const result = room.gameState.reinforce(territoryId);
     if (result.ok) {
-      await db.saveRoom(req.params.roomId, room);
+      await db.saveRoom(req.params.roomId, room, { persist: false });
       publisher.publishState(req.params.roomId, room.gameState);
     }
     res.json(result);
@@ -60,7 +60,7 @@ export function createGamesRouter({ db, publisher }) {
     const { attackFrom, attackTo, attackTroops } = req.body;
     const result = room.gameState.attack(attackFrom, attackTo, attackTroops);
     if (result.ok) {
-      await db.saveRoom(req.params.roomId, room);
+      await db.saveRoom(req.params.roomId, room, { persist: false });
       publisher.publishState(req.params.roomId, room.gameState);
     }
     res.json(result);
@@ -74,7 +74,7 @@ export function createGamesRouter({ db, publisher }) {
     const { fortifyFrom, fortifyTo, troops } = req.body;
     const result = room.gameState.fortify(fortifyFrom, fortifyTo, troops);
     if (result.ok) {
-      await db.saveRoom(req.params.roomId, room);
+      await db.saveRoom(req.params.roomId, room, { persist: false });
       publisher.publishState(req.params.roomId, room.gameState);
     }
     res.json(result);
@@ -87,8 +87,12 @@ export function createGamesRouter({ db, publisher }) {
 
     const result = await room.gameState.nextTurn();
     if (result.ok) {
-      await db.saveRoom(req.params.roomId, room);
       publisher.publishState(req.params.roomId, room.gameState);
+      if (room.gameState.winner) {
+        await db.deleteRoom(req.params.roomId);
+      } else {
+        await db.saveRoom(req.params.roomId, room);
+      }
     }
     res.json(result);
   });

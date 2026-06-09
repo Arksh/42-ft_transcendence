@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FACTIONS } from '@trascendence/shared/Factions';
 import { api } from '../api.js';
+import Profile from './Profile.jsx';
 
 const baseBtn =
   'w-full cursor-pointer rounded border-0 p-2.5 text-center font-mono text-[13px] font-bold text-white';
@@ -23,6 +24,7 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
   const [roomData, setRoomData] = useState(null);
   const [error, setError] = useState(null);
   const [isCreator, setIsCreator] = useState(false);
+  const [availableRooms, setAvailableRooms] = useState([]);
   const playerId = initialPlayerId;
 
   useEffect(() => {
@@ -41,6 +43,24 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
     return () => clearInterval(interval);
   }, [screen, roomId, faction, onStart, playerId]);
 
+  useEffect(() => {
+    if (screen !== 'join') return;
+
+    let cancelled = false;
+    async function fetchRooms() {
+      const res = await api.listRooms();
+      if (cancelled || !res?.ok) return;
+      const joinable = (res.rooms ?? []).filter(
+        r => !r.started && (r.players?.length ?? 0) < r.maxPlayers
+      );
+      setAvailableRooms(joinable);
+    }
+
+    fetchRooms();
+    const interval = setInterval(fetchRooms, 2000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [screen]);
+
   async function handleCreateRoom() {
     if (!roomInput.trim()) return;
     const res = await api.createRoom(roomInput.trim(), maxPlayers);
@@ -51,9 +71,10 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
     setError(null);
   }
 
-  async function handleJoinRoom() {
-    if (!roomInput.trim()) return;
-    const res = await api.getRoom(roomInput.trim());
+  async function handleJoinRoom(nameArg) {
+    const name = (typeof nameArg === 'string' ? nameArg : roomInput).trim();
+    if (!name) return;
+    const res = await api.getRoom(name);
     if (!res.ok) { setError(res.error); return; }
 
     const playersInRoom = res.room.players;
@@ -64,7 +85,7 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
       return;
     }
 
-    setRoomId(roomInput.trim());
+    setRoomId(name);
     setRoomData(res.room);
 
     if (playersInRoom[0]?.id === initialPlayerId) {
@@ -98,6 +119,10 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
   const takenFactions = roomData?.players?.map(p => p.faction) ?? [];
   const allPlayersJoined = roomData && roomData.players.length === roomData.maxPlayers;
 
+  if (screen === 'profile') {
+    return <Profile username={playerId} onBack={() => setScreen('home')} />;
+  }
+
   return (
     <div className="relative mx-auto my-4 max-h-[92vh] max-w-[600px] overflow-y-auto rounded-xl border-2 border-[#FF6B6B] bg-[#1a1a2e] p-5 font-mono text-white shadow-[0_0_30px_rgba(255,107,107,0.3)] sm:my-[60px] sm:p-10">
       <button
@@ -116,14 +141,22 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
       )}
 
       {screen === 'home' && (
-        <div className="flex gap-3">
-          <button onClick={() => setScreen('create')} className={`${baseBtn} ${BG_CLASSES['#FF6B6B']}`}>
-            Create Room
+        <>
+          <div className="flex gap-3">
+            <button onClick={() => setScreen('create')} className={`${baseBtn} ${BG_CLASSES['#FF6B6B']}`}>
+              Create Room
+            </button>
+            <button onClick={() => setScreen('join')} className={`${baseBtn} ${BG_CLASSES['#6496FF']}`}>
+              Join Room
+            </button>
+          </div>
+          <button
+            onClick={() => setScreen('profile')}
+            className={`${baseBtn} ${BG_CLASSES['#333']} mt-3`}
+          >
+            Profile
           </button>
-          <button onClick={() => setScreen('join')} className={`${baseBtn} ${BG_CLASSES['#6496FF']}`}>
-            Join Room
-          </button>
-        </div>
+        </>
       )}
 
       {screen === 'create' && (
@@ -155,6 +188,29 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
 
       {screen === 'join' && (
         <div>
+          <label className={labelClass}>Available Rooms</label>
+          {availableRooms.length === 0 ? (
+            <div className="mb-4 rounded border-2 border-dashed border-[#555] bg-[#222] p-3 text-center text-xs text-[#888]">
+              No joinable rooms right now — create one or enter a name below.
+            </div>
+          ) : (
+            <ul className="mb-4 max-h-[180px] space-y-1.5 overflow-y-auto pr-1">
+              {availableRooms.map(r => (
+                <li key={r.roomId}>
+                  <button
+                    onClick={() => handleJoinRoom(r.roomId)}
+                    className="flex w-full cursor-pointer items-center justify-between gap-2 rounded border-2 border-[#555] bg-[#333] px-3 py-2 text-left font-mono text-xs text-white hover:border-[#6496FF] hover:bg-[#3a3a4a]"
+                  >
+                    <span className="truncate font-bold text-[#FFD700]">{r.roomId}</span>
+                    <span className="shrink-0 text-[11px] text-[#aaa]">
+                      {(r.players?.length ?? 0)}/{r.maxPlayers}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
           <label className={labelClass}>Room Name</label>
           <input
             value={roomInput}
@@ -169,7 +225,7 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
             </button>
           ) : (
             <>
-              <button onClick={handleJoinRoom} className={`${baseBtn} ${BG_CLASSES['#6496FF']} mt-4`}>Join</button>
+              <button onClick={() => handleJoinRoom()} className={`${baseBtn} ${BG_CLASSES['#6496FF']} mt-4`}>Join</button>
               <button onClick={() => setScreen('home')} className={`${baseBtn} ${BG_CLASSES['#333']} mt-2`}>Back</button>
             </>
           )}

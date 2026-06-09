@@ -79,7 +79,37 @@ export default class Gamestate {
 	  reinforcementsLeft: this.reinforcementsLeft,
 	  activeFactions: this.activeFactions,
 		playerStats: this.playerStats,
+	  // Persistence-only fields (clients ignore unknown fields):
+	  players: this.players,
+	  maxTurns: this.maxTurns,
+	  currentPlayerIndex: this.tm?.currentPlayer ?? 0,
 	};
+  }
+
+  // Rehydrate from a serialized snapshot without re-running the constructor's
+  // initialization (which would reset territory owners and troop counts).
+  static fromSerialized(data) {
+	const gs = Object.create(Gamestate.prototype);
+	gs.players = data.players ?? [];
+	gs.maxTurns = data.maxTurns ?? 100;
+	gs.turn = data.turn ?? 1;
+	gs.phase = data.phase ?? TurnManager.PHASES.REINFORCE;
+	gs.winner = data.winner ?? null;
+	gs.activeFactions = data.activeFactions ?? gs.players.map((p) => p.faction);
+	gs.territoryOwners = data.territoryOwners ?? {};
+	gs.troopCount = data.troopCount ?? {};
+	gs.reinforcementsLeft = data.reinforcementsLeft ?? 0;
+	gs.playerStats = data.playerStats ?? {};
+	gs.currentPlayer = data.currentPlayer ?? null;
+	// territoriesAttackedThisTurn is a Set and is intentionally NOT persisted.
+	// Restoring it as empty means a player whose turn was mid-attack at crash
+	// time keeps the territory-level "attacked once" restriction until next turn,
+	// which is acceptable for lifecycle-only persistence.
+	gs.territoriesAttackedThisTurn = new Set();
+	gs.tm = new TurnManager(gs.players);
+	gs.tm.setCurrentPlayer(data.currentPlayerIndex ?? 0);
+	gs.tm.phase = gs.phase;
+	return gs;
   }
 
   reinforce(territoryId) {

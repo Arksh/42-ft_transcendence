@@ -22,9 +22,10 @@ export const api = {
 
   // Rooms
   createRoom:   (roomId, maxPlayers) => request('POST', '/rooms', { roomId, maxPlayers }),
-  joinRoom:     (roomId, playerId, playerName, faction) => 
+  joinRoom:     (roomId, playerId, playerName, faction) =>
     request('POST', `/rooms/${roomId}/join`, { playerId, playerName, faction }),
   getRoom:      (roomId) => request('GET', `/rooms/${roomId}`),
+  listRooms:    () => request('GET', '/rooms'),
   startRoom:    (roomId) => request('POST', `/rooms/${roomId}/start`),
 
   // Game
@@ -38,7 +39,11 @@ export const api = {
 
   // Players
   getPlayer: (username) => request('GET', `/users/${username}`, null, true),
+  updateUser: (username, data) => request('PUT', `/users/${username}`, data, true),
   saveMatch: (data) => request('POST', '/matches', data, true),
-  unlockAchievement: (username, achievementId) => 
+  unlockAchievement: (username, achievementId) =>
     request('POST', `/users/${username}/achievements/${achievementId}`, null, true),
+
+  // Achievements
+  getAchievements: () => request('GET', '/achievements', null, true),
 };

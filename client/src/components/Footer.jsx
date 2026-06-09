@@ -1,6 +1,6 @@
 export default function Footer({ onPrivacy, onTerms }) {
   return (
-    <footer className="fixed bottom-0 left-0 z-[1000] w-full border-t border-[#333] bg-[#0a0a1a] py-4 text-center font-mono text-xs text-[#888]">
+    <footer className="w-full border-t border-[#333] bg-[#0a0a1a] py-4 text-center font-mono text-xs text-[#888]">
       <span
         onClick={onPrivacy}
         className="cursor-pointer text-[#aaa] underline transition-colors duration-200 hover:text-white"

@@ -120,6 +120,27 @@ model Stat {
   @@map("stats")
 }
 
+/// Sala de juego persistida para restaurar el estado tras un reinicio del engine.
+/// Solo se escribe en eventos de ciclo de vida (create/join/start/turn-end).
+model Room {
+  /// Nombre semántico de la sala (PK)
+  roomId      String   @id @db.VarChar(50)
+  /// Máximo de jugadores permitidos en la sala
+  maxPlayers  Int      @default(4)
+  /// Indica si la partida ya comenzó
+  started     Boolean  @default(false)
+  /// Lista de jugadores en la sala (JSON: [{id, name, faction, color}, ...])
+  players     Json     @default("[]")
+  /// Snapshot serializado del Gamestate (null mientras started=false)
+  gameState   Json?
+  /// Fecha de creación de la sala
+  createdAt   DateTime @default(now()) @db.Timestamp(6)
+  /// Última actualización
+  updatedAt   DateTime @updatedAt @db.Timestamp(6)
+
+  @@map("rooms")
+}
+
 /// Logro disponible en el sistema.
 model Achievement {
   /// Identificador único del logro

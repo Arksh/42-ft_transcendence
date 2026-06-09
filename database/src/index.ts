@@ -551,6 +551,76 @@ app.get('/users/:username/achievements', async (req, res) => {
   }
 })
 
+// ============================================================================
+// TRANSCENDENCE ENDPOINTS - Rooms (persistencia de partidas en curso)
+// ============================================================================
+
+// GET /rooms - Listar todas las salas (usado por engine al arrancar)
+app.get('/rooms', async (_req, res) => {
+  try {
+    const rooms = await prisma.room.findMany()
+    res.json(rooms)
+  } catch (error) {
+    res.status(500).json({ error: 'Error loading rooms' })
+  }
+})
+
+// GET /rooms/:roomId - Obtener una sala
+app.get('/rooms/:roomId', async (req, res) => {
+  const { roomId } = req.params
+  try {
+    const room = await prisma.room.findUnique({ where: { roomId } })
+    if (!room) return res.status(404).json({ error: 'Room not found' })
+    res.json(room)
+  } catch (error) {
+    res.status(500).json({ error: 'Error loading room' })
+  }
+})
+
+// PUT /rooms/:roomId - Upsert (create + lifecycle updates usan este endpoint)
+app.put('/rooms/:roomId', async (req, res) => {
+  const { roomId } = req.params
+  const { maxPlayers, started, players, gameState } = req.body
+
+  const data = {
+    ...(maxPlayers !== undefined && { maxPlayers }),
+    ...(started !== undefined && { started }),
+    ...(players !== undefined && { players }),
+    ...(gameState !== undefined && { gameState }),
+  }
+
+  try {
+    const room = await prisma.room.upsert({
+      where: { roomId },
+      create: {
+        roomId,
+        maxPlayers: maxPlayers ?? 4,
+        started: started ?? false,
+        players: players ?? [],
+        gameState: gameState ?? null,
+      },
+      update: data,
+    })
+    res.json(room)
+  } catch (error) {
+    res.status(500).json({ error: 'Error saving room' })
+  }
+})
+
+// DELETE /rooms/:roomId - Eliminar sala (al finalizar la partida)
+app.delete('/rooms/:roomId', async (req, res) => {
+  const { roomId } = req.params
+  try {
+    await prisma.room.delete({ where: { roomId } })
+    res.json({ message: 'Room deleted' })
+  } catch (error: any) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: 'Room not found' })
+    }
+    res.status(500).json({ error: 'Error deleting room' })
+  }
+})
+
 // Health check endpoint para Docker
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' })

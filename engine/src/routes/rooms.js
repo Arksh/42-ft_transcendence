@@ -6,6 +6,11 @@ import Gamestate from '../gameState.js';
 export function createRoomsRouter({ db, publisher }) {
   const router = Router();
 
+  router.get('/rooms', async (_req, res) => {
+    const rooms = await db.listRooms();
+    res.json({ ok: true, rooms });
+  });
+
   router.post('/rooms', async (req, res) => {
     const { roomId, maxPlayers } = req.body;
     if (!roomId || roomId.trim() === '')

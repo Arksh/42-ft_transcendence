@@ -74,6 +74,7 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 	const [playerStats, setPlayerStats] = useState({});
 
 	const [chatMessages, setChatMessages] = useState([]);
+	const [showControls, setShowControls] = useState(false);
 
 	const applyState = useCallback((state) => {
 		setCurrentPlayer(state.currentPlayer);
@@ -483,7 +484,7 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 	const myFaction = playerStats?.[playerId]?.faction;
 
 	return (
-		<div className="relative min-h-screen w-full bg-[#0d0d0d] py-5">
+		<div className="relative flex h-screen w-full flex-col overflow-hidden bg-[#0d0d0d]">
 			{visibleAchievements.map((achievement) => (
 				<AchievementNotification
 					key={`${achievement.playerId}-${achievement.id}`}
@@ -499,27 +500,28 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 				playerId={playerId}
 			/>
 
-			<h1 className="my-2.5 text-center font-mono text-xl tracking-[2px] text-[#FF6B6B] [text-shadow:0_0_10px_rgba(255,107,107,0.3)] sm:text-2xl lg:text-[32px]">
-				GREAT RISK
-			</h1>
+			<header className="relative flex-none py-1 sm:py-2">
+				<h1 className="m-0 text-center font-mono text-base tracking-[2px] text-[#FF6B6B] [text-shadow:0_0_10px_rgba(255,107,107,0.3)] sm:text-2xl lg:text-[32px]">
+					GREAT RISK
+				</h1>
+				<div className="absolute top-1 left-2 flex gap-1.5 sm:top-2 sm:left-5 sm:gap-2.5">
+					<button
+						onClick={onExitGame}
+						className="cursor-pointer rounded border border-[#555] bg-[#333] px-2 py-0.5 font-mono text-[10px] text-[#aaa] sm:px-2.5 sm:py-1 sm:text-[11px]"
+					>
+						&larr; Exit
+					</button>
+					<button
+						onClick={onLogout}
+						className="cursor-pointer rounded border border-[#FF6B6B] bg-transparent px-2 py-0.5 font-mono text-[10px] text-[#FF6B6B] sm:px-2.5 sm:py-1 sm:text-[11px]"
+					>
+						Logout
+					</button>
+				</div>
+			</header>
 
-			<div className="absolute top-2 left-2 flex gap-1.5 sm:top-5 sm:left-5 sm:gap-2.5">
-				<button
-					onClick={onExitGame}
-					className="cursor-pointer rounded border border-[#555] bg-[#333] px-2 py-0.5 font-mono text-[10px] text-[#aaa] sm:px-2.5 sm:py-1 sm:text-[11px]"
-				>
-					&larr; Exit
-				</button>
-				<button
-					onClick={onLogout}
-					className="cursor-pointer rounded border border-[#FF6B6B] bg-transparent px-2 py-0.5 font-mono text-[10px] text-[#FF6B6B] sm:px-2.5 sm:py-1 sm:text-[11px]"
-				>
-					Logout
-				</button>
-			</div>
-
-			<div className="mx-auto flex w-full max-w-[1100px] flex-col px-2 sm:px-0">
-				<div className="relative w-full aspect-[1100/700]">
+			<main className="flex min-h-0 flex-1 items-center justify-center px-1 sm:px-2">
+				<div className="relative mx-auto aspect-[1100/700] h-full max-h-full w-auto max-w-full">
 					<canvas
 						ref={canvasRef}
 						width={CANVAS_WIDTH}
@@ -563,8 +565,15 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 						</div>
 					)}
 				</div>
+			</main>
 
-				<div className="flex items-center justify-between gap-2 border-t-[3px] border-[#FF6B6B] bg-[#0f0f0f] p-2 font-mono shadow-[0_-5px_15px_rgba(255,107,107,0.2)] sm:gap-3 sm:p-3">
+			<footer
+				className={`absolute bottom-9 left-1/2 z-20 flex w-[min(calc(100vw-0.5rem),calc((100dvh-2rem)*1100/700))] -translate-x-1/2 items-center justify-between gap-2 rounded-md border-2 border-[#FF6B6B] bg-[#0f0f0f]/90 p-2 font-mono shadow-[0_0_20px_rgba(255,107,107,0.4)] backdrop-blur-sm transition-all duration-300 ease-out sm:gap-3 sm:p-3 lg:static lg:bottom-auto lg:left-auto lg:z-auto lg:mx-0 lg:w-auto lg:max-w-none lg:flex-none lg:translate-x-0 lg:translate-y-0 lg:rounded-none lg:border-x-0 lg:border-b-0 lg:border-t-[3px] lg:bg-[#0f0f0f] lg:opacity-100 lg:shadow-[0_-5px_15px_rgba(255,107,107,0.2)] lg:backdrop-blur-none ${
+					showControls
+						? 'translate-y-0 opacity-100'
+						: 'pointer-events-none translate-y-full opacity-0 lg:pointer-events-auto'
+				}`}
+			>
 					<div className="flex-1 text-[11px] text-[#E0E0E0] sm:text-[13px]">
 						<div>
 							Facción:{' '}
@@ -601,7 +610,8 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 						</div>
 						<button
 							onClick={handleNextTurn}
-							className="min-w-[100px] cursor-pointer rounded border-0 bg-[#FF6B6B] px-2 py-1.5 text-[11px] font-bold text-white shadow-[0_0_10px_rgba(255,107,107,0.3)] transition-all duration-200 hover:bg-[#FF5252] hover:shadow-[0_0_20px_rgba(255,107,107,0.6)] sm:min-w-[140px] sm:px-4 sm:py-2 sm:text-xs"
+							disabled={!isMyTurn || !!winner}
+							className="min-w-[100px] rounded border-0 bg-[#FF6B6B] px-2 py-1.5 text-[11px] font-bold text-white shadow-[0_0_10px_rgba(255,107,107,0.3)] transition-all duration-200 enabled:cursor-pointer enabled:hover:bg-[#FF5252] enabled:hover:shadow-[0_0_20px_rgba(255,107,107,0.6)] disabled:cursor-not-allowed disabled:opacity-40 sm:min-w-[140px] sm:px-4 sm:py-2 sm:text-xs"
 						>
 							Siguiente turno
 						</button>
@@ -676,8 +686,16 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 							</div>
 						)}
 					</div>
-				</div>
-			</div>
+</footer>
+
+			<button
+				type="button"
+				onClick={() => setShowControls((s) => !s)}
+				aria-label={showControls ? 'Hide controls' : 'Show controls'}
+				className="absolute bottom-1 left-1/2 z-30 flex h-7 w-12 -translate-x-1/2 cursor-pointer items-center justify-center rounded-md border border-[#FF6B6B] bg-[#0f0f0f]/90 font-mono text-sm text-[#FF6B6B] shadow-[0_0_10px_rgba(255,107,107,0.4)] backdrop-blur-sm hover:bg-[#FF6B6B] hover:text-white lg:hidden"
+			>
+				{showControls ? '▼' : '▲'}
+			</button>
 
 			{winner && (
 				<div className="fixed top-1/2 left-1/2 z-30 max-h-[90vh] w-[92vw] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[10px] border-[3px] border-[#FF6B6B] bg-black/95 p-5 text-center font-mono text-white shadow-[0_0_30px_rgba(255,107,107,0.5)] sm:p-8">
