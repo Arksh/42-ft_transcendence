@@ -46,6 +46,7 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 	// ========== CANVAS REFS ==========
 	const canvasRef = useRef(null);
 	const pickingCanvasRef = useRef(null);
+	const [mapReady, setMapReady] = useState(false);
 	const territoryCanvasRef = useRef(null);
 	const territoryPixelsRef = useRef({});
 	// const initializedRef = useRef(false);
@@ -193,6 +194,7 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 			terrCanvas.height = CANVAS_HEIGHT;
 			const tCtx = terrCanvas.getContext('2d');
 			territoryCanvasRef.current = terrCanvas;
+			setMapReady(true);
 
 			// Fill provinces with initial faction colors
 			Object.entries(TERRITORIES).forEach(([id]) => {
@@ -344,7 +346,7 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 			ctx.textAlign = 'center';
 			ctx.fillText(territory.name, territory.cx, territory.cy + 20);
 		});
-	}, [territoryOwners, troopCount, attackFrom, attackTo, fortifyFrom, fortifyTo, hoveredTerritory]);
+	}, [territoryOwners, troopCount, attackFrom, attackTo, fortifyFrom, fortifyTo, hoveredTerritory, mapReady]);
 
 	// ========== TURN MANAGEMENT ==========
 	async function handleNextTurn() {
