@@ -20,6 +20,7 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
   const [roomId, setRoomId] = useState('');
   const [roomInput, setRoomInput] = useState('');
   const [maxPlayers, setMaxPlayers] = useState(2);
+  const [maxTurns, setMaxTurns] = useState(100);
   const [faction, setFaction] = useState(null);
   const [roomData, setRoomData] = useState(null);
   const [error, setError] = useState(null);
@@ -69,7 +70,7 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
 
   async function handleCreateRoom() {
     if (!roomInput.trim()) return;
-    const res = await api.createRoom(roomInput.trim(), maxPlayers);
+    const res = await api.createRoom(roomInput.trim(), maxPlayers, maxTurns);
     if (!res.ok) { setError(res.error); return; }
     setRoomId(roomInput.trim());
     setIsCreator(true);
@@ -188,6 +189,18 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
                 key={n}
                 onClick={() => setMaxPlayers(n)}
                 className={`${baseBtn} ${maxPlayers === n ? BG_CLASSES['#FF6B6B'] : BG_CLASSES['#333']}`}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+          <label className={labelClass}>Turns</label>
+          <div className="mb-5 flex gap-2">
+            {[50, 100, 200].map(n => (
+              <button
+                key={n}
+                onClick={() => setMaxTurns(n)}
+                className={`${baseBtn} ${maxTurns === n ? BG_CLASSES['#FF6B6B'] : BG_CLASSES['#333']}`}
               >
                 {n}
               </button>

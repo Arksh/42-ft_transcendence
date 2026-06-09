@@ -305,7 +305,7 @@ function ProfileView({ username, isSelf, me, onBack, onSelectUser }) {
       {/* Stats */}
       <div className={`${cardClass} mb-4`}>
         <div className={sectionTitle}>Battle Stats</div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
           <Stat label="Games" value={stats.gamesPlayed} />
           <Stat label="Wins" value={stats.wins} color="#4CAF50" />
           <Stat label="Losses" value={stats.losses} color="#FF6B6B" />

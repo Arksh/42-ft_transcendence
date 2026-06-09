@@ -39,7 +39,6 @@ function initializeTroopCount() {
 
 export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 	console.log('GameBoard props:', { roomId, playerId });
-	const MAX_TURNS = 100;
 
 	const canvasRef = useRef(null);
 	const pickingCanvasRef = useRef(null);
@@ -74,6 +73,7 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 
 	const [playerStats, setPlayerStats] = useState({});
 	const [activeFactions, setActiveFactions] = useState([]);
+	const [maxTurns, setMaxTurns] = useState(100);
 
 	const [chatMessages, setChatMessages] = useState([]);
 	const [showControls, setShowControls] = useState(false);
@@ -92,6 +92,9 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 		}
 		if (state.activeFactions) {
 			setActiveFactions(state.activeFactions);
+		}
+		if (state.maxTurns) {
+			setMaxTurns(state.maxTurns);
 		}
 	}, []);
 
@@ -643,7 +646,7 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 						<div className="text-center text-[11px] text-white sm:text-[13px]">
 							<div>Turno</div>
 							<div className="text-sm font-bold text-[#FFD700] sm:text-base">
-								{turn} / {MAX_TURNS}
+								{turn} / {maxTurns}
 							</div>
 						</div>
 						<button

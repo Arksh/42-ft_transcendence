@@ -131,6 +131,8 @@ model Room {
   roomId      String   @id @db.VarChar(50)
   /// Máximo de jugadores permitidos en la sala
   maxPlayers  Int      @default(4)
+  /// Número máximo de turnos antes de victoria por puntuación
+  maxTurns    Int      @default(100)
   /// Indica si la partida ya comenzó
   started     Boolean  @default(false)
   /// Lista de jugadores en la sala (JSON: [{id, name, faction, color}, ...])

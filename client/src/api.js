@@ -21,7 +21,7 @@ export const api = {
   register: (email, username, password) => request('POST', '/auth/register', { email, username, password }, true),
 
   // Rooms
-  createRoom:   (roomId, maxPlayers) => request('POST', '/rooms', { roomId, maxPlayers }),
+  createRoom:   (roomId, maxPlayers, maxTurns) => request('POST', '/rooms', { roomId, maxPlayers, maxTurns }),
   joinRoom:     (roomId, playerId, playerName, faction) =>
     request('POST', `/rooms/${roomId}/join`, { playerId, playerName, faction }),
   getRoom:      (roomId) => request('GET', `/rooms/${roomId}`),

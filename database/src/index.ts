@@ -627,10 +627,11 @@ app.get('/rooms/:roomId', async (req, res) => {
 // PUT /rooms/:roomId - Upsert (create + lifecycle updates usan este endpoint)
 app.put('/rooms/:roomId', async (req, res) => {
   const { roomId } = req.params
-  const { maxPlayers, started, players, gameState } = req.body
+  const { maxPlayers, maxTurns, started, players, gameState } = req.body
 
   const data = {
     ...(maxPlayers !== undefined && { maxPlayers }),
+    ...(maxTurns !== undefined && { maxTurns }),
     ...(started !== undefined && { started }),
     ...(players !== undefined && { players }),
     ...(gameState !== undefined && { gameState }),
@@ -642,6 +643,7 @@ app.put('/rooms/:roomId', async (req, res) => {
       create: {
         roomId,
         maxPlayers: maxPlayers ?? 4,
+        maxTurns: maxTurns ?? 100,
         started: started ?? false,
         players: players ?? [],
         gameState: gameState ?? null,

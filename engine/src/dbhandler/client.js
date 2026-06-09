@@ -120,6 +120,7 @@ export class HttpDBHandler {
     for (const row of rows) {
       const room = {
         maxPlayers: row.maxPlayers,
+        maxTurns: row.maxTurns ?? 100,
         players: row.players ?? [],
         started: row.started ?? false,
         gameState: row.gameState ? Gamestate.fromSerialized(row.gameState) : null,
@@ -152,6 +153,7 @@ export class HttpDBHandler {
 
     const body = {
       maxPlayers: room.maxPlayers,
+      maxTurns: room.maxTurns ?? 100,
       started: !!room.started,
       players: room.players ?? [],
       gameState: room.gameState ? room.gameState.serialize() : null,
