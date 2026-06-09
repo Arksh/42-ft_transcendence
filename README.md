@@ -122,8 +122,6 @@ All AI-generated output was reviewed, tested, and adapted by the team before bei
 
 ## Team Information
 
-> **TODO (team):** confirm the role assignments below. The subject (Chapter II) requires PO, PM/Scrum Master, Tech Lead/Architect, and Developers. With 5 members each role can be dedicated.
-
 | Member       | Role(s)                                  | Responsibilities                                        |
 | ------------ | ---------------------------------------- | ------------------------------------------------------- |
 | **cagonzal** | Product Owner, game developer            | Designer and developer of the main game Great Risk. Using NodeJS/React |
@@ -230,15 +228,13 @@ Source of truth: [`database/prisma/schema.prisma`](./database/prisma/schema.pris
 
 ## Individual Contributions
 
-> **TODO (team):** fill in each member's detailed contributions, the modules and features they led, and any challenges they overcame. Cross-reference with `git shortlog -sn` and merged Pull Requests.
-
 ### cagonzal
 - **Implemented:** Game engine (turns, combat, victory logic), shared rules system, game-state synchronization
 - **Modules owned:** Gaming — Web-based game; Gaming — Remote players; Gaming — Multiplayer (3+)
 - **Challenges & lessons:** Synchronizing game state across multiple clients in real-time; implementing fair dice-based combat resolution; handling 4-player concurrent match logic
 
 ### fraalmei
-- **Implemented:** _TODO_
+- **Implemented: _TODO_
 - **Modules owned:** _TODO_
 - **Challenges & lessons:** _TODO_
 
