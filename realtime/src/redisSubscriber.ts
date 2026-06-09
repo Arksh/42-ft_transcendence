@@ -11,18 +11,14 @@ export function startRedisSubscriber(redisUrl: string, rooms: RoomRegistry): Red
   });
 
   sub.on('connect', () => {
-    console.log(`[redis] connected to ${redisUrl}`);
   });
   sub.on('error', (err) => {
-    console.error('[redis] error:', err.message);
   });
 
   sub.psubscribe(CHANNEL_PATTERN, (err, count) => {
     if (err) {
-      console.error('[redis] psubscribe failed:', err.message);
       return;
     }
-    console.log(`[redis] psubscribed to '${CHANNEL_PATTERN}' (count=${count})`);
   });
 
   sub.on('pmessage', (_pattern, channel, message) => {
@@ -33,7 +29,6 @@ export function startRedisSubscriber(redisUrl: string, rooms: RoomRegistry): Red
     try {
       state = JSON.parse(message);
     } catch (e) {
-      console.error(`[redis] invalid JSON on ${channel}:`, (e as Error).message);
       return;
     }
     rooms.broadcast(roomId, { type: 'state', state });

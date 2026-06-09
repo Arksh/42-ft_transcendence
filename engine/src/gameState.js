@@ -172,10 +172,7 @@ export default class Gamestate {
   async nextTurn() {
 	if (this.winner) return { ok: false, error: 'Game already ended' };
 
-	console.log('ANTES - phase GameState:', this.phase);
-	console.log('ANTES - phase TurnManager:', this.tm.phase);
 	await this.tm.nextTurn();
-	console.log('DESPUÉS - phase TurnManager:', this.tm.phase);
 	this.currentPlayer = this.tm.getCurrentPlayer();
 	this.phase = this.tm.phase;
 	this.territoriesAttackedThisTurn = new Set();

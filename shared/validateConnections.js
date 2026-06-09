@@ -21,12 +21,8 @@ function validateConnections() {
 
   // Report results
   if (errors.length === 0) {
-    console.log('✅ All connections are bilateral!');
-    console.log(`📍 Total territories: ${Object.keys(TERRITORIES).length}`);
     return true;
   } else {
-    console.log(`❌ Found ${errors.length} bilateral connection issue(s):\n`);
-    errors.forEach((error) => console.log(`  ${error}`));
     return false;
   }
 }

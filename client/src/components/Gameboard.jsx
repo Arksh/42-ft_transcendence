@@ -42,6 +42,7 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 
 	const canvasRef = useRef(null);
 	const pickingCanvasRef = useRef(null);
+	const [mapReady, setMapReady] = useState(false);
 	const territoryCanvasRef = useRef(null);
 	const territoryPixelsRef = useRef({});
 
@@ -170,6 +171,7 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 			terrCanvas.height = CANVAS_HEIGHT;
 			const tCtx = terrCanvas.getContext('2d');
 			territoryCanvasRef.current = terrCanvas;
+			setMapReady(true);
 
 			Object.entries(TERRITORIES).forEach(([id]) => {
 				let factionColor;
@@ -308,7 +310,7 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 			ctx.textAlign = 'center';
 			ctx.fillText(territory.name, territory.cx, territory.cy + 20);
 		});
-	}, [territoryOwners, troopCount, attackFrom, attackTo, fortifyFrom, fortifyTo, hoveredTerritory]);
+	}, [territoryOwners, troopCount, attackFrom, attackTo, fortifyFrom, fortifyTo, hoveredTerritory, mapReady]);
 
 	async function handleNextTurn() {
 		if (winner) return;
@@ -421,45 +423,35 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 		if (phase === TurnManager.PHASES.ATTACK) {
 			if (!attackFrom) {
 				if (territoryOwners[clickedId] !== currentPlayer.faction) {
-					console.log('No puedes atacar desde un territorio que no posees:', clickedTerritory.name);
 					return;
 				}
 				if (troopCount[clickedId] <= 1) {
-					console.log(
-						'No puedes atacar desde un territorio con 1 tropa o menos:',
-						clickedTerritory.name
-					);
 					return;
 				}
 				setAttackFrom(clickedId);
-				console.log('Seleccionado para atacar desde:', clickedTerritory.name);
 				return;
 			}
 
 			if (clickedId === attackFrom) {
-				console.log('Deseleccionando origen de ataque:', clickedTerritory.name);
 				setAttackFrom(null);
 				setAttackTo(null);
 				return;
 			}
 			if (clickedId === attackTo) {
-				console.log('Deseleccionando destino de ataque:', clickedTerritory.name);
 				setAttackTo(null);
 				return;
 			}
 
 			if (territoryOwners[clickedId] === currentPlayer.faction) {
-				console.log('No puedes atacar a un territorio que ya posees:', clickedTerritory.name);
 				return;
 			}
+
 			if (!TERRITORIES[attackFrom].neighbors.includes(clickedId)) {
-				console.log('Solo puedes atacar territorios vecinos:', clickedTerritory.name);
 				return;
 			}
 
 			setAttackTo(clickedId);
-			console.log('Seleccionado para atacar a:', clickedTerritory.name);
-			setAttackTroops(1);
+			setAttackTroops(1); // Reset slider to minimum on new target selection
 			return;
 		}
 
@@ -468,26 +460,22 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 				if (territoryOwners[clickedId] !== currentPlayer.faction) return;
 				if (troopCount[clickedId] <= 1) return;
 				setFortifyFrom(clickedId);
-				console.log('Fortificación: origen seleccionado -', clickedTerritory.name);
 				return;
 			}
 
 			if (clickedId === fortifyFrom) {
 				setFortifyFrom(null);
 				setFortifyTo(null);
-				console.log('Fortificación: origen deseleccionado');
 				return;
 			}
 			if (clickedId === fortifyTo) {
 				setFortifyTo(null);
-				console.log('Fortificación: destino deseleccionado');
 				return;
 			}
 			if (territoryOwners[clickedId] !== currentPlayer.faction) return;
 			if (!TERRITORIES[fortifyFrom].neighbors.includes(clickedId)) return;
 
 			setFortifyTo(clickedId);
-			console.log('Fortificación: destino seleccionado -', clickedTerritory.name);
 		}
 	}
 

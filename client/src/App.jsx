@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   App.jsx                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
+/*   By: cagonzal <cagonzal@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/28 13:47:37 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/05/29 12:04:33 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/06/09 18:14:28 by cagonzal         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,9 +24,6 @@ export default function App() {
 	const [user, setUser] = useState(null);
 	const [view, setView] = useState('login');
 	const [gameInfo, setGameInfo] = useState(null);
-
-	console.log('gameInfo:', gameInfo);
-	console.log('roomId tipo:', typeof gameInfo?.roomId, gameInfo?.roomId);
 
 	const handleLogout = () => {
 		setUser(null);
