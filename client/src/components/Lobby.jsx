@@ -184,7 +184,7 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
           />
           <label className={`${labelClass} mt-4`}>Players</label>
           <div className="mb-5 flex gap-2">
-            {[2, 3, 4].map(n => (
+            {[2, 3, 4, 5, 6].map(n => (
               <button
                 key={n}
                 onClick={() => setMaxPlayers(n)}
