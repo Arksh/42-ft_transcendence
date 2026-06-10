@@ -756,7 +756,7 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 							: `Victoria por puntos — ${calculateScore(winner.factionId, territoryOwners)} pts`}
 					</p>
 					<button
-						onClick={() => window.location.reload()}
+						onClick={onExitGame}
 						className="cursor-pointer rounded border-0 bg-[#4CAF50] px-5 py-2.5 text-sm font-bold text-white transition-all duration-200 hover:bg-[#45a049] hover:shadow-[0_0_15px_rgba(76,175,80,0.5)]"
 					>
 						Nueva partida
