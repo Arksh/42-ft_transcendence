@@ -81,8 +81,7 @@ services:
     environment:
       PRISMA_PORT: ${PRISMA_PORT:-4000}
     ports:
-      - "0.0.0.0:80:80"
-      - "0.0.0.0:443:443"
+      - "0.0.0.0:6969:443"
     depends_on:
       - client
       - engine
