@@ -1,10 +1,10 @@
 FROM nginx:1.25-alpine
 
-# Install OpenSSL
-RUN apk add --no-cache openssl
+# Install OpenSSL (for self-signed cert) and gettext (for envsubst)
+RUN apk add --no-cache openssl gettext
 
-# Copy configuration
-COPY nginx.conf /etc/nginx/nginx.conf
+# Copy configuration template (rendered by entrypoint via envsubst)
+COPY nginx.conf /etc/nginx/nginx.conf.template
 
 # Copy entrypoint script
 COPY docker-entrypoint.sh /docker-entrypoint.sh

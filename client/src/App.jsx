@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Lobby from './components/Lobby.jsx';
 import GameBoard from './components/Gameboard.jsx';
 import Login from './components/Login.jsx';
@@ -20,10 +20,26 @@ import Privacy from './components/Privacy.jsx';
 import Terms from './components/Terms.jsx';
 import RotatePrompt from './components/RotatePrompt.jsx';
 
+const USER_STORAGE_KEY = 'transcendence.user';
+
+function loadUser() {
+	try {
+		const raw = localStorage.getItem(USER_STORAGE_KEY);
+		return raw ? JSON.parse(raw) : null;
+	} catch {
+		return null;
+	}
+}
+
 export default function App() {
-	const [user, setUser] = useState(null);
+	const [user, setUser] = useState(loadUser);
 	const [view, setView] = useState('login');
 	const [gameInfo, setGameInfo] = useState(null);
+
+	useEffect(() => {
+		if (user) localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+		else localStorage.removeItem(USER_STORAGE_KEY);
+	}, [user]);
 
 	const handleLogout = () => {
 		setUser(null);

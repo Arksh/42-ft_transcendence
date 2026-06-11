@@ -1,7 +1,10 @@
-const BASE_URL = `http://${window.location.hostname}:3000`;
-const DB_URL = `http://${window.location.hostname}:${import.meta.env.VITE_PRISMA_PORT || 4387}`;
+const BASE_URL = '/api/engine';
+const DB_URL = '/api/db';
 
-export const wsUrl = () => `ws://${window.location.hostname}:42069`;
+export const wsUrl = () => {
+  const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${proto}//${window.location.host}/ws`;
+};
 
 async function request(method, endpoint, body = null, useDb = false) {
   const options = {
@@ -31,9 +34,9 @@ export const api = {
   // Game
   getState:     (roomId) => request('GET', `/rooms/${roomId}/game/state`),
   reinforce:    (roomId, territoryId) => request('POST', `/rooms/${roomId}/game/reinforce`, { territoryId }),
-  attack:       (roomId, attackFrom, attackTo, attackTroops) => 
+  attack:       (roomId, attackFrom, attackTo, attackTroops) =>
     request('POST', `/rooms/${roomId}/game/attack`, { attackFrom, attackTo, attackTroops }),
-  fortify:      (roomId, fortifyFrom, fortifyTo, troops) => 
+  fortify:      (roomId, fortifyFrom, fortifyTo, troops) =>
     request('POST', `/rooms/${roomId}/game/fortify`, { fortifyFrom, fortifyTo, troops }),
   nextTurn:     (roomId) => request('POST', `/rooms/${roomId}/game/next-turn`),
   surrender:    (roomId, playerId) =>
