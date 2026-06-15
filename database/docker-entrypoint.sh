@@ -24,18 +24,28 @@ if [ $RETRIES -eq $MAX_RETRIES ]; then
   exit 1
 fi
 
-# Sincronizar esquema
-echo "🔄 Sincronizando esquema con la base de datos..."
-npx prisma db push --accept-data-loss
-
-# Ejecutar migraciones
 echo "📦 Ejecutando migraciones..."
-# TODO: `prisma migrate deploy` ya es idempotente y devuelve 0 si no hay nada
-# que aplicar. El `|| echo` actual oculta fallos reales (drift de esquema,
-# problemas de red, permisos) y arranca el servidor igualmente. Eliminar el
-# `||` cuando tengamos confianza de que el flujo de migraciones está estable
-# para que el contenedor falle pronto en caso de error.
-npx prisma migrate deploy || echo "⚠️  Las migraciones ya están aplicadas"
+# Auto-baseline para bases de datos pre-existentes sin historial de Prisma
+# (típicamente creadas por el antiguo `prisma db push`). En ese caso
+# `migrate deploy` aborta con P3005; marcamos las migraciones como aplicadas
+# y reintentamos. Otros fallos se propagan tal cual.
+DEPLOY_OUTPUT=$(npx prisma migrate deploy 2>&1) || DEPLOY_RC=$?
+echo "$DEPLOY_OUTPUT"
+
+if [ -n "${DEPLOY_RC:-}" ]; then
+  if echo "$DEPLOY_OUTPUT" | grep -q "P3005"; then
+    echo "🩹 Esquema existente sin historial de migraciones; aplicando baseline..."
+    for migration_dir in prisma/migrations/*/; do
+      [ -d "$migration_dir" ] || continue
+      migration_name=$(basename "$migration_dir")
+      npx prisma migrate resolve --applied "$migration_name"
+    done
+    echo "↻ Reintentando migraciones..."
+    npx prisma migrate deploy
+  else
+    exit "$DEPLOY_RC"
+  fi
+fi
 
 # Ejecutar seed solo en desarrollo
 if [ "$NODE_ENV" = "development" ]; then
