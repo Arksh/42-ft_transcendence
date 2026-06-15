@@ -124,9 +124,11 @@ All AI-generated output was reviewed, tested, and adapted by the team before bei
 
 | Member       | Role(s)                                  | Responsibilities                                        |
 | ------------ | ---------------------------------------- | ------------------------------------------------------- |
-| **cagonzal** | Product Owner, game developer            | Designer and developer of the main game Great Risk. Using NodeJS/React |
+| **cagonzal** | Product Owner, game developer            | Designer and developer of the main game Great Risk      |
+|              |                                          | using NodeJS/React                                      |
 | **fraalmei** | Developer                                | Database configuration, ORM, database conection tool    |
-| **jrollon-** | Developer                                | Login and registry front-end, authorization database management, Privacy Policy & Terms of Service, QA |
+| **jrollon-** | Developer                                | Login and registry front-end, authorization database    |
+|              |                                          | management, Privacy Policy & Terms of Service, QA       |
 | **samartin** | Scrum Master, developer                  | https with NginX management, QA, documentation          |
 | **dyunta**   | Tech Lead                                | Backend realtime, API, global design                    |
 
@@ -147,11 +149,11 @@ All AI-generated output was reviewed, tested, and adapted by the team before bei
 | Layer            | Technology                                  | Why                                                                                              |
 | ---------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | Frontend         | **React 19 + Vite**                         | Mature SPA framework; fast dev loop and HMR via Vite; component model fits view-based game UI.   |
-| Backend (data)   | **Express 5 + Prisma**                      | Lightweight HTTP API, JS across the stack, Prisma gives a type-safe ORM with migrations.        |
+| Backend (data)   | **Express 5 + Prisma**                      | Lightweight HTTP API, JS across the stack, Prisma gives a type-safe ORM with migrations.         |
 | Backend (engine) | **Express 5**                               | Stateless REST API holding the authoritative game-logic implementation.                          |
 | Real-time        | **`ws` (WebSocket) + Redis Pub/Sub**        | Required by subject; Redis fan-out lets multiple clients in the same match stay in sync.         |
 | Database         | **PostgreSQL 16**                           | Relational data fits users / matches / achievements; well-defined schema and strong constraints. |
-| Containerization | **Docker + Docker Compose**                 | Required by subject; reproducible one-command deployment of the full multi-service stack.         |
+| Containerization | **Docker + Docker Compose**                 | Required by subject; reproducible one-command deployment of the full multi-service stack.        |
 | Web server       | **Nginx** (production frontend)             | Serves the built Vite bundle inside the `client` container.                                      |
 | Styling          | **Inline styles + plain CSS**               | Lightweight; no framework dependency.                                                            |
 | Authentication   | **Email + password (scrypt hashing)**       | Meets the subject's minimum auth requirement with salted/hashed passwords.                       |
@@ -199,8 +201,8 @@ Source of truth: [`database/prisma/schema.prisma`](./database/prisma/schema.pris
 | Match history                    | Past matches per user, with results                                                                | dyunta           |
 | Stats & ELO                      | Wins / losses / games played / ELO ranking per user                                                | fraalmei         |
 | Achievements                     | Unlockable achievements with in-game notifications                                                 | cagonzal         |
-| Privacy Policy / Terms of Service| Dedicated pages, linked from a footer that is persistent across **every** view                    | jrollon-         |
-| Multi-user concurrency           | Multiple users logged in simultaneously, concurrent matches, real-time state propagation           | dyunta         |
+| Privacy Policy / Terms of Service| Dedicated pages, linked from a footer that is persistent across **every** view                     | jrollon-         |
+| Multi-user concurrency           | Multiple users logged in simultaneously, concurrent matches, real-time state propagation           | dyunta           |
 
 ---
 
@@ -218,35 +220,42 @@ Source of truth: [`database/prisma/schema.prisma`](./database/prisma/schema.pris
 | Gaming — Remote players                           | Major  |   2    | Two or more players on separate machines play the same match in real time           | cagonzal          |
 | Gaming — Multiplayer (3+)                         | Major  |   2    | Up to 6 players per match, synchronised across all clients                          | cagonzal          |
 | Gaming and UX — Gamification (achievements)       | Minor  |   1    | Persistent achievement system with in-game notifications                            | cagonzal          |
-| User interaction — Basic chat in game             | Major  |   2    | Real-time text channel per match over WebSockets, scoped to participants and persisted client-side for the session | dyunta |
+| User interaction — Basic chat in game             | Major  |   2    | Real-time text channel per match over WebSockets, scoped to participants and persisted client-side for the session | dyunta            |
 | Cybersecurity — HTTPS / WAF / Vault               | Major  |   2    | All client traffic routed through Nginx with TLS termination                        | samartin          |
+
+**Candidate total: ~ 19 points**
 
 ---
 
 ## Individual Contributions
 
 ### cagonzal
-- **Implemented:** Game engine (turns, combat, victory logic), shared rules system, game-state synchronization
-- **Modules owned:** Gaming — Web-based game; Gaming — Remote players; Gaming — Multiplayer (3+)
-- **Challenges & lessons:** Synchronizing game state across multiple clients in real-time; implementing fair dice-based combat resolution; handling 4-player concurrent match logic
+- **Implemented:** Game engine (turns, combat, victory logic), shared rules system, game-state synchronization.
+- **Modules owned:** Gaming — Web-based game; Gaming — Remote players; Gaming — Multiplayer (3+).
+- **Challenges & lessons:** Synchronizing game state across multiple clients in real-time; implementing fair dice-based combat resolution; handling 4-player concurrent match logic.
 
 ### fraalmei
-- **Implemented:** Prisma schema and migrations, database service wiring, per-user stats and ELO ranking, match history persistence
-- **Modules owned:** Web — Use an ORM; User Management — Game stats & match history
-- **Challenges & lessons:** Designing a relational schema that fits both per-match participation rows and aggregated per-user stats; iterating on Prisma migrations without losing seeded data; keeping the ELO update path consistent across concurrent match completions
+- **Implemented:** Prisma schema and migrations, database service wiring, per-user stats and ELO ranking, match history persistence.
+- **Modules owned:** Web — Use an ORM; User Management — Game stats & match history.
+- **Challenges & lessons:** Designing a relational schema that fits both per-match participation rows and aggregated per-user stats; iterating on Prisma migrations without losing seeded data; keeping the ELO update path consistent across concurrent match completions.
 
 ### jrollon-
-- **Implemented:** Registration and login front-end, scrypt-hashed credential storage and auth flow, friend list with online status, Privacy Policy and Terms of Service pages and persistent footer, in-match chat front-end, cross-stack QA
-- **Modules owned:** Web — Use a frontend framework (React) (with cagonzal); User Management — Standard user management & auth
-- **Challenges & lessons:** Storing credentials safely with scrypt and persisting sessions cleanly across reloads; keeping the legal footer visible on every route without colliding with the game canvas layout; making the chat UI behave under bursty WebSocket updates
+- **Implemented:** Registration and login front-end, scrypt-hashed credential storage and auth flow, friend list with online status, Privacy Policy and Terms of Service pages and persistent footer, in-match chat front-end, cross-stack QA.
+- **Modules owned:** Web — Use a frontend framework (React) (with cagonzal); User Management — Standard user management & auth.
+- **Challenges & lessons:** Storing credentials safely with scrypt and persisting sessions cleanly across reloads; keeping the legal footer visible on every route without colliding with the game canvas layout; making the chat UI behave under bursty WebSocket updates.
 
 ### samartin
-- **Implemented:** Nginx reverse proxy and HTTPS/TLS termination, routing of all client traffic through Nginx, removal of privileged-port host bindings, QA passes across services, documentation (this README)
-- **Modules owned:** Cybersecurity — HTTPS / WAF / Vault (HTTPS portion)
-- **Challenges & lessons:** Getting Chrome to accept a locally-issued self-signed certificate during development; rearranging port exposure so the host avoids binding privileged ports while still serving the SPA on 443; turning scattered QA findings into actionable, reproducible bug reports across the stack
+- **Implemented:** Nginx reverse proxy and HTTPS/TLS termination, routing of all client traffic through Nginx, removal of privileged-port host bindings, QA passes across services, documentation (README.md(s)).
+- **Modules owned:** Cybersecurity — HTTPS / WAF / Vault (HTTPS portion).
+- **Challenges & lessons:** Getting Chrome to accept a locally-issued self-signed certificate during development; rearranging port exposure so the host avoids binding privileged ports while still serving the SPA on 443; turning scattered QA findings into actionable, reproducible bug reports across the stack.
 
 ### dyunta
-- **Implemented:** Realtime WebSocket server, Redis pub/sub fan-out for cross-client sync, Express engine API, in-match chat backend, match history wiring, overall service topology and inter-service contracts
-- **Modules owned:** Web — Use a backend framework (Express); Web — Real-time features (WebSockets)
-- **Challenges & lessons:** Designing a pub/sub topology that survives client reconnects without replaying stale state; keeping the WebSocket protocol resilient to out-of-order events; preserving a stateless engine API while authoritative game state lived behind the realtime layer
+- **Implemented:** Realtime WebSocket server, Redis pub/sub fan-out for cross-client sync, Express engine API, in-match chat backend, match history wiring, overall service topology and inter-service contracts.
+- **Modules owned:** Web — Use a backend framework (Express); Web — Real-time features (WebSockets).
+- **Challenges & lessons:** Designing a pub/sub topology that survives client reconnects without replaying stale state; keeping the WebSocket protocol resilient to out-of-order events; preserving a stateless engine API while authoritative game state lived behind the realtime layer.
 
+## License
+
+We apply the MIT License; a short, permissive free software license originally written at the Massachusetts Institute of Technology. Its core terms are very simple: anyone can use, copy, modify, merge, publish, distribute, sublicense, or sell copies of the software, for any purpose, with almost no restrictions. The only conditions are that the original copyright notice and the full license text (including the disclaimer of warranty) must be included with all substantial portions of the software. This makes it popular for open-source projects, libraries, and commercial products alike.
+
+Practically, the MIT License is known for being business-friendly and low-friction. It explicitly disclaims all warranties, meaning the software is provided "as is" without liability to the original authors. Unlike stronger "copyleft" licenses (such as the GPL), the MIT License does not require that modified versions be released under the same license or that source code be made public. As a result, companies often use MIT-licensed code in proprietary products without having to share their own code. Because of its clarity, minimal requirements, and compatibility with many other licenses, it’s one of the most widely used open-source licenses worldwide.
