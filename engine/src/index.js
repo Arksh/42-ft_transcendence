@@ -18,6 +18,12 @@ app.use(createGamesRouter({ db, publisher }));
 app.use(createPlayersRouter({ db }));
 
 const PORT = Number(process.env.PORT) || 3000;
+
+try {
+  await db.init();
+} catch (err) {
+  console.error('[engine] db.init() failed:', err.message);
+}
+
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Engine (Core Game API) running on http://localhost:${PORT}`);
 });

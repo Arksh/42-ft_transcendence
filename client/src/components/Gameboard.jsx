@@ -7,6 +7,7 @@ import { calculateScore } from '@trascendence/shared/Victory';
 import { api } from '../api.js';
 import AchievementNotification from './AchievementNotification.jsx';
 import Chat from './Chat.jsx';
+import Profile from './Profile.jsx';
 import useGameSocket from '../hooks/useGameSocket.js';
 import { checkAchievements } from '@trascendence/shared/Achievements';
 
@@ -14,7 +15,6 @@ const CANVAS_WIDTH = 1100;
 const CANVAS_HEIGHT = 700;
 const TERRITORIES = createScaledTerritories(CANVAS_WIDTH, CANVAS_HEIGHT);
 
-// ========== INITIALIZATION HELPERS ==========
 function initializeTerritoryOwners() {
 	const owners = {};
 	Object.entries(FACTIONS).forEach(([factionId, faction]) => {
@@ -28,7 +28,6 @@ function initializeTerritoryOwners() {
 	return owners;
 }
 
-// ========== INITIAL TROOP COUNT: REGIONAL CAPITALS = 3, OTHERS = 2 ==========
 function initializeTroopCount() {
 	const counts = {};
 	Object.keys(TERRITORIES).forEach((territoryId) => {
@@ -38,56 +37,47 @@ function initializeTroopCount() {
 	return counts;
 }
 
-// export default function GameBoard({ players }) {
 export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 	console.log('GameBoard props:', { roomId, playerId });
-	// ========== GAME SETUP ==========
-	const MAX_TURNS = 100;
 
-	// ========== CANVAS REFS ==========
 	const canvasRef = useRef(null);
 	const pickingCanvasRef = useRef(null);
+	const [mapReady, setMapReady] = useState(false);
 	const territoryCanvasRef = useRef(null);
 	const territoryPixelsRef = useRef({});
-	// const initializedRef = useRef(false);
 
-	// ========== GAME STATE ==========
 	const [currentPlayer, setCurrentPlayer] = useState(null);
 	const [phase, setPhase] = useState(null);
 	const [turn, setTurn] = useState(0);
 	const [winner, setWinner] = useState(null);
 
-	// ========== UI STATE ==========
 	const [selectedTerritory, setSelectedTerritory] = useState(null);
 	const [hoveredTerritory, setHoveredTerritory] = useState(null);
 	const [battleReport, setBattleReport] = useState(null);
 
-	// ========== ACHIEVEMENT STATE ==========
 	const [visibleAchievements, setVisibleAchievements] = useState([]);
 	const [playerUnlockedAchievements, setPlayerUnlockedAchievements] = useState({});
 
-	// ========== TERRITORY STATE ==========
 	const [territoryOwners, setTerritoryOwners] = useState(initializeTerritoryOwners);
 	const [troopCount, setTroopCount] = useState(initializeTroopCount);
 
-	// ========== REINFORCE PHASE ==========
 	const [reinforcementsLeft, setReinforcementsLeft] = useState(0);
 
-	// ========== ATTACK PHASE ==========
 	const [attackFrom, setAttackFrom] = useState(null);
 	const [attackTo, setAttackTo] = useState(null);
 	const [attackTroops, setAttackTroops] = useState(1);
 
-	// ========== FORTIFY PHASE ==========
 	const [fortifyFrom, setFortifyFrom] = useState(null);
 	const [fortifyTo, setFortifyTo] = useState(null);
 	const [fortifyTroops, setFortifyTroops] = useState(1);
 
-	// ========== PLAYER STATS STATE ==========
 	const [playerStats, setPlayerStats] = useState({});
+	const [activeFactions, setActiveFactions] = useState([]);
+	const [maxTurns, setMaxTurns] = useState(100);
 
-	// ========== CHAT STATE ==========
 	const [chatMessages, setChatMessages] = useState([]);
+	const [showControls, setShowControls] = useState(false);
+	const [profileUsername, setProfileUsername] = useState(null);
 
 	const applyState = useCallback((state) => {
 		setCurrentPlayer(state.currentPlayer);
@@ -100,13 +90,18 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 		if (state.playerStats) {
 			setPlayerStats(state.playerStats);
 		}
+		if (state.activeFactions) {
+			setActiveFactions(state.activeFactions);
+		}
+		if (state.maxTurns) {
+			setMaxTurns(state.maxTurns);
+		}
 	}, []);
 
 	const handleChat = useCallback((msg) => {
 		setChatMessages((prev) => [...prev, msg]);
 	}, []);
 
-	// ========== INITIAL SNAPSHOT (one-shot before WS pushes take over) ==========
 	useEffect(() => {
 		if (!roomId) return;
 		api.getState(roomId).then((res) => {
@@ -114,7 +109,6 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 		});
 	}, [roomId, applyState]);
 
-	// ========== REAL-TIME (WebSocket) ==========
 	const { status: wsStatus, sendChat } = useGameSocket({
 		roomId,
 		playerId,
@@ -122,12 +116,11 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 		onChat: handleChat,
 	});
 
-	// ========== ACHIEVEMENT CHECKING ==========
 	useEffect(() => {
 		if (!playerStats || Object.keys(playerStats).length === 0) return;
 
-		Object.entries(playerStats).forEach(([playerId, playerStat]) => {
-			const playerUnlockedSet = playerUnlockedAchievements[playerId] || new Set();
+		Object.entries(playerStats).forEach(([pid, playerStat]) => {
+			const playerUnlockedSet = playerUnlockedAchievements[pid] || new Set();
 			const newAchievements = checkAchievements(
 				playerStat,
 				territoryOwners,
@@ -135,11 +128,14 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 			);
 
 			newAchievements.forEach((achievementId) => {
-				setVisibleAchievements((prev) => [...prev, { id: achievementId, playerId }]);
+				setVisibleAchievements((prev) => [...prev, { id: achievementId, playerId: pid }]);
 				setPlayerUnlockedAchievements((prev) => ({
 					...prev,
-					[playerId]: new Set([...playerUnlockedSet, achievementId]),
+					[pid]: new Set([...playerUnlockedSet, achievementId]),
 				}));
+				if (pid === playerId) {
+					api.unlockAchievement(playerId, achievementId).catch(() => {});
+				}
 			});
 		});
 	}, [territoryOwners, playerStats, playerUnlockedAchievements]);
@@ -148,16 +144,13 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 		setVisibleAchievements((prev) => prev.filter((item) => item.id !== achievementId));
 	}
 
-	// ========== CANVAS SETUP ==========
 	useEffect(() => {
 		const pickingCanvas = pickingCanvasRef.current;
 		const pCtx = pickingCanvas.getContext('2d', { willReadFrequently: true });
 		const img = new Image();
 		img.src = mapPicking;
 
-		// ========== PIXEL DATA EXTRACTION & CACHING ==========
 		img.onload = () => {
-			// Draw color circles on picking canvas
 			Object.entries(TERRITORIES).forEach(([, territory]) => {
 				pCtx.beginPath();
 				pCtx.arc(territory.cx, territory.cy, 15, 0, Math.PI * 2);
@@ -165,10 +158,8 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 				pCtx.fill();
 			});
 
-			// Draw the picking image on top
 			pCtx.drawImage(img, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-			// Process pixel data and cache it
 			const imageData = pCtx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 			const data = imageData.data;
 
@@ -188,18 +179,17 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 				}
 			}
 
-			// ========== TERRITORY FILL CACHE ==========
 			const terrCanvas = document.createElement('canvas');
 			terrCanvas.width = CANVAS_WIDTH;
 			terrCanvas.height = CANVAS_HEIGHT;
 			const tCtx = terrCanvas.getContext('2d');
 			territoryCanvasRef.current = terrCanvas;
+			setMapReady(true);
 
-			// Fill provinces with initial faction colors
 			Object.entries(TERRITORIES).forEach(([id]) => {
 				let factionColor;
 				if (id === 'mountains') {
-					factionColor = '#000000'; // Black for mountains
+					factionColor = '#000000';
 				} else {
 					const factionId = territoryOwners[id];
 					factionColor =
@@ -220,18 +210,16 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 		};
 	}, [territoryOwners]);
 
-	// ========== FILL PROVINCES CACHE ==========
 	useEffect(() => {
 		if (!territoryCanvasRef.current) return;
 
 		const tCtx = territoryCanvasRef.current.getContext('2d');
 		tCtx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-		// Refill provinces with updated faction colors when ownership changes
 		Object.entries(TERRITORIES).forEach(([id]) => {
 			let factionColor;
 			if (id === 'mountains') {
-				factionColor = '#000000'; // Black for mountains
+				factionColor = '#000000';
 			} else {
 				const factionId = territoryOwners[id];
 				factionColor =
@@ -251,21 +239,17 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 		});
 	}, [territoryOwners]);
 
-	// ========== MAIN DRAWING EFFECT ==========
 	useEffect(() => {
 		const canvas = canvasRef.current;
 		const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-		// ========== WATER BACKGROUND ==========
 		ctx.fillStyle = '#1A3A52';
 		ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-		// Draw cached territory fills (includes mountains in black)
 		if (territoryCanvasRef.current) {
 			ctx.drawImage(territoryCanvasRef.current, 0, 0);
 		}
 
-		// Draw territory borders first (so they appear underneath)
 		Object.entries(TERRITORIES).forEach(([, territory]) => {
 			territory.neighbors.forEach((neighborId) => {
 				const neighbor = TERRITORIES[neighborId];
@@ -280,7 +264,6 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 			});
 		});
 
-		// Draw halo for hovered territory
 		if (hoveredTerritory && hoveredTerritory !== 'mountains') {
 			const territory = TERRITORIES[hoveredTerritory];
 			const pixels = territoryPixelsRef.current[hoveredTerritory];
@@ -294,7 +277,6 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 			}
 		}
 
-		// Highlight selected territories
 		const highlighted = [attackFrom, attackTo, fortifyFrom, fortifyTo].filter(Boolean);
 		highlighted.forEach((territoryId) => {
 			const territory = TERRITORIES[territoryId];
@@ -317,9 +299,7 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 			ctx.stroke();
 		});
 
-		// Draw territories on canvas (circles + names + troops) - rendered last so they appear on top
 		Object.entries(TERRITORIES).forEach(([id, territory]) => {
-			// Skip mountains - rendered in black as part of fills
 			if (id === 'mountains') return;
 
 			const factionId = territoryOwners[id];
@@ -332,27 +312,31 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 			ctx.strokeStyle = 'black';
 			ctx.stroke();
 
-			// Draw troop count inside the circle
 			ctx.fillStyle = 'black';
 			ctx.font = 'bold 12px Arial';
 			ctx.textAlign = 'center';
 			ctx.textBaseline = 'middle';
 			ctx.fillText(troopCount[id], territory.cx, territory.cy);
 
-			// Draw territory name below
 			ctx.fillStyle = 'black';
 			ctx.font = '11px Arial';
 			ctx.textAlign = 'center';
 			ctx.fillText(territory.name, territory.cx, territory.cy + 20);
 		});
-	}, [territoryOwners, troopCount, attackFrom, attackTo, fortifyFrom, fortifyTo, hoveredTerritory]);
+	}, [territoryOwners, troopCount, attackFrom, attackTo, fortifyFrom, fortifyTo, hoveredTerritory, mapReady]);
 
-	// ========== TURN MANAGEMENT ==========
+	async function handleSurrender() {
+		if (winner) return;
+		if (!window.confirm('Are you sure you want to surrender? You will be eliminated from the game.')) return;
+		const res = await api.surrender(roomId, playerId);
+		if (res.ok) applyState(res.state);
+	}
+
 	async function handleNextTurn() {
 		if (winner) return;
-	if (!currentPlayer || currentPlayer.id !== playerId) return;
+		if (!currentPlayer || currentPlayer.id !== playerId) return;
 
-	setAttackFrom(null);
+		setAttackFrom(null);
 		setAttackTo(null);
 		setFortifyFrom(null);
 		setFortifyTo(null);
@@ -361,13 +345,11 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 		if (res.ok) applyState(res.state);
 	}
 
-	// ========== REINFORCE ACTIONS ==========
 	async function handleReinforce(territoryId) {
 		const res = await api.reinforce(roomId, territoryId);
 		if (res.ok) applyState(res.state);
 	}
 
-	// ========== FORTIFY ACTIONS ==========
 	async function handleFortify(destinationId) {
 		const res = await api.fortify(roomId, fortifyFrom, destinationId, fortifyTroops);
 		if (res.ok) {
@@ -378,7 +360,6 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 		}
 	}
 
-	// ========== COMBAT ACTIONS ==========
 	async function handleAttack() {
 		const res = await api.attack(roomId, attackFrom, attackTo, attackTroops);
 		if (res.ok) {
@@ -389,12 +370,13 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 		}
 	}
 
-	// ========== CANVAS INTERACTION ==========
-	function getClickedTerritory(e) {
+	function getTerritoryAt(clientX, clientY) {
 		const canvas = canvasRef.current;
 		const rect = canvas.getBoundingClientRect();
-		const x = e.clientX - rect.left;
-		const y = e.clientY - rect.top;
+		const scaleX = canvas.width / rect.width;
+		const scaleY = canvas.height / rect.height;
+		const x = (clientX - rect.left) * scaleX;
+		const y = (clientY - rect.top) * scaleY;
 
 		const pickingCanvas = pickingCanvasRef.current;
 		const pCtx = pickingCanvas.getContext('2d', { willReadFrequently: true });
@@ -408,10 +390,9 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 		return found ? found[0] : null;
 	}
 
-	// ========== MOUSE HANDLERS ==========
 	function handleCanvasMouseMove(e) {
 		if (!currentPlayer || currentPlayer.id !== playerId) return;
-		const territoryId = getClickedTerritory(e);
+		const territoryId = getTerritoryAt(e.clientX, e.clientY);
 		setHoveredTerritory(territoryId);
 	}
 
@@ -420,12 +401,21 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 		setHoveredTerritory(null);
 	}
 
-	// ========== CLICK HANDLERS ==========
+	function handleCanvasTouchEnd(e) {
+		if (!currentPlayer || currentPlayer.id !== playerId) return;
+		const touch = e.changedTouches[0];
+		if (!touch) return;
+		e.preventDefault();
+		processSelection(getTerritoryAt(touch.clientX, touch.clientY));
+	}
+
 	function handleCanvasClick(e) {
 		if (!currentPlayer || currentPlayer.id !== playerId) return;
-		const clickedId = getClickedTerritory(e);
+		processSelection(getTerritoryAt(e.clientX, e.clientY));
+	}
+
+	function processSelection(clickedId) {
 		if (!clickedId) {
-			// Clicked outside a territory, clear selection
 			setSelectedTerritory(null);
 			setFortifyFrom(null);
 			setAttackFrom(null);
@@ -436,16 +426,13 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 
 		const clickedTerritory = TERRITORIES[clickedId];
 
-		// If clicking the same territory that's selected, deselect it
 		if (selectedTerritory && selectedTerritory.id === clickedId) {
 			setSelectedTerritory(null);
 			return;
 		}
 
-		// Select the new territory
 		setSelectedTerritory({ id: clickedId, ...clickedTerritory });
 
-		// Game logic for REINFORCE phase
 		if (phase === TurnManager.PHASES.REINFORCE) {
 			if (territoryOwners[clickedId] !== currentPlayer.faction) return;
 			if (reinforcementsLeft <= 0) return;
@@ -453,98 +440,71 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 			return;
 		}
 
-		// Game logic for ATTACK phase
 		if (phase === TurnManager.PHASES.ATTACK) {
-			// 1er clic en fase ATTACK: selecciona el territorio de origen
 			if (!attackFrom) {
 				if (territoryOwners[clickedId] !== currentPlayer.faction) {
-					console.log('No puedes atacar desde un territorio que no posees:', clickedTerritory.name);
 					return;
 				}
 				if (troopCount[clickedId] <= 1) {
-					console.log(
-						'No puedes atacar desde un territorio con 1 tropa o menos:',
-						clickedTerritory.name
-					);
 					return;
 				}
 				setAttackFrom(clickedId);
-				console.log('Seleccionado para atacar desde:', clickedTerritory.name);
 				return;
 			}
 
-			// 2do clic en fase ATTACK: selecciona el territorio de destino
 			if (clickedId === attackFrom) {
-				console.log('Deseleccionando origen de ataque:', clickedTerritory.name);
 				setAttackFrom(null);
 				setAttackTo(null);
 				return;
 			}
 			if (clickedId === attackTo) {
-				console.log('Deseleccionando destino de ataque:', clickedTerritory.name);
 				setAttackTo(null);
 				return;
 			}
 
 			if (territoryOwners[clickedId] === currentPlayer.faction) {
-				console.log('No puedes atacar a un territorio que ya posees:', clickedTerritory.name);
 				return;
 			}
+
 			if (!TERRITORIES[attackFrom].neighbors.includes(clickedId)) {
-				console.log('Solo puedes atacar territorios vecinos:', clickedTerritory.name);
 				return;
 			}
 
 			setAttackTo(clickedId);
-			console.log('Seleccionado para atacar a:', clickedTerritory.name);
 			setAttackTroops(1); // Reset slider to minimum on new target selection
 			return;
 		}
 
-		// Game logic for FORTIFY phase
 		if (phase === TurnManager.PHASES.FORTIFY) {
-			// 1er clic en fase FORTIFY: selecciona el territorio de origen
 			if (!fortifyFrom) {
 				if (territoryOwners[clickedId] !== currentPlayer.faction) return;
 				if (troopCount[clickedId] <= 1) return;
 				setFortifyFrom(clickedId);
-				console.log('Fortificación: origen seleccionado -', clickedTerritory.name);
 				return;
 			}
 
-			// 2do clic en fase FORTIFY: selecciona el territorio de destino (SIN mover tropas aún)
 			if (clickedId === fortifyFrom) {
 				setFortifyFrom(null);
 				setFortifyTo(null);
-				console.log('Fortificación: origen deseleccionado');
 				return;
 			}
 			if (clickedId === fortifyTo) {
 				setFortifyTo(null);
-				console.log('Fortificación: destino deseleccionado');
 				return;
 			}
 			if (territoryOwners[clickedId] !== currentPlayer.faction) return;
 			if (!TERRITORIES[fortifyFrom].neighbors.includes(clickedId)) return;
 
-			// Solo establecer el destino, dejar que el botón "Mover" haga el cambio
 			setFortifyTo(clickedId);
-			console.log('Fortificación: destino seleccionado -', clickedTerritory.name);
 		}
 	}
 
+	const isMyTurn = currentPlayer?.id === playerId;
+	const myFaction = playerStats?.[playerId]?.faction;
+	const isAlive = !myFaction || activeFactions.length === 0 || activeFactions.includes(myFaction);
+
 	return (
-		<div
-			style={{
-				position: 'relative',
-				width: '100%',
-				minHeight: '100vh',
-				margin: '0',
-				padding: '20px 0',
-				backgroundColor: '#0d0d0d',
-			}}
-		>
-			{/* Achievement Notifications */}
+		<div className="relative flex h-screen w-full flex-col overflow-hidden bg-[#0d0d0d]">
 			{visibleAchievements.map((achievement) => (
 				<AchievementNotification
 					key={`${achievement.playerId}-${achievement.id}`}
@@ -553,91 +513,53 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 				/>
 			))}
 
-			{/* Chat panel (draggable; defaults to bottom-right) */}
 			<Chat
 				messages={chatMessages}
 				onSend={sendChat}
 				status={wsStatus}
 				playerId={playerId}
+				onOpenProfile={setProfileUsername}
 			/>
 
-			<h1
-				style={{
-					textAlign: 'center',
-					margin: '10px 0',
-					color: '#FF6B6B',
-					fontFamily: 'monospace',
-					fontSize: '32px',
-					letterSpacing: '2px',
-					textShadow: '0 0 10px rgba(255, 107, 107, 0.3)',
-				}}
-			>
-				GREAT RISK
-			</h1>
+			{profileUsername && (
+				<div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-2 sm:p-4">
+					<Profile
+						username={profileUsername}
+						currentUser={playerId}
+						onBack={() => setProfileUsername(null)}
+					/>
+				</div>
+			)}
 
-			<div style={{
-				position: 'absolute',
-				top: '20px',
-				left: '20px',
-				display: 'flex',
-				gap: '10px'
-			}}>
-				<button 
-					onClick={onExitGame}
-					style={{
-						background: '#333',
-						border: '1px solid #555',
-						color: '#aaa',
-						padding: '5px 10px',
-						borderRadius: '4px',
-						cursor: 'pointer',
-						fontSize: '11px',
-						fontFamily: 'monospace'
-					}}
-				>
-					&larr; Exit to Lobby
-				</button>
-				<button 
-					onClick={onLogout}
-					style={{
-						background: 'none',
-						border: '1px solid #FF6B6B',
-						color: '#FF6B6B',
-						padding: '5px 10px',
-						borderRadius: '4px',
-						cursor: 'pointer',
-						fontSize: '11px',
-						fontFamily: 'monospace'
-					}}
-				>
-					Logout
-				</button>
-			</div>
+			<header className="relative flex-none py-1 sm:py-2">
+				<h1 className="m-0 text-center font-mono text-base tracking-[2px] text-[#FF6B6B] [text-shadow:0_0_10px_rgba(255,107,107,0.3)] sm:text-2xl lg:text-[32px]">
+					GREAT RISK
+				</h1>
+				<div className="absolute top-1 left-2 flex gap-1.5 sm:top-2 sm:left-5 sm:gap-2.5">
+					<button
+						onClick={onExitGame}
+						className="cursor-pointer rounded border border-[#555] bg-[#333] px-2 py-0.5 font-mono text-[10px] text-[#aaa] sm:px-2.5 sm:py-1 sm:text-[11px]"
+					>
+						&larr; Exit
+					</button>
+					<button
+						onClick={onLogout}
+						className="cursor-pointer rounded border border-[#FF6B6B] bg-transparent px-2 py-0.5 font-mono text-[10px] text-[#FF6B6B] sm:px-2.5 sm:py-1 sm:text-[11px]"
+					>
+						Logout
+					</button>
+				</div>
+			</header>
 
-			{/* Main container: 80% map, 20% UI */}
-			<div
-				style={{
-					width: `${CANVAS_WIDTH}px`,
-					margin: '0 auto',
-					display: 'flex',
-					flexDirection: 'column',
-					minHeight: '80vh',
-				}}
-			>
-				{/* Canvas area - 80% */}
-				<div style={{ position: 'relative', display: 'inline-block', flex: '0 0 80%' }}>
+			<main className="flex min-h-0 flex-1 items-center justify-center px-1 sm:px-2">
+				<div className="relative mx-auto aspect-[1100/700] h-full max-h-full w-auto max-w-full">
 					<canvas
 						ref={canvasRef}
 						width={CANVAS_WIDTH}
 						height={CANVAS_HEIGHT}
-						style={{
-							border: '3px solid #FF6B6B',
-							display: 'block',
-							width: '100%',
-							height: '100%',
-							boxShadow: '0 0 20px rgba(255, 107, 107, 0.3)',
-						}}
+						className="block h-full w-full touch-none border-[3px] border-[#FF6B6B] shadow-[0_0_20px_rgba(255,107,107,0.3)]"
 						onClick={handleCanvasClick}
+						onTouchEnd={handleCanvasTouchEnd}
 						onMouseMove={handleCanvasMouseMove}
 						onMouseLeave={handleCanvasMouseLeave}
 					/>
@@ -645,37 +567,11 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 						ref={pickingCanvasRef}
 						width={CANVAS_WIDTH}
 						height={CANVAS_HEIGHT}
-						style={{
-							position: 'absolute',
-							top: 0,
-							left: 0,
-							display: 'none',
-							width: '100%',
-							height: '100%',
-							zIndex: -1,
-							opacity: 0.9,
-						}}
+						className="absolute top-0 left-0 -z-10 hidden h-full w-full opacity-90"
 					/>
 
-					{/* Territory info box (bottom-left of canvas) */}
 					{(selectedTerritory || hoveredTerritory) && (
-						<div
-							style={{
-								position: 'absolute',
-								bottom: '20px',
-								left: '20px',
-								backgroundColor: 'rgba(0, 0, 0, 0.9)',
-								color: '#E0E0E0',
-								padding: '12px',
-								borderRadius: '6px',
-								maxWidth: '250px',
-								fontSize: '12px',
-								fontFamily: 'monospace',
-								zIndex: 10,
-								border: '2px solid #6496FF',
-								boxShadow: '0 0 15px rgba(100, 150, 255, 0.3)',
-							}}
-						>
+						<div className="absolute bottom-2 left-2 z-10 max-w-[200px] rounded-md border-2 border-[#6496FF] bg-black/90 p-2 font-mono text-[11px] text-[#E0E0E0] shadow-[0_0_15px_rgba(100,150,255,0.3)] sm:bottom-5 sm:left-5 sm:max-w-[250px] sm:p-3 sm:text-xs">
 							{(() => {
 								const territory =
 									selectedTerritory || (hoveredTerritory && TERRITORIES[hoveredTerritory]);
@@ -683,17 +579,15 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 								if (!territory) return null;
 								return (
 									<>
-										<div style={{ fontWeight: 'bold', color: '#6496FF', marginBottom: '6px' }}>
-											{territory.name}
-										</div>
-										<div style={{ fontSize: '11px' }}>Capital: {territory.capital}</div>
-										<div style={{ fontSize: '11px' }}>
+										<div className="mb-1.5 font-bold text-[#6496FF]">{territory.name}</div>
+										<div className="text-[11px]">Capital: {territory.capital}</div>
+										<div className="text-[11px]">
 											Propietario:{' '}
 											{territoryOwners[territoryId]
 												? FACTIONS[territoryOwners[territoryId]]?.name || 'Desconocido'
 												: 'Neutral'}
 										</div>
-										<div style={{ fontSize: '11px', color: '#FFD700', marginTop: '4px' }}>
+										<div className="mt-1 text-[11px] text-[#FFD700]">
 											Tropas: {troopCount[territoryId]}
 										</div>
 									</>
@@ -702,113 +596,79 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 						</div>
 					)}
 				</div>
+			</main>
 
-				{/* UI Bottom section - 20% - Three-way layout */}
-				<div
-					style={{
-						flex: '0 0 20%',
-						backgroundColor: '#0f0f0f',
-						borderTop: '3px solid #FF6B6B',
-						padding: '12px',
-						display: 'flex',
-						justifyContent: 'space-between',
-						alignItems: 'center',
-						gap: '12px',
-						fontFamily: 'monospace',
-						boxShadow: '0 -5px 15px rgba(255, 107, 107, 0.2)',
-					}}
-				>
-					{/* LEFT: Player data */}
-					<div style={{ color: '#E0E0E0', fontSize: '13px', flex: 1 }}>
-						{(() => {
-							const myFaction = playerStats?.[playerId]?.faction;
-							const isMyTurn = currentPlayer?.id === playerId;
-							return (
-								<>
-									<div>
-										Facción:{' '}
-										<span style={{ color: '#FFD700' }}>
-											{myFaction ? FACTIONS[myFaction]?.name : '—'}
-										</span>
-									</div>
-									<div style={{ marginTop: '4px' }}>
-										Fase: <span style={{ color: '#FF6B6B', fontWeight: 'bold' }}>{phase}</span>
-									</div>
-									{currentPlayer && (
-										<div
-											style={{
-												marginTop: '6px',
-												fontSize: '11px',
-												color: isMyTurn ? '#4CAF50' : '#888',
-											}}
-										>
-											Turno:{' '}
-											<span style={{ color: isMyTurn ? '#4CAF50' : '#bbb' }}>
-												{isMyTurn
-													? 'Tu turno'
-													: `${currentPlayer.name} — ${FACTIONS[currentPlayer.faction]?.name || '?'}`}
-											</span>
-										</div>
+			<footer
+				className={`absolute bottom-9 left-1/2 z-20 flex w-[min(calc(100vw-0.5rem),calc((100dvh-2rem)*1100/700))] -translate-x-1/2 items-center justify-between gap-2 rounded-md border-2 border-[#FF6B6B] bg-[#0f0f0f]/90 p-2 font-mono shadow-[0_0_20px_rgba(255,107,107,0.4)] backdrop-blur-sm transition-all duration-300 ease-out sm:gap-3 sm:p-3 lg:static lg:bottom-auto lg:left-auto lg:z-auto lg:mx-0 lg:w-auto lg:max-w-none lg:flex-none lg:translate-x-0 lg:translate-y-0 lg:rounded-none lg:border-x-0 lg:border-b-0 lg:border-t-[3px] lg:bg-[#0f0f0f] lg:opacity-100 lg:shadow-[0_-5px_15px_rgba(255,107,107,0.2)] lg:backdrop-blur-none ${
+					showControls
+						? 'translate-y-0 opacity-100'
+						: 'pointer-events-none translate-y-full opacity-0 lg:pointer-events-auto'
+				}`}
+			>
+					<div className="flex-1 text-[11px] text-[#E0E0E0] sm:text-[13px]">
+						<div>
+							Facción:{' '}
+							<span className="text-[#FFD700]">
+								{myFaction ? FACTIONS[myFaction]?.name : '—'}
+							</span>
+						</div>
+						<div className="mt-1">
+							Fase: <span className="font-bold text-[#FF6B6B]">{phase}</span>
+						</div>
+						{currentPlayer && (
+							<div className={`mt-1 text-[10px] sm:mt-1.5 sm:text-[11px] ${isMyTurn ? 'text-[#4CAF50]' : 'text-[#888]'}`}>
+								Turno:{' '}
+								<span className={isMyTurn ? 'text-[#4CAF50]' : 'text-[#bbb]'}>
+									{isMyTurn ? (
+										'Tu turno'
+									) : (
+										<>
+											<button
+												onClick={() => setProfileUsername(currentPlayer.id)}
+												className="cursor-pointer border-0 bg-transparent p-0 font-mono text-[10px] font-bold text-[#6496FF] hover:underline sm:text-[11px]"
+											>
+												{currentPlayer.id}
+											</button>
+											{' — '}{FACTIONS[currentPlayer.faction]?.name || '?'}
+										</>
 									)}
-									{isMyTurn && phase === TurnManager.PHASES.REINFORCE && (
-										<div style={{ marginTop: '4px', color: '#4CAF50', fontWeight: 'bold' }}>
-											Refuerzos: {reinforcementsLeft}
-										</div>
-									)}
-								</>
-							);
-						})()}
+								</span>
+							</div>
+						)}
+						{isMyTurn && phase === TurnManager.PHASES.REINFORCE && (
+							<div className="mt-1 font-bold text-[#4CAF50]">
+								Refuerzos: {reinforcementsLeft}
+							</div>
+						)}
 					</div>
 
-					{/* CENTER: Turn info and button */}
-					<div
-						style={{
-							display: 'flex',
-							flexDirection: 'column',
-							alignItems: 'center',
-							gap: '8px',
-							flex: 1,
-						}}
-					>
-						<div style={{ color: 'white', fontSize: '13px', textAlign: 'center' }}>
+					<div className="flex flex-1 flex-col items-center gap-1 sm:gap-2">
+						<div className="text-center text-[11px] text-white sm:text-[13px]">
 							<div>Turno</div>
-							<div style={{ fontSize: '16px', fontWeight: 'bold', color: '#FFD700' }}>
-								{turn} / {MAX_TURNS}
+							<div className="text-sm font-bold text-[#FFD700] sm:text-base">
+								{turn} / {maxTurns}
 							</div>
 						</div>
 						<button
 							onClick={handleNextTurn}
-							style={{
-								padding: '8px 16px',
-								fontSize: '12px',
-								backgroundColor: '#FF6B6B',
-								color: 'white',
-								border: 'none',
-								borderRadius: '4px',
-								cursor: 'pointer',
-								fontWeight: 'bold',
-								minWidth: '140px',
-								transition: 'all 0.2s ease',
-								boxShadow: '0 0 10px rgba(255, 107, 107, 0.3)',
-							}}
-							onMouseEnter={(e) => {
-								e.target.style.backgroundColor = '#FF5252';
-								e.target.style.boxShadow = '0 0 20px rgba(255, 107, 107, 0.6)';
-							}}
-							onMouseLeave={(e) => {
-								e.target.style.backgroundColor = '#FF6B6B';
-								e.target.style.boxShadow = '0 0 10px rgba(255, 107, 107, 0.3)';
-							}}
+							disabled={!isMyTurn || !!winner}
+							className="min-w-[100px] rounded border-0 bg-[#FF6B6B] px-2 py-1.5 text-[11px] font-bold text-white shadow-[0_0_10px_rgba(255,107,107,0.3)] transition-all duration-200 enabled:cursor-pointer enabled:hover:bg-[#FF5252] enabled:hover:shadow-[0_0_20px_rgba(255,107,107,0.6)] disabled:cursor-not-allowed disabled:opacity-40 sm:min-w-[140px] sm:px-4 sm:py-2 sm:text-xs"
 						>
 							Siguiente turno
 						</button>
+						<button
+							onClick={handleSurrender}
+							disabled={!isAlive || !!winner}
+							className="min-w-[100px] rounded border border-[#FF6B6B] bg-transparent px-2 py-1 text-[10px] font-bold text-[#FF6B6B] transition-all duration-200 enabled:cursor-pointer enabled:hover:bg-[#FF6B6B] enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-40 sm:min-w-[140px] sm:px-3 sm:py-1.5 sm:text-[11px]"
+						>
+							Rendirse
+						</button>
 					</div>
 
-					{/* RIGHT: Action controls (Fortify/Attack) */}
-					<div style={{ flex: 1, minHeight: '60px' }}>
+					<div className="min-h-[60px] flex-1">
 						{phase === TurnManager.PHASES.FORTIFY && fortifyFrom && fortifyTo && (
-							<div style={{ color: 'white', fontSize: '12px' }}>
-								<div style={{ fontWeight: 'bold', marginBottom: '6px' }}>
+							<div className="text-xs text-white">
+								<div className="mb-1.5 font-bold">
 									{TERRITORIES[fortifyFrom].name} '&gt;' {TERRITORIES[fortifyTo].name}
 								</div>
 								<input
@@ -817,33 +677,13 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 									max={troopCount[fortifyFrom] - 1}
 									value={fortifyTroops}
 									onChange={(e) => setFortifyTroops(Number(e.target.value))}
-									style={{ width: '100%', marginBottom: '4px' }}
+									className="mb-1 w-full"
 								/>
-								<div style={{ marginBottom: '6px', fontSize: '11px' }}>Tropas: {fortifyTroops}</div>
+								<div className="mb-1.5 text-[11px]">Tropas: {fortifyTroops}</div>
 								<button
 									onClick={() => handleFortify(fortifyTo)}
 									disabled={currentPlayer?.id !== playerId}
-									style={{
-										width: '100%',
-										padding: '4px',
-										marginBottom: '3px',
-										backgroundColor: '#4CAF50',
-										color: 'white',
-										border: 'none',
-										borderRadius: '3px',
-										cursor: 'pointer',
-										fontSize: '11px',
-										fontWeight: 'bold',
-										transition: 'all 0.2s ease',
-									}}
-									onMouseEnter={(e) => {
-										e.target.style.backgroundColor = '#45a049';
-										e.target.style.boxShadow = '0 0 10px rgba(76, 175, 80, 0.4)';
-									}}
-									onMouseLeave={(e) => {
-										e.target.style.backgroundColor = '#4CAF50';
-										e.target.style.boxShadow = 'none';
-									}}
+									className="mb-[3px] w-full cursor-pointer rounded-[3px] border-0 bg-[#4CAF50] p-1 text-[11px] font-bold text-white transition-all duration-200 hover:bg-[#45a049] hover:shadow-[0_0_10px_rgba(76,175,80,0.4)]"
 								>
 									Mover
 								</button>
@@ -853,26 +693,7 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 										setFortifyTo(null);
 										setFortifyTroops(1);
 									}}
-									style={{
-										width: '100%',
-										padding: '4px',
-										backgroundColor: '#FF6B6B',
-										color: 'white',
-										border: 'none',
-										borderRadius: '3px',
-										cursor: 'pointer',
-										fontSize: '11px',
-										fontWeight: 'bold',
-										transition: 'all 0.2s ease',
-									}}
-									onMouseEnter={(e) => {
-										e.target.style.backgroundColor = '#FF5252';
-										e.target.style.boxShadow = '0 0 10px rgba(255, 107, 107, 0.4)';
-									}}
-									onMouseLeave={(e) => {
-										e.target.style.backgroundColor = '#FF6B6B';
-										e.target.style.boxShadow = 'none';
-									}}
+									className="w-full cursor-pointer rounded-[3px] border-0 bg-[#FF6B6B] p-1 text-[11px] font-bold text-white transition-all duration-200 hover:bg-[#FF5252] hover:shadow-[0_0_10px_rgba(255,107,107,0.4)]"
 								>
 									Cancelar
 								</button>
@@ -880,8 +701,8 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 						)}
 
 						{phase === TurnManager.PHASES.ATTACK && attackFrom && attackTo && (
-							<div style={{ color: 'white', fontSize: '12px' }}>
-								<div style={{ fontWeight: 'bold', marginBottom: '6px' }}>
+							<div className="text-xs text-white">
+								<div className="mb-1.5 font-bold">
 									{TERRITORIES[attackFrom].name} → {TERRITORIES[attackTo].name}
 								</div>
 								<input
@@ -890,34 +711,13 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 									max={Math.min(3, troopCount[attackFrom] - 1)}
 									value={attackTroops}
 									onChange={(e) => setAttackTroops(Number(e.target.value))}
-									style={{ width: '100%', marginBottom: '4px' }}
+									className="mb-1 w-full"
 								/>
-								<div style={{ marginBottom: '6px', fontSize: '11px' }}>Tropas: {attackTroops}</div>
+								<div className="mb-1.5 text-[11px]">Tropas: {attackTroops}</div>
 								<button
 									onClick={handleAttack}
 									disabled={currentPlayer?.id !== playerId}
-									style={{
-										width: '100%',
-										padding: '4px',
-										marginBottom: '3px',
-										backgroundColor: '#FF6B6B',
-										color: 'white',
-										border: 'none',
-										borderRadius: '3px',
-										fontSize: '11px',
-										fontWeight: 'bold',
-										transition: 'all 0.2s ease',
-										opacity: currentPlayer?.id !== playerId ? 0.5 : 1,
-										cursor: currentPlayer?.id !== playerId ? 'not-allowed' : 'pointer',
-									}}
-									onMouseEnter={(e) => {
-										e.target.style.backgroundColor = '#FF5252';
-										e.target.style.boxShadow = '0 0 10px rgba(255, 107, 107, 0.4)';
-									}}
-									onMouseLeave={(e) => {
-										e.target.style.backgroundColor = '#FF6B6B';
-										e.target.style.boxShadow = 'none';
-									}}
+									className="mb-[3px] w-full rounded-[3px] border-0 bg-[#FF6B6B] p-1 text-[11px] font-bold text-white transition-all duration-200 hover:bg-[#FF5252] hover:shadow-[0_0_10px_rgba(255,107,107,0.4)] disabled:cursor-not-allowed disabled:opacity-50 enabled:cursor-pointer"
 								>
 									¡Atacar!
 								</button>
@@ -927,82 +727,37 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 										setAttackTo(null);
 										setAttackTroops(1);
 									}}
-									style={{
-										width: '100%',
-										padding: '4px',
-										backgroundColor: '#FF6B6B',
-										color: 'white',
-										border: 'none',
-										borderRadius: '3px',
-										cursor: 'pointer',
-										fontSize: '11px',
-										fontWeight: 'bold',
-										transition: 'all 0.2s ease',
-									}}
-									onMouseEnter={(e) => {
-										e.target.style.backgroundColor = '#FF5252';
-										e.target.style.boxShadow = '0 0 10px rgba(255, 107, 107, 0.4)';
-									}}
-									onMouseLeave={(e) => {
-										e.target.style.backgroundColor = '#FF6B6B';
-										e.target.style.boxShadow = 'none';
-									}}
+									className="w-full cursor-pointer rounded-[3px] border-0 bg-[#FF6B6B] p-1 text-[11px] font-bold text-white transition-all duration-200 hover:bg-[#FF5252] hover:shadow-[0_0_10px_rgba(255,107,107,0.4)]"
 								>
 									Cancelar
 								</button>
 							</div>
 						)}
 					</div>
-				</div>
-			</div>
+</footer>
+
+			<button
+				type="button"
+				onClick={() => setShowControls((s) => !s)}
+				aria-label={showControls ? 'Hide controls' : 'Show controls'}
+				className="absolute bottom-1 left-1/2 z-30 flex h-7 w-12 -translate-x-1/2 cursor-pointer items-center justify-center rounded-md border border-[#FF6B6B] bg-[#0f0f0f]/90 font-mono text-sm text-[#FF6B6B] shadow-[0_0_10px_rgba(255,107,107,0.4)] backdrop-blur-sm hover:bg-[#FF6B6B] hover:text-white lg:hidden"
+			>
+				{showControls ? '▼' : '▲'}
+			</button>
 
 			{winner && (
-				<div
-					style={{
-						position: 'fixed',
-						top: '50%',
-						left: '50%',
-						transform: 'translate(-50%, -50%)',
-						backgroundColor: 'rgba(0,0,0,0.95)',
-						color: 'white',
-						padding: '30px',
-						borderRadius: '10px',
-						textAlign: 'center',
-						zIndex: 30,
-						fontFamily: 'monospace',
-						border: '3px solid #FF6B6B',
-						boxShadow: '0 0 30px rgba(255, 107, 107, 0.5)',
-					}}
-				>
-					<h2 style={{ color: '#FF6B6B', marginTop: 0, marginBottom: '16px' }}>
+				<div className="fixed top-1/2 left-1/2 z-30 max-h-[90vh] w-[92vw] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[10px] border-[3px] border-[#FF6B6B] bg-black/95 p-5 text-center font-mono text-white shadow-[0_0_30px_rgba(255,107,107,0.5)] sm:p-8">
+					<h2 className="mt-0 mb-4 text-[#FF6B6B]">
 						¡{FACTIONS[winner.factionId].name} gana!
 					</h2>
-					<p style={{ color: '#E0E0E0', marginBottom: '20px' }}>
+					<p className="mb-5 text-[#E0E0E0]">
 						{winner.reason === 'capitals'
 							? 'Ha conquistado todas las capitales enemigas'
 							: `Victoria por puntos — ${calculateScore(winner.factionId, territoryOwners)} pts`}
 					</p>
 					<button
-						onClick={() => window.location.reload()}
-						style={{
-							padding: '10px 20px',
-							fontSize: '14px',
-							backgroundColor: '#4CAF50',
-							color: 'white',
-							border: 'none',
-							borderRadius: '4px',
-							cursor: 'pointer',
-							fontWeight: 'bold',
-							transition: 'all 0.2s ease',
-						}}
-						onMouseEnter={(e) => {
-							e.target.style.backgroundColor = '#45a049';
-							e.target.style.boxShadow = '0 0 15px rgba(76, 175, 80, 0.5)';
-						}}
-						onMouseLeave={(e) => {
-							e.target.style.backgroundColor = '#4CAF50';
-							e.target.style.boxShadow = 'none';
-						}}
+						onClick={onExitGame}
+						className="cursor-pointer rounded border-0 bg-[#4CAF50] px-5 py-2.5 text-sm font-bold text-white transition-all duration-200 hover:bg-[#45a049] hover:shadow-[0_0_15px_rgba(76,175,80,0.5)]"
 					>
 						Nueva partida
 					</button>
@@ -1010,178 +765,84 @@ export default function GameBoard({ roomId, playerId, onLogout, onExitGame }) {
 			)}
 
 			{battleReport && (
-				<div
-					style={{
-						position: 'fixed',
-						top: '50%',
-						left: '50%',
-						transform: 'translate(-50%, -50%)',
-						backgroundColor: 'rgba(0,0,0,0.95)',
-						color: 'white',
-						padding: '24px',
-						borderRadius: '10px',
-						textAlign: 'center',
-						zIndex: 25,
-						fontFamily: 'monospace',
-						border: '2px solid #FF6B6B',
-						maxWidth: '400px',
-						boxShadow: '0 0 20px rgba(255, 107, 107, 0.5)',
-					}}
-				>
-					<h2 style={{ color: '#FF6B6B', marginTop: 0, marginBottom: '16px' }}>Battle Report</h2>
+				<div className="fixed top-1/2 left-1/2 z-[25] max-h-[90vh] w-[92vw] max-w-[400px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[10px] border-2 border-[#FF6B6B] bg-black/95 p-4 text-center font-mono text-white shadow-[0_0_20px_rgba(255,107,107,0.5)] sm:p-6">
+					<h2 className="mt-0 mb-4 text-[#FF6B6B]">Battle Report</h2>
 
-					<div
-						style={{
-							backgroundColor: 'rgba(255, 107, 107, 0.1)',
-							padding: '12px',
-							borderRadius: '6px',
-							marginBottom: '12px',
-						}}
-					>
-						<div style={{ fontSize: '14px', marginBottom: '8px' }}>
-							<strong>{battleReport.attackFrom}</strong> <span style={{ color: '#FFD700' }}>→</span>{' '}
+					<div className="mb-3 rounded-md bg-[rgba(255,107,107,0.1)] p-3">
+						<div className="mb-2 text-sm">
+							<strong>{battleReport.attackFrom}</strong>{' '}
+							<span className="text-[#FFD700]">→</span>{' '}
 							<strong>{battleReport.attackTo}</strong>
 						</div>
 					</div>
 
-					<div
-						style={{
-							display: 'grid',
-							gridTemplateColumns: '1fr 1fr',
-							gap: '12px',
-							marginBottom: '16px',
-						}}
-					>
-						{/* Attacker Column */}
-						<div
-							style={{
-								backgroundColor: 'rgba(100, 150, 255, 0.2)',
-								padding: '12px',
-								borderRadius: '6px',
-								borderLeft: '3px solid #6496FF',
-							}}
-						>
-							<div style={{ fontSize: '12px', color: '#6496FF', marginBottom: '8px' }}>
-								ATTACKER
-							</div>
-							<div style={{ fontSize: '14px', marginBottom: '6px' }}>
+					<div className="mb-4 grid grid-cols-2 gap-3">
+						<div className="rounded-md border-l-[3px] border-[#6496FF] bg-[rgba(100,150,255,0.2)] p-3">
+							<div className="mb-2 text-xs text-[#6496FF]">ATTACKER</div>
+							<div className="mb-1.5 text-sm">
 								Troops: <strong>{battleReport.attackerTroops}</strong>
 							</div>
-							<div style={{ fontSize: '11px', color: '#CCC' }}>
+							<div className="text-[11px] text-[#CCC]">
 								Dice: {battleReport.attackDice.join(', ')}
 							</div>
 						</div>
 
-						{/* Defender Column */}
-						<div
-							style={{
-								backgroundColor: 'rgba(255, 107, 107, 0.2)',
-								padding: '12px',
-								borderRadius: '6px',
-								borderLeft: '3px solid #FF6B6B',
-							}}
-						>
-							<div style={{ fontSize: '12px', color: '#FF6B6B', marginBottom: '8px' }}>
-								DEFENDER
-							</div>
-							<div style={{ fontSize: '14px', marginBottom: '6px' }}>
+						<div className="rounded-md border-l-[3px] border-[#FF6B6B] bg-[rgba(255,107,107,0.2)] p-3">
+							<div className="mb-2 text-xs text-[#FF6B6B]">DEFENDER</div>
+							<div className="mb-1.5 text-sm">
 								Troops: <strong>{battleReport.defenderTroops}</strong>
 							</div>
-							<div style={{ fontSize: '11px', color: '#CCC' }}>
+							<div className="text-[11px] text-[#CCC]">
 								Dice: {battleReport.defenseDice.join(', ')}
 							</div>
 						</div>
 					</div>
 
-					{/* Reinforcement Bonus Display */}
 					{battleReport.troopBonus > 0 && (
-						<div
-							style={{
-								backgroundColor: 'rgba(76, 175, 80, 0.15)',
-								padding: '10px',
-								borderRadius: '6px',
-								marginBottom: '16px',
-								borderLeft: '3px solid #4CAF50',
-							}}
-						>
-							<div style={{ fontSize: '12px', color: '#4CAF50', fontWeight: 'bold' }}>
+						<div className="mb-4 rounded-md border-l-[3px] border-[#4CAF50] bg-[rgba(76,175,80,0.15)] p-2.5">
+							<div className="text-xs font-bold text-[#4CAF50]">
 								✦ Reinforcements increased attack in +{battleReport.troopBonus}
 							</div>
 						</div>
 					)}
 
-					{/* Losses */}
-					<div
-						style={{
-							backgroundColor: 'rgba(0, 0, 0, 0.5)',
-							padding: '12px',
-							borderRadius: '6px',
-							marginBottom: '16px',
-						}}
-					>
-						<div style={{ fontSize: '12px', marginBottom: '6px' }}>CASUALTIES</div>
-						<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+					<div className="mb-4 rounded-md bg-black/50 p-3">
+						<div className="mb-1.5 text-xs">CASUALTIES</div>
+						<div className="grid grid-cols-2 gap-3">
 							<div>
-								<div style={{ color: '#6496FF', fontSize: '13px' }}>Attacker Losses</div>
-								<div style={{ fontSize: '16px', fontWeight: 'bold', color: '#FF9999' }}>
+								<div className="text-[13px] text-[#6496FF]">Attacker Losses</div>
+								<div className="text-base font-bold text-[#FF9999]">
 									-{battleReport.attackerLosses}
 								</div>
 							</div>
 							<div>
-								<div style={{ color: '#FF6B6B', fontSize: '13px' }}>Defender Losses</div>
-								<div style={{ fontSize: '16px', fontWeight: 'bold', color: '#FF9999' }}>
+								<div className="text-[13px] text-[#FF6B6B]">Defender Losses</div>
+								<div className="text-base font-bold text-[#FF9999]">
 									-{battleReport.defenderLosses}
 								</div>
 							</div>
 						</div>
 					</div>
 
-					{/* Result */}
 					<div
-						style={{
-							backgroundColor: battleReport.conquered
-								? 'rgba(76, 175, 80, 0.2)'
-								: 'rgba(255, 107, 107, 0.2)',
-							padding: '12px',
-							borderRadius: '6px',
-							marginBottom: '16px',
-							borderLeft: `3px solid ${battleReport.conquered ? '#4CAF50' : '#FF6B6B'}`,
-						}}
+						className={`mb-4 rounded-md border-l-[3px] p-3 ${
+							battleReport.conquered
+								? 'border-[#4CAF50] bg-[rgba(76,175,80,0.2)]'
+								: 'border-[#FF6B6B] bg-[rgba(255,107,107,0.2)]'
+						}`}
 					>
 						<div
-							style={{
-								fontSize: '14px',
-								fontWeight: 'bold',
-								color: battleReport.conquered ? '#4CAF50' : '#FF9999',
-							}}
+							className={`text-sm font-bold ${
+								battleReport.conquered ? 'text-[#4CAF50]' : 'text-[#FF9999]'
+							}`}
 						>
 							{battleReport.conquered ? '✓ TERRITORY CONQUERED!' : '✗ Attack Failed'}
 						</div>
 					</div>
 
-					{/* Close Button */}
 					<button
 						onClick={() => setBattleReport(null)}
-						style={{
-							width: '100%',
-							padding: '10px',
-							fontSize: '13px',
-							backgroundColor: '#FF6B6B',
-							color: 'white',
-							border: 'none',
-							borderRadius: '4px',
-							cursor: 'pointer',
-							fontWeight: 'bold',
-							transition: 'all 0.2s ease',
-						}}
-						onMouseEnter={(e) => {
-							e.target.style.backgroundColor = '#FF5252';
-							e.target.style.boxShadow = '0 0 15px rgba(255, 107, 107, 0.5)';
-						}}
-						onMouseLeave={(e) => {
-							e.target.style.backgroundColor = '#FF6B6B';
-							e.target.style.boxShadow = 'none';
-						}}
+						className="w-full cursor-pointer rounded border-0 bg-[#FF6B6B] p-2.5 text-[13px] font-bold text-white transition-all duration-200 hover:bg-[#FF5252] hover:shadow-[0_0_15px_rgba(255,107,107,0.5)]"
 					>
 						Continue
 					</button>

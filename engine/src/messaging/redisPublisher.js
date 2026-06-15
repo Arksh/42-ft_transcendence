@@ -7,7 +7,6 @@ export function createPublisher(redisUrl) {
   }
 
   const client = new Redis(redisUrl, { maxRetriesPerRequest: null, lazyConnect: false });
-  client.on('connect', () => console.log(`[redis] publisher connected to ${redisUrl}`));
   client.on('error', (err) => console.error('[redis] publisher error:', err.message));
 
   return {

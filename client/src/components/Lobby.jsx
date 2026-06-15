@@ -1,38 +1,76 @@
 import { useState, useEffect } from 'react';
 import { FACTIONS } from '@trascendence/shared/Factions';
 import { api } from '../api.js';
+import Profile from './Profile.jsx';
+
+const baseBtn =
+  'w-full cursor-pointer rounded border-0 p-2.5 text-center font-mono text-[13px] font-bold text-white';
+const inputClass =
+  'box-border w-full rounded border-2 border-[#555] bg-[#333] p-2.5 font-mono text-[13px] text-white';
+const labelClass = 'mb-2 block text-[#FFD700]';
+
+const BG_CLASSES = {
+  '#FF6B6B': 'bg-[#FF6B6B]',
+  '#6496FF': 'bg-[#6496FF]',
+  '#333': 'bg-[#333]',
+};
 
 export default function Lobby({ onStart, initialPlayerId, onLogout }) {
-  const [screen, setScreen] = useState('home'); // home | create | join | faction
+  const [screen, setScreen] = useState('home');
   const [roomId, setRoomId] = useState('');
   const [roomInput, setRoomInput] = useState('');
   const [maxPlayers, setMaxPlayers] = useState(2);
+  const [maxTurns, setMaxTurns] = useState(100);
   const [faction, setFaction] = useState(null);
-  const [roomData, setRoomData] = useState(null); // datos de la sala
+  const [roomData, setRoomData] = useState(null);
   const [error, setError] = useState(null);
   const [isCreator, setIsCreator] = useState(false);
+  const [availableRooms, setAvailableRooms] = useState([]);
+  const [profileUsername, setProfileUsername] = useState(null);
   const playerId = initialPlayerId;
 
-	// Polling para actualizar jugadores en sala
-	useEffect(() => {
-		if (screen !== 'faction' || !roomId) return;
+  function openProfile(username) {
+    setProfileUsername(username || playerId);
+    setScreen('profile');
+  }
 
-		const interval = setInterval(async () => {
-			const res = await api.getRoom(roomId);
-			if (!res.ok) return;
-			setRoomData(res.room);
-			if (res.room.started && faction) {
-				clearInterval(interval);
-				onStart({ roomId, playerId, faction });
-			}
-		}, 2000);
+  useEffect(() => {
+    if (screen !== 'faction' || !roomId) return;
 
-  return () => clearInterval(interval);
-}, [screen, roomId, faction, onStart, playerId]);
+    const interval = setInterval(async () => {
+      const res = await api.getRoom(roomId);
+      if (!res.ok) return;
+      setRoomData(res.room);
+      if (res.room.started && faction) {
+        clearInterval(interval);
+        onStart({ roomId, playerId, faction });
+      }
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [screen, roomId, faction, onStart, playerId]);
+
+  useEffect(() => {
+    if (screen !== 'join') return;
+
+    let cancelled = false;
+    async function fetchRooms() {
+      const res = await api.listRooms();
+      if (cancelled || !res?.ok) return;
+      const joinable = (res.rooms ?? []).filter(
+        r => (r.players?.length ?? 0) < r.maxPlayers
+      );
+      setAvailableRooms(joinable);
+    }
+
+    fetchRooms();
+    const interval = setInterval(fetchRooms, 2000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [screen]);
 
   async function handleCreateRoom() {
     if (!roomInput.trim()) return;
-    const res = await api.createRoom(roomInput.trim(), maxPlayers);
+    const res = await api.createRoom(roomInput.trim(), maxPlayers, maxTurns);
     if (!res.ok) { setError(res.error); return; }
     setRoomId(roomInput.trim());
     setIsCreator(true);
@@ -40,26 +78,23 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
     setError(null);
   }
 
-  async function handleJoinRoom() {
-    if (!roomInput.trim()) return;
-    //1. Obtenemos los datos de la sala (esto devuelve el array de jugadores)
-    const res = await api.getRoom(roomInput.trim());
+  async function handleJoinRoom(nameArg) {
+    const name = (typeof nameArg === 'string' ? nameArg : roomInput).trim();
+    if (!name) return;
+    const res = await api.getRoom(name);
     if (!res.ok) { setError(res.error); return; }
 
-    //2. Comprobamos si el usuario ya es parte de la sala (Re-entry)
     const playersInRoom = res.room.players;
     const existingPlayer = playersInRoom.find(p => p.id === initialPlayerId);
-    
-    // Si la partida ya empezó y NO somos parte de ella, error.
-    if (res.room.started && !existingPlayer) { 
-      setError('Game already started and you are not in the player list.'); 
-      return; 
+
+    if (res.room.started && !existingPlayer) {
+      setError('Game already started and you are not in the player list.');
+      return;
     }
 
-    setRoomId(roomInput.trim());
+    setRoomId(name);
     setRoomData(res.room);
-    
-    // Si somos el primer jugador de la lista, somos el creador/host
+
     if (playersInRoom[0]?.id === initialPlayerId) {
       setIsCreator(true);
     } else {
@@ -69,8 +104,6 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
     setScreen('faction');
     setError(null);
 
-    // Si ya teníamos facción elegida, la recuperamos.
-    // Esto hará que el useEffect de reconexión nos meta al juego automáticamente.
     if (existingPlayer?.faction) {
       setFaction(existingPlayer.faction);
     }
@@ -93,141 +126,160 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
   const takenFactions = roomData?.players?.map(p => p.faction) ?? [];
   const allPlayersJoined = roomData && roomData.players.length === roomData.maxPlayers;
 
+  if (screen === 'profile') {
+    return (
+      <Profile
+        username={profileUsername ?? playerId}
+        currentUser={playerId}
+        onBack={() => setScreen('home')}
+      />
+    );
+  }
+
   return (
-    <div style={{
-      maxWidth: '600px',
-      margin: '60px auto',
-      fontFamily: 'monospace',
-      color: 'white',
-      backgroundColor: '#1a1a2e',
-      padding: '40px',
-      borderRadius: '12px',
-      border: '2px solid #FF6B6B',
-      boxShadow: '0 0 30px rgba(255, 107, 107, 0.3)',
-      position: 'relative',
-    }}>
-      <button 
+    <div className="relative mx-auto my-4 max-h-[92vh] max-w-[600px] overflow-y-auto rounded-xl border-2 border-[#FF6B6B] bg-[#1a1a2e] p-5 font-mono text-white shadow-[0_0_30px_rgba(255,107,107,0.3)] sm:my-[60px] sm:p-10">
+      <button
         onClick={onLogout}
-        style={{
-          position: 'absolute',
-          top: '15px',
-          right: '15px',
-          background: 'none',
-          border: '1px solid #FF6B6B',
-          color: '#FF6B6B',
-          padding: '4px 8px',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          fontSize: '11px',
-          fontWeight: 'bold'
-        }}
+        className="absolute top-3 right-3 cursor-pointer rounded border border-[#FF6B6B] bg-transparent px-2 py-1 text-[11px] font-bold text-[#FF6B6B] sm:top-4 sm:right-4"
       >
         Logout
       </button>
-      <h1 style={{ textAlign: 'center', color: '#FF6B6B', marginBottom: '4px', letterSpacing: '2px' }}>
-        GREAT RISK
-      </h1>
-      <p style={{ textAlign: 'center', color: '#aaa', marginBottom: '32px' }}>
-        Napoleonic Wars
-      </p>
+      <h1 className="mb-1 text-center text-2xl tracking-[2px] text-[#FF6B6B] sm:text-4xl">GREAT RISK</h1>
+      <p className="mb-4 text-center text-sm text-[#aaa] sm:mb-8 sm:text-base">Napoleonic Wars</p>
 
       {error && (
-        <div style={{
-          backgroundColor: 'rgba(255,107,107,0.2)', border: '1px solid #FF6B6B', padding: '10px', borderRadius: '4px', marginBottom: '16px', fontSize: '12px', color: '#FF6B6B', whiteSpace: 'pre-wrap'}}>  
-            {error}
+        <div className="mb-4 whitespace-pre-wrap rounded border border-[#FF6B6B] bg-[rgba(255,107,107,0.2)] p-2.5 text-xs text-[#FF6B6B]">
+          {error}
         </div>
       )}
 
-      {/* HOME */}
       {screen === 'home' && (
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button onClick={() => setScreen('create')} style={btnStyle('#FF6B6B')}>
-            Create Room
+        <>
+          <div className="flex gap-3">
+            <button onClick={() => setScreen('create')} className={`${baseBtn} ${BG_CLASSES['#FF6B6B']}`}>
+              Create Room
+            </button>
+            <button onClick={() => setScreen('join')} className={`${baseBtn} ${BG_CLASSES['#6496FF']}`}>
+              Join Room
+            </button>
+          </div>
+          <button
+            onClick={() => openProfile(playerId)}
+            className={`${baseBtn} ${BG_CLASSES['#333']} mt-3`}
+          >
+            Profile
           </button>
-          <button onClick={() => setScreen('join')} style={btnStyle('#6496FF')}>
-            Join Room
-          </button>
-        </div>
+        </>
       )}
 
-      {/* CREATE */}
       {screen === 'create' && (
         <div>
-          <label style={{ display: 'block', marginBottom: '8px', color: '#FFD700' }}>Room Name</label>
+          <label className={labelClass}>Room Name</label>
           <input
             value={roomInput}
             onChange={e => setRoomInput(e.target.value.toLowerCase().replace(/[^a-z0-0-]/g, ''))}
             placeholder="e.g. waterloo-1815"
             maxLength={15}
-            style={inputStyle}
+            className={inputClass}
           />
-          <label style={{ display: 'block', margin: '16px 0 8px', color: '#FFD700' }}>Players</label>
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-            {[2, 3, 4].map(n => (
-              <button key={n} onClick={() => setMaxPlayers(n)}
-                style={btnStyle(maxPlayers === n ? '#FF6B6B' : '#333')}>
+          <label className={`${labelClass} mt-4`}>Players</label>
+          <div className="mb-5 flex gap-2">
+            {[2, 3, 4, 5, 6].map(n => (
+              <button
+                key={n}
+                onClick={() => setMaxPlayers(n)}
+                className={`${baseBtn} ${maxPlayers === n ? BG_CLASSES['#FF6B6B'] : BG_CLASSES['#333']}`}
+              >
                 {n}
               </button>
             ))}
           </div>
-          <button onClick={handleCreateRoom} style={btnStyle('#FF6B6B')}>Create</button>
-          <button onClick={() => setScreen('home')} style={{ ...btnStyle('#333'), marginTop: '8px' }}>Back</button>
+          <label className={labelClass}>Turns</label>
+          <div className="mb-5 flex gap-2">
+            {[50, 100, 200].map(n => (
+              <button
+                key={n}
+                onClick={() => setMaxTurns(n)}
+                className={`${baseBtn} ${maxTurns === n ? BG_CLASSES['#FF6B6B'] : BG_CLASSES['#333']}`}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+          <button onClick={handleCreateRoom} className={`${baseBtn} ${BG_CLASSES['#FF6B6B']}`}>Create</button>
+          <button onClick={() => setScreen('home')} className={`${baseBtn} ${BG_CLASSES['#333']} mt-2`}>Back</button>
         </div>
       )}
 
-      {/* JOIN */}
       {screen === 'join' && (
         <div>
-          <label style={{ display: 'block', marginBottom: '8px', color: '#FFD700' }}>Room Name</label>
+          <label className={labelClass}>Available Rooms</label>
+          {availableRooms.length === 0 ? (
+            <div className="mb-4 rounded border-2 border-dashed border-[#555] bg-[#222] p-3 text-center text-xs text-[#888]">
+              No joinable rooms right now — create one or enter a name below.
+            </div>
+          ) : (
+            <ul className="mb-4 max-h-[180px] space-y-1.5 overflow-y-auto pr-1">
+              {availableRooms.map(r => (
+                <li key={r.roomId}>
+                  <button
+                    onClick={() => handleJoinRoom(r.roomId)}
+                    className="flex w-full cursor-pointer items-center justify-between gap-2 rounded border-2 border-[#555] bg-[#333] px-3 py-2 text-left font-mono text-xs text-white hover:border-[#6496FF] hover:bg-[#3a3a4a]"
+                  >
+                    <span className="truncate font-bold text-[#FFD700]">{r.roomId}</span>
+                    <span className="flex shrink-0 items-center gap-2 text-[11px] text-[#aaa]">
+                      {r.started && <span className="text-[#FF6B6B]">in progress</span>}
+                      {(r.players?.length ?? 0)}/{r.maxPlayers}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <label className={labelClass}>Room Name</label>
           <input
             value={roomInput}
             onChange={e => setRoomInput(e.target.value.toLowerCase().replace(/[^a-z0-0-]/g, ''))}
             placeholder="Enter room name"
             maxLength={15}
-            style={inputStyle}
+            className={inputClass}
           />
           {error?.includes("Choose other login") ? (
-            <button onClick={onLogout} style={{ ...btnStyle('#FF6B6B'), marginTop: '16px' }}>
-              OK / Back to Login</button>
+            <button onClick={onLogout} className={`${baseBtn} ${BG_CLASSES['#FF6B6B']} mt-4`}>
+              OK / Back to Login
+            </button>
           ) : (
             <>
-              <button onClick={handleJoinRoom} style={{ ...btnStyle('#6496FF'), marginTop: '16px' }}>Join</button>
-              <button onClick={() => setScreen('home')} style={{ ...btnStyle('#333'), marginTop: '8px' }}>Back</button>
+              <button onClick={() => handleJoinRoom()} className={`${baseBtn} ${BG_CLASSES['#6496FF']} mt-4`}>Join</button>
+              <button onClick={() => setScreen('home')} className={`${baseBtn} ${BG_CLASSES['#333']} mt-2`}>Back</button>
             </>
-          )}  
+          )}
         </div>
       )}
 
-      {/* FACTION SELECTION */}
       {screen === 'faction' && (
         <div>
-          <div style={{ marginBottom: '16px', color: '#aaa', fontSize: '12px' }}>
-            Room: <span style={{ color: '#FFD700' }}>{roomId}</span>
+          <div className="mb-4 text-xs text-[#aaa]">
+            Room: <span className="text-[#FFD700]">{roomId}</span>
             {' '}— {roomData?.players?.length ?? 0}/{roomData?.maxPlayers ?? maxPlayers} players
           </div>
 
           {!faction ? (
             <>
-              <label style={{ display: 'block', marginBottom: '12px', color: '#FFD700' }}>
-                Choose your faction
-              </label>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <label className={`${labelClass} mb-3`}>Choose your faction</label>
+              <div className="flex flex-wrap gap-2">
                 {Object.entries(FACTIONS).map(([factionId, f]) => {
                   const taken = takenFactions.includes(factionId);
                   return (
-                    <button key={factionId}
+                    <button
+                      key={factionId}
                       onClick={() => !taken && handleSelectFaction(factionId)}
-                      style={{
-                        padding: '8px 14px',
-                        backgroundColor: taken ? '#1a1a1a' : '#333',
-                        color: taken ? '#444' : 'white',
-                        border: '2px solid #555',
-                        borderRadius: '4px',
-                        cursor: taken ? 'not-allowed' : 'pointer',
-                        fontFamily: 'monospace',
-                        fontSize: '12px',
-                        opacity: taken ? 0.4 : 1,
-                      }}
+                      className={`rounded border-2 border-[#555] px-3.5 py-2 font-mono text-xs ${
+                        taken
+                          ? 'cursor-not-allowed bg-[#1a1a1a] text-[#444] opacity-40'
+                          : 'cursor-pointer bg-[#333] text-white'
+                      }`}
                     >
                       {f.name}
                     </button>
@@ -236,38 +288,46 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
               </div>
             </>
           ) : (
-            <div style={{ color: '#4CAF50', marginBottom: '16px' }}>
+            <div className="mb-4 text-[#4CAF50]">
               ✓ Playing as <strong>{FACTIONS[faction].name}</strong>
             </div>
           )}
 
-          {/* Lista de jugadores en sala */}
           {roomData?.players?.length > 0 && (
-            <div style={{ marginTop: '20px' }}>
-              <div style={{ color: '#aaa', fontSize: '11px', marginBottom: '8px' }}>IN ROOM:</div>
+            <div className="mt-5">
+              <div className="mb-2 text-[11px] text-[#aaa]">IN ROOM:</div>
               {roomData.players.map(p => (
-                <div key={p.id} style={{ fontSize: '12px', color: '#E0E0E0', marginBottom: '4px' }}>
-                  • {p.name} — <span style={{ color: FACTIONS[p.faction]?.color }}>{FACTIONS[p.faction]?.name}</span>
+                <div key={p.id} className="mb-1 text-xs text-[#E0E0E0]">
+                  •{' '}
+                  <button
+                    onClick={() => openProfile(p.id)}
+                    className="cursor-pointer border-0 bg-transparent p-0 font-mono text-xs font-bold text-[#6496FF] hover:underline"
+                  >
+                    {p.id}
+                  </button>{' '}
+                  —{' '}
+                  <span style={{ color: FACTIONS[p.faction]?.color }}>
+                    {FACTIONS[p.faction]?.name}
+                  </span>
                 </div>
               ))}
             </div>
           )}
 
-          {/* Solo el creador puede iniciar */}
           {isCreator && faction && allPlayersJoined && (
-            <button onClick={handleStart} style={{ ...btnStyle('#FF6B6B'), marginTop: '20px' }}>
+            <button onClick={handleStart} className={`${baseBtn} ${BG_CLASSES['#FF6B6B']} mt-5`}>
               Start Campaign
             </button>
           )}
 
           {isCreator && faction && !allPlayersJoined && (
-            <div style={{ marginTop: '16px', color: '#aaa', fontSize: '12px' }}>
+            <div className="mt-4 text-xs text-[#aaa]">
               Waiting for {(roomData?.maxPlayers ?? maxPlayers) - (roomData?.players?.length ?? 0)} more player(s)...
             </div>
           )}
 
           {!isCreator && faction && (
-            <div style={{ marginTop: '16px', color: '#aaa', fontSize: '12px' }}>
+            <div className="mt-4 text-xs text-[#aaa]">
               Waiting for host to start...
             </div>
           )}
@@ -276,30 +336,3 @@ export default function Lobby({ onStart, initialPlayerId, onLogout }) {
     </div>
   );
 }
-
-const btnStyle = (bg) => ({
-  width: '100%',
-  padding: '10px',
-  backgroundColor: bg,
-  color: 'white',
-  border: 'none',
-  borderRadius: '4px',
-  cursor: 'pointer',
-  fontFamily: 'monospace',
-  fontWeight: 'bold',
-  fontSize: '13px',
-});
-
-const inputStyle = {
-  width: '100%',
-  padding: '10px',
-  backgroundColor: '#333',
-  color: 'white',
-  border: '2px solid #555',
-  borderRadius: '4px',
-  fontFamily: 'monospace',
-  fontSize: '13px',
-  boxSizing: 'border-box',
-};
-
-

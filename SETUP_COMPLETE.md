@@ -125,8 +125,8 @@ docker-compose ps
 # Ver logs del backend
 docker-compose logs -f database
 
-# Probar API
-curl http://localhost:4000/users
+# Probar API (a través de nginx con TLS; -k para aceptar cert autofirmado)
+curl -k https://localhost/api/db/users
 
 # Prisma Studio (editor visual)
 docker-compose exec database npx prisma studio

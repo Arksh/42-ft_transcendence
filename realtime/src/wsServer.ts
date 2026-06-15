@@ -78,9 +78,7 @@ export function startWsServer(port: number, rooms: RoomRegistry): WebSocketServe
     });
   });
 
-  wss.on('listening', () => {
-    console.log(`[ws] listening on :${port}`);
-  });
+  wss.on('listening', () => {});
 
   return wss;
 }

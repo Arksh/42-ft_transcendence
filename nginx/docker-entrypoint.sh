@@ -23,6 +23,12 @@ else
     echo "Certificates found"
 fi
 
+# Render nginx.conf from template, substituting only whitelisted env vars
+# (so nginx's own $host/$remote_addr/etc are left intact).
+: "${PRISMA_PORT:=4000}"
+export PRISMA_PORT
+envsubst '${PRISMA_PORT}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
+
 # Initiate Nginx
 echo "Initiating Nginx..."
 exec nginx -g "daemon off;"

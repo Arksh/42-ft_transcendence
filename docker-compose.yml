@@ -5,8 +5,6 @@ services:
 
   realtime:
     build: ./realtime
-    ports:
-      - '0.0.0.0:42069:42069'
     environment:
       PORT: 42069
       REDIS_URL: redis://redis:6379
@@ -18,12 +16,14 @@ services:
     build:
       context: .
       dockerfile: engine/Dockerfile
-    ports:
-      - '0.0.0.0:3000:3000'
     environment:
       REDIS_URL: redis://redis:6379
+      DBHANDLER_URL: http://database:${PRISMA_PORT:-4000}
     depends_on:
-      - redis
+      redis:
+        condition: service_started
+      database:
+        condition: service_healthy
     restart: unless-stopped
 
   client:
@@ -55,12 +55,10 @@ services:
 
   database:
     build:
-      context: ./database
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: database/Dockerfile
     container_name: transcendence_database
     restart: unless-stopped
-    ports:
-      - "${PRISMA_PORT:-4000}:${PRISMA_PORT:-4000}"
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: ${PRISMA_PORT:-4000}
@@ -80,9 +78,10 @@ services:
   nginx:
     build: ./nginx
     container_name: transcendence_nginx
+    environment:
+      PRISMA_PORT: ${PRISMA_PORT:-4000}
     ports:
-      - "0.0.0.0:80:80"
-      - "0.0.0.0:443:443"
+      - "0.0.0.0:6969:443"
     depends_on:
       - client
       - engine

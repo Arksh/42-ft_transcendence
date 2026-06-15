@@ -6,6 +6,17 @@ import Gamestate from '../gameState.js';
 export function createGamesRouter({ db, publisher }) {
   const router = Router();
 
+  async function handleGameEnd(roomId, gameState) {
+    if (gameState.statsPersisted) return;
+    gameState.statsPersisted = true;
+    try {
+      await db.persistMatchEnd(gameState);
+    } catch (err) {
+      gameState.statsPersisted = false;
+      console.error(`[engine] persistMatchEnd failed for ${roomId}:`, err.message);
+    }
+  }
+
   router.post('/rooms/:roomId/game/start', async (req, res) => {
     const room = await db.getRoom(req.params.roomId);
     if (!room) return res.status(404).json({ ok: false, error: 'Room not found' });
@@ -27,7 +38,6 @@ export function createGamesRouter({ db, publisher }) {
       await db.saveRoom(req.params.roomId, room);
       res.json({ ok: true, state: room.gameState.serialize() });
     } catch (err) {
-      console.error(err);
       res.status(500).json({ ok: false, error: err.message });
     }
   });
@@ -47,7 +57,7 @@ export function createGamesRouter({ db, publisher }) {
     const { territoryId } = req.body;
     const result = room.gameState.reinforce(territoryId);
     if (result.ok) {
-      await db.saveRoom(req.params.roomId, room);
+      await db.saveRoom(req.params.roomId, room, { persist: false });
       publisher.publishState(req.params.roomId, room.gameState);
     }
     res.json(result);
@@ -61,8 +71,13 @@ export function createGamesRouter({ db, publisher }) {
     const { attackFrom, attackTo, attackTroops } = req.body;
     const result = room.gameState.attack(attackFrom, attackTo, attackTroops);
     if (result.ok) {
-      await db.saveRoom(req.params.roomId, room);
       publisher.publishState(req.params.roomId, room.gameState);
+      if (room.gameState.winner) {
+        await handleGameEnd(req.params.roomId, room.gameState);
+        await db.deleteRoom(req.params.roomId);
+      } else {
+        await db.saveRoom(req.params.roomId, room, { persist: false });
+      }
     }
     res.json(result);
   });
@@ -75,8 +90,27 @@ export function createGamesRouter({ db, publisher }) {
     const { fortifyFrom, fortifyTo, troops } = req.body;
     const result = room.gameState.fortify(fortifyFrom, fortifyTo, troops);
     if (result.ok) {
-      await db.saveRoom(req.params.roomId, room);
+      await db.saveRoom(req.params.roomId, room, { persist: false });
       publisher.publishState(req.params.roomId, room.gameState);
+    }
+    res.json(result);
+  });
+
+  router.post('/rooms/:roomId/game/surrender', async (req, res) => {
+    const room = await db.getRoom(req.params.roomId);
+    if (!room?.gameState)
+      return res.status(404).json({ ok: false, error: 'No game in progress' });
+
+    const { playerId } = req.body;
+    const result = await room.gameState.surrender(playerId);
+    if (result.ok) {
+      publisher.publishState(req.params.roomId, room.gameState);
+      if (room.gameState.winner) {
+        await handleGameEnd(req.params.roomId, room.gameState);
+        await db.deleteRoom(req.params.roomId);
+      } else {
+        await db.saveRoom(req.params.roomId, room);
+      }
     }
     res.json(result);
   });
@@ -88,8 +122,13 @@ export function createGamesRouter({ db, publisher }) {
 
     const result = await room.gameState.nextTurn();
     if (result.ok) {
-      await db.saveRoom(req.params.roomId, room);
       publisher.publishState(req.params.roomId, room.gameState);
+      if (room.gameState.winner) {
+        await handleGameEnd(req.params.roomId, room.gameState);
+        await db.deleteRoom(req.params.roomId);
+      } else {
+        await db.saveRoom(req.params.roomId, room);
+      }
     }
     res.json(result);
   });

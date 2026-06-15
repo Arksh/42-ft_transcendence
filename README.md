@@ -122,8 +122,6 @@ All AI-generated output was reviewed, tested, and adapted by the team before bei
 
 ## Team Information
 
-> **TODO (team):** confirm the role assignments below. The subject (Chapter II) requires PO, PM/Scrum Master, Tech Lead/Architect, and Developers. With 5 members each role can be dedicated.
-
 | Member       | Role(s)                                  | Responsibilities                                        |
 | ------------ | ---------------------------------------- | ------------------------------------------------------- |
 | **cagonzal** | Product Owner, game developer            | Designer and developer of the main game Great Risk      |
@@ -222,15 +220,13 @@ Source of truth: [`database/prisma/schema.prisma`](./database/prisma/schema.pris
 | Gaming — Remote players                           | Major  |   2    | Two or more players on separate machines play the same match in real time           | cagonzal          |
 | Gaming — Multiplayer (3+)                         | Major  |   2    | Up to 6 players per match, synchronised across all clients                          | cagonzal          |
 | Gaming and UX — Gamification (achievements)       | Minor  |   1    | Persistent achievement system with in-game notifications                            | cagonzal          |
-| User interaction — Basic chat in game             | Major  |   2    | Allowing users to interact with each other through messages         |
+| User interaction — Basic chat in game             | Major  |   2    | Allowing users to interact with each other through messages                         |                   |
 
-**Candidate total: ~ 14 points** (adjust as needed; the subject recommends aiming above 14 to cover any module that fails review).
+**Candidate total: ~ 16 points** (adjust as needed; the subject recommends aiming above 14 to cover any module that fails review).
 
 ---
 
 ## Individual Contributions
-
-> **TODO (team):** fill in each member's detailed contributions, the modules and features they led, and any challenges they overcame. Cross-reference with `git shortlog -sn` and merged Pull Requests.
 
 ### cagonzal
 - **Implemented:** Game engine (turns, combat, victory logic), shared rules system, game-state synchronization
@@ -238,14 +234,14 @@ Source of truth: [`database/prisma/schema.prisma`](./database/prisma/schema.pris
 - **Challenges & lessons:** Synchronizing game state across multiple clients in real-time; implementing fair dice-based combat resolution; handling 4-player concurrent match logic
 
 ### fraalmei
-- **Implemented:** Database ORM
-- **Modules owned:**  Web — Use an ORM 
+- **Implemented:** Database ORM, user stats
+- **Modules owned:**  Web — Use an ORM, Game stats & match history
 - **Challenges & lessons:** Understanding and deploying an object-relational mapping using Prisma for interacting with the database.
 
 ### jrollon-
-- **Implemented:** _TODO_
-- **Modules owned:** _TODO_
-- **Challenges & lessons:** _TODO_
+- **Implemented:** React framework
+- **Modules owned:** Standard user management & auth, Web — Use React. 
+- **Challenges & lessons:** Learning about webapps 
 
 ### samartin
 - **Implemented:** https functionality
@@ -254,7 +250,7 @@ Source of truth: [`database/prisma/schema.prisma`](./database/prisma/schema.pris
 
 ### dyunta
 - **Implemented:** _TODO_
-- **Modules owned:** _TODO_
+- **Modules owned:** Web — Use Express, WebSockets.
 - **Challenges & lessons:** _TODO_
 
 ---
@@ -267,4 +263,6 @@ Source of truth: [`database/prisma/schema.prisma`](./database/prisma/schema.pris
 
 ## License
 
-> **TODO (team):** choose a license (MIT recommended for school projects) or state that the repository is for educational use only.
+We apply the MIT License; a short, permissive free software license originally written at the Massachusetts Institute of Technology. Its core terms are very simple: anyone can use, copy, modify, merge, publish, distribute, sublicense, or sell copies of the software, for any purpose, with almost no restrictions. The only conditions are that the original copyright notice and the full license text (including the disclaimer of warranty) must be included with all substantial portions of the software. This makes it popular for open-source projects, libraries, and commercial products alike.
+
+Practically, the MIT License is known for being business-friendly and low-friction. It explicitly disclaims all warranties, meaning the software is provided “as is” without liability to the original authors. Unlike stronger "copyleft" licenses (such as the GPL), the MIT License does not require that modified versions be released under the same license or that source code be made public. As a result, companies often use MIT-licensed code in proprietary products without having to share their own code. Because of its clarity, minimal requirements, and compatibility with many other licenses, it’s one of the most widely used open-source licenses worldwide.
