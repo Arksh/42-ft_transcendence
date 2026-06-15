@@ -218,11 +218,8 @@ Source of truth: [`database/prisma/schema.prisma`](./database/prisma/schema.pris
 | Gaming — Remote players                           | Major  |   2    | Two or more players on separate machines play the same match in real time           | cagonzal          |
 | Gaming — Multiplayer (3+)                         | Major  |   2    | Up to 6 players per match, synchronised across all clients                          | cagonzal          |
 | Gaming and UX — Gamification (achievements)       | Minor  |   1    | Persistent achievement system with in-game notifications                            | cagonzal          |
-| User interaction — Basic chat in game             | Major  |   2    | _TODO_         |
-
-**Candidate total: ~ 14 points** (adjust as needed; the subject recommends aiming above 14 to cover any module that fails review).
-
-> **Modules of choice / custom modules:** _TODO — if any custom module is claimed, provide the dedicated justification block (why chosen, technical challenges addressed, value added, why it deserves Major status)._
+| User interaction — Basic chat in game             | Major  |   2    | Real-time text channel per match over WebSockets, scoped to participants and persisted client-side for the session | dyunta |
+| Cybersecurity — HTTPS / WAF / Vault               | Major  |   2    | All client traffic routed through Nginx with TLS termination                        | samartin          |
 
 ---
 
@@ -234,33 +231,22 @@ Source of truth: [`database/prisma/schema.prisma`](./database/prisma/schema.pris
 - **Challenges & lessons:** Synchronizing game state across multiple clients in real-time; implementing fair dice-based combat resolution; handling 4-player concurrent match logic
 
 ### fraalmei
-- **Implemented: _TODO_
-- **Modules owned:** _TODO_
-- **Challenges & lessons:** _TODO_
+- **Implemented:** Prisma schema and migrations, database service wiring, per-user stats and ELO ranking, match history persistence
+- **Modules owned:** Web — Use an ORM; User Management — Game stats & match history
+- **Challenges & lessons:** Designing a relational schema that fits both per-match participation rows and aggregated per-user stats; iterating on Prisma migrations without losing seeded data; keeping the ELO update path consistent across concurrent match completions
 
 ### jrollon-
-- **Implemented:** _TODO_
-- **Modules owned:** _TODO_
-- **Challenges & lessons:** _TODO_
+- **Implemented:** Registration and login front-end, scrypt-hashed credential storage and auth flow, friend list with online status, Privacy Policy and Terms of Service pages and persistent footer, in-match chat front-end, cross-stack QA
+- **Modules owned:** Web — Use a frontend framework (React) (with cagonzal); User Management — Standard user management & auth
+- **Challenges & lessons:** Storing credentials safely with scrypt and persisting sessions cleanly across reloads; keeping the legal footer visible on every route without colliding with the game canvas layout; making the chat UI behave under bursty WebSocket updates
 
 ### samartin
-- **Implemented:** _TODO_
-- **Modules owned:** _TODO_
-- **Challenges & lessons:** _TODO_
+- **Implemented:** Nginx reverse proxy and HTTPS/TLS termination, routing of all client traffic through Nginx, removal of privileged-port host bindings, QA passes across services, documentation (this README)
+- **Modules owned:** Cybersecurity — HTTPS / WAF / Vault (HTTPS portion)
+- **Challenges & lessons:** Getting Chrome to accept a locally-issued self-signed certificate during development; rearranging port exposure so the host avoids binding privileged ports while still serving the SPA on 443; turning scattered QA findings into actionable, reproducible bug reports across the stack
 
 ### dyunta
-- **Implemented:** _TODO_
-- **Modules owned:** _TODO_
-- **Challenges & lessons:** _TODO_
+- **Implemented:** Realtime WebSocket server, Redis pub/sub fan-out for cross-client sync, Express engine API, in-match chat backend, match history wiring, overall service topology and inter-service contracts
+- **Modules owned:** Web — Use a backend framework (Express); Web — Real-time features (WebSockets)
+- **Challenges & lessons:** Designing a pub/sub topology that survives client reconnects without replaying stale state; keeping the WebSocket protocol resilient to out-of-order events; preserving a stateless engine API while authoritative game state lived behind the realtime layer
 
----
-
-## Known limitations
-
-> **TODO (team):** list any feature or module that is partially implemented, any browser-specific issue, performance caveat, or planned future work.
-
----
-
-## License
-
-> **TODO (team):** choose a license (MIT recommended for school projects) or state that the repository is for educational use only.
