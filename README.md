@@ -40,17 +40,18 @@ The project reads configuration from a `.env` file at the project root. This fil
 cp .env.example .env
 ```
 
-Required variables (see `.env.example` for the full list):
+`.env` is the single source of truth for runtime configuration. `docker-compose.yml` reads from it and falls back to the defaults shown below when a value is empty. Variables:
 
-| Variable             | Purpose                                              |
-| -------------------- | ---------------------------------------------------- |
-| `POSTGRES_USER`      | PostgreSQL user used by the database service         |
-| `POSTGRES_PASSWORD`  | PostgreSQL password                                  |
-| `POSTGRES_DB`        | Database name                                        |
-| `POSTGRES_HOST`      | DB host (use `postgres` inside Docker network)       |
-| `POSTGRES_PORT`      | DB port (default `5432`)                             |
-| `DB_PORT`            | Exposed DB port on the host                          |
-| `PRISMA_PORT`        | Port for the Prisma/Express data API (default `4000`)|
+| Variable            | Purpose                                                                  | Default         |
+| ------------------- | ------------------------------------------------------------------------ | --------------- |
+| `POSTGRES_USER`     | PostgreSQL user used by the `database` service                           | `transcendence` |
+| `POSTGRES_PASSWORD` | PostgreSQL password                                                      | `transcendence` |
+| `POSTGRES_DB`       | Database name                                                            | `transcendence` |
+| `POSTGRES_HOST`     | Hostname the `database` service uses to reach Postgres                   | `postgres`      |
+| `POSTGRES_PORT`     | Port Postgres listens on inside the Docker network                       | `5432`          |
+| `DB_PORT`           | Host-side port mapped to Postgres (for connecting from the host machine) | `5432`          |
+| `PRISMA_PORT`       | Internal port for the Prisma/Express data API                            | `4000`          |
+| `VITE_PRISMA_PORT`  | Same value as `PRISMA_PORT`, exposed to the Vite client build            | `4000`          |
 
 ### Running the project
 
@@ -60,14 +61,15 @@ The entire stack runs with a single command:
 make up
 ```
 
-This builds and starts the following containers in detached mode:
+This builds and starts the following containers in detached mode. Only `nginx` and `postgres` are bound to host ports; everything else is reachable only from inside the compose network (via the nginx reverse proxy):
 
-- `client` — React frontend served by Nginx on **https://localhost**
-- `engine` — game-logic REST API on **:3000**
-- `realtime` — WebSocket server on **:42069**
-- `database` — Prisma/Express REST API on **:4000**
-- `postgres` — PostgreSQL 16 on **:5432**
-- `redis` — Redis 7 (pub/sub backbone for real-time sync)
+- `nginx` — TLS-terminating reverse proxy, the only HTTP(S) entry point — host port `6969` → container `443`
+- `client` — React frontend bundle, served by the nginx container
+- `engine` — game-logic REST API (internal `:3000`)
+- `realtime` — WebSocket server (internal `:42069`)
+- `database` — Prisma/Express REST API (internal `:${PRISMA_PORT}`, default `:4000`)
+- `postgres` — PostgreSQL 16, host port `${DB_PORT}` → container `5432`
+- `redis` — Redis 7 (pub/sub backbone for real-time sync, internal only)
 
 Useful Make targets:
 
@@ -89,7 +91,7 @@ If you don't have `make`, the equivalent raw command is:
 bash ./scripts/generate-env.sh && docker compose up --build -d
 ```
 
-Once the stack is up, open **https://localhost** in Google Chrome (the project targets the latest stable Chrome per the subject).
+Once the stack is up, open **https://localhost:6969** in Google Chrome (the project targets the latest stable Chrome per the subject). You'll need to accept the self-signed certificate warning on first visit.
 
 ---
 
