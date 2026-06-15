@@ -220,10 +220,6 @@ Source of truth: [`database/prisma/schema.prisma`](./database/prisma/schema.pris
 | Gaming and UX — Gamification (achievements)       | Minor  |   1    | Persistent achievement system with in-game notifications                            | cagonzal          |
 | User interaction — Basic chat in game             | Major  |   2    | _TODO_         |
 
-**Candidate total: ~ 14 points** (adjust as needed; the subject recommends aiming above 14 to cover any module that fails review).
-
-> **Modules of choice / custom modules:** _TODO — if any custom module is claimed, provide the dedicated justification block (why chosen, technical challenges addressed, value added, why it deserves Major status)._
-
 ---
 
 ## Individual Contributions
@@ -253,14 +249,3 @@ Source of truth: [`database/prisma/schema.prisma`](./database/prisma/schema.pris
 - **Modules owned:** _TODO_
 - **Challenges & lessons:** _TODO_
 
----
-
-## Known limitations
-
-> **TODO (team):** list any feature or module that is partially implemented, any browser-specific issue, performance caveat, or planned future work.
-
----
-
-## License
-
-> **TODO (team):** choose a license (MIT recommended for school projects) or state that the repository is for educational use only.
