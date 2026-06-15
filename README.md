@@ -149,11 +149,11 @@ All AI-generated output was reviewed, tested, and adapted by the team before bei
 | Layer            | Technology                                  | Why                                                                                              |
 | ---------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | Frontend         | **React 19 + Vite**                         | Mature SPA framework; fast dev loop and HMR via Vite; component model fits view-based game UI.   |
-| Backend (data)   | **Express 5 + Prisma**                      | Lightweight HTTP API, JS across the stack, Prisma gives a type-safe ORM with migrations.        |
+| Backend (data)   | **Express 5 + Prisma**                      | Lightweight HTTP API, JS across the stack, Prisma gives a type-safe ORM with migrations.         |
 | Backend (engine) | **Express 5**                               | Stateless REST API holding the authoritative game-logic implementation.                          |
 | Real-time        | **`ws` (WebSocket) + Redis Pub/Sub**        | Required by subject; Redis fan-out lets multiple clients in the same match stay in sync.         |
 | Database         | **PostgreSQL 16**                           | Relational data fits users / matches / achievements; well-defined schema and strong constraints. |
-| Containerization | **Docker + Docker Compose**                 | Required by subject; reproducible one-command deployment of the full multi-service stack.         |
+| Containerization | **Docker + Docker Compose**                 | Required by subject; reproducible one-command deployment of the full multi-service stack.        |
 | Web server       | **Nginx** (production frontend)             | Serves the built Vite bundle inside the `client` container.                                      |
 | Styling          | **Inline styles + plain CSS**               | Lightweight; no framework dependency.                                                            |
 | Authentication   | **Email + password (scrypt hashing)**       | Meets the subject's minimum auth requirement with salted/hashed passwords.                       |
@@ -201,8 +201,8 @@ Source of truth: [`database/prisma/schema.prisma`](./database/prisma/schema.pris
 | Match history                    | Past matches per user, with results                                                                | dyunta           |
 | Stats & ELO                      | Wins / losses / games played / ELO ranking per user                                                | fraalmei         |
 | Achievements                     | Unlockable achievements with in-game notifications                                                 | cagonzal         |
-| Privacy Policy / Terms of Service| Dedicated pages, linked from a footer that is persistent across **every** view                    | jrollon-         |
-| Multi-user concurrency           | Multiple users logged in simultaneously, concurrent matches, real-time state propagation           | dyunta         |
+| Privacy Policy / Terms of Service| Dedicated pages, linked from a footer that is persistent across **every** view                     | jrollon-         |
+| Multi-user concurrency           | Multiple users logged in simultaneously, concurrent matches, real-time state propagation           | dyunta           |
 
 ---
 
@@ -245,7 +245,7 @@ Source of truth: [`database/prisma/schema.prisma`](./database/prisma/schema.pris
 - **Challenges & lessons:** Storing credentials safely with scrypt and persisting sessions cleanly across reloads; keeping the legal footer visible on every route without colliding with the game canvas layout; making the chat UI behave under bursty WebSocket updates.
 
 ### samartin
-- **Implemented:** Nginx reverse proxy and HTTPS/TLS termination, routing of all client traffic through Nginx, removal of privileged-port host bindings, QA passes across services, documentation (this README).
+- **Implemented:** Nginx reverse proxy and HTTPS/TLS termination, routing of all client traffic through Nginx, removal of privileged-port host bindings, QA passes across services, documentation (README.md(s)).
 - **Modules owned:** Cybersecurity — HTTPS / WAF / Vault (HTTPS portion).
 - **Challenges & lessons:** Getting Chrome to accept a locally-issued self-signed certificate during development; rearranging port exposure so the host avoids binding privileged ports while still serving the SPA on 443; turning scattered QA findings into actionable, reproducible bug reports across the stack.
 
